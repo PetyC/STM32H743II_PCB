@@ -1,0 +1,34 @@
+{
+    "configurations": [
+        {
+            "name": "STM32",
+            "includePath": [
+                //"D:/Software/IDE/Keil5/ARM/ARMCC/**",		//keil5 目录
+                "E:/software/IDE/Keil_v5/ARM/ARMCC/**",		//keil5 目录
+                
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/User/**"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": "${workspaceRoot}/.vscode/.browse.c_cpp.db",
+                "path": [
+                   // "D:/Software/IDE/Keil5/ARM/ARMCC/**",
+                   "E:/software/IDE/Keil_v5/ARM/ARMCC/**",		//keil5 目录
+                    "${workspaceFolder}/**",
+                    "${workspaceFolder}/User/**"
+                ]
+            },
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "__CC_ARM",
+                "USE_STDPERIPH_DRIVER",
+                "STM32H743xx"                  //替换成相对应的单片机型号宏定义
+            ],
+            "intelliSenseMode": "msvc-x64"
+        }
+    ],
+    "version": 4
+}
