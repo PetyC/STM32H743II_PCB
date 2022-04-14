@@ -35,7 +35,8 @@
 #include "lcd_init.h"
 #include "User_Nand_Flash.h"
 #include "w25qxx.h"
-#include "string.h"
+#include "Uart_Process.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -108,7 +109,7 @@ int main(void)
   MX_MDMA_Init();
   MX_FMC_Init();
   /* USER CODE BEGIN 2 */
-	
+	HAL_GPIO_WritePin(ESP_POW_GPIO_Port , ESP_POW_Pin , GPIO_PIN_RESET);
   User_FatFs_Init();
 //	LCD_Init();
 //	User_Nand_Flash_Init();
@@ -122,7 +123,7 @@ int main(void)
   while (1)
   {
 		
-		
+		USER_UART_RX_Handle();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

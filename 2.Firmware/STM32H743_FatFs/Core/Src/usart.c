@@ -21,7 +21,7 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "Uart_Process.h"
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart1;
@@ -51,7 +51,7 @@ void MX_USART1_UART_Init(void)
   huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart1.Init.ClockPrescaler = UART_PRESCALER_DIV1;
   huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
-  huart1.AdvancedInit.Swap = UART_ADVFEATURE_SWAP_ENABLE;
+  huart1.AdvancedInit.Swap = UART_ADVFEATURE_SWAP_DISABLE;
   if (HAL_UART_Init(&huart1) != HAL_OK)
   {
     Error_Handler();
@@ -69,7 +69,11 @@ void MX_USART1_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART1_Init 2 */
-
+  rbCreate(&Uart_RX_Manage , Uart_RX.BUF , UART_RX_LEN); //创建换新队列
+	
+  __HAL_UART_ENABLE_IT(&huart1 , UART_IT_IDLE);  //开启空闲中断
+	
+ HAL_UART_Receive_DMA(&huart1, &Uart_RX.Once_Read, 1);   //不加这行不能收到第一次数据
   /* USER CODE END USART1_Init 2 */
 
 }

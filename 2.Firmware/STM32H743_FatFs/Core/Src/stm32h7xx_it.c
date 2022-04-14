@@ -46,6 +46,7 @@ uint32_t Tick = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
+extern void USER_UART_IRQHandler(UART_HandleTypeDef *huart);
 
 /* USER CODE END PFP */
 
@@ -278,7 +279,7 @@ void USART1_IRQHandler(void)
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
-
+  USER_UART_IRQHandler(&huart1);
   /* USER CODE END USART1_IRQn 1 */
 }
 
