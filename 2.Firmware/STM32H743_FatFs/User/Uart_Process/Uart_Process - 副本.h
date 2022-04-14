@@ -4,7 +4,7 @@
  * @Author: Pi
  * @Date: 2021-07-06 16:34:00
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2022-04-14 20:31:33
+ * @LastEditTime: 2022-04-14 19:42:53
  */
 #ifndef UART_PROCESS_H
 #define UART_PROCESS_H
@@ -31,13 +31,19 @@
 extern DMA_HandleTypeDef hdma_usart1_tx;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 
+typedef struct
+{
+  uint8_t BUF[UART_RX_LEN]; //接收环形缓存区
+  uint8_t Once_Read;        //单次接收缓存
+  uint8_t Finish_Flag;      //接收状态标志
+  uint16_t BUF_LEN;         //接收到的数据长度
+} UART_RX_Str;
 
+extern UART_RX_Str Uart_RX; //串口缓存结构体
+extern rb_t Uart_RX_Manage; //环形队列管理变量
 
 void USER_UART_IRQHandler(UART_HandleTypeDef *huart);
 void USER_UART_IDLECallback(UART_HandleTypeDef *huart);
 void USER_UART_RX_Handle(void);
 
-
-
-void USER_UART_Loop_List_Init(void);
 #endif

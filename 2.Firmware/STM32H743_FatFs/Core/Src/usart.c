@@ -69,11 +69,7 @@ void MX_USART1_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART1_Init 2 */
-  rbCreate(&Uart_RX_Manage , Uart_RX.BUF , UART_RX_LEN); //创建换新队列
-	
-  __HAL_UART_ENABLE_IT(&huart1 , UART_IT_IDLE);  //开启空闲中断
-	
- HAL_UART_Receive_DMA(&huart1, &Uart_RX.Once_Read, 1);   //不加这行不能收到第一次数据
+  USER_UART_Loop_List_Init();
   /* USER CODE END USART1_Init 2 */
 
 }

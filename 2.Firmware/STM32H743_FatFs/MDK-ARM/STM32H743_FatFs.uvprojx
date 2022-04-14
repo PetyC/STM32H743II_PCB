@@ -614,6 +614,11 @@
               <FileType>1</FileType>
               <FilePath>..\User\Uart_Process\CRC.c</FilePath>
             </File>
+            <File>
+              <FileName>BufferManage.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Uart_Process\BufferManage.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
