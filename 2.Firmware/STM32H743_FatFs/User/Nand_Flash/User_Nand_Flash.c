@@ -2,13 +2,13 @@
  * @Description: Nand Flash
  * @Autor: Pi
  * @Date: 2022-04-11 16:40:52
- * @LastEditTime: 2022-04-11 20:14:28
+ * @LastEditTime: 2022-04-15 16:15:35
  */
 #include "User_Nand_Flash.h"
 #include <string.h>
 
 /**
- * @msg: 初始化Nand Flash 通过判断ID是否正确
+ * @brief 初始化Nand Flash 通过判断ID是否正确
  * @param {*}
  * @return {uint8_t}    0:成功  1:失败
  */
@@ -45,7 +45,7 @@ uint8_t User_Nand_Flash_Init(void)
 
 
 /**
- * @msg: 读NAND状态
+ * @brief 读NAND状态
  * @param {*}
  * @return {uint8_t} NAND状态值 bit0:0,成功;1,错误(编程/擦除/READ)     bit6:0,Busy;1,Ready
  */
@@ -84,7 +84,7 @@ uint8_t NAND_WaitForReady(void)
 
 
 /**
- * @msg: 设置NAND 模式
+ * @brief 设置NAND 模式
  * @param {uint8_t} mode
  * @return {uint8_t} 0:成功     1:失败
  */

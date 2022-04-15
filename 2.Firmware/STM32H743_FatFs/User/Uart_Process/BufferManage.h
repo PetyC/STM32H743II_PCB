@@ -2,7 +2,7 @@
  * @Description: 环形队列操作函数
  * @Autor: Pi
  * @Date: 2022-04-14 19:38:30
- * @LastEditTime: 2022-04-14 19:45:27
+ * @LastEditTime: 2022-04-15 18:43:50
  */
 #ifndef BUFFMANAGE_H_
 #define BUFFMANAGE_H_
@@ -13,10 +13,10 @@
 
 
 typedef struct{
-	signed int  Count;
-	signed int  Cnt;
-	unsigned char ReadFlage;
-	unsigned char SendFlage;
+//	signed int  Count;
+//	signed int  Cnt;
+//	unsigned char ReadFlage;
+//	unsigned char SendFlage;
 	
 	signed int  ReadLen;
 	signed int  SendLen;	

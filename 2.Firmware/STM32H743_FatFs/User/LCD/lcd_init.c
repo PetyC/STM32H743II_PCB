@@ -2,7 +2,7 @@
  * @Description: LCD初始化文件
  * @Autor: Pi
  * @Date: 2022-01-24 13:59:34
- * @LastEditTime: 2022-03-23 17:36:48
+ * @LastEditTime: 2022-04-15 16:15:19
  */
 
 #include "lcd_init.h"
@@ -66,7 +66,7 @@ SRAMD4 uint8_t LCD_Buffer1[BUFFER_LEN];
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * @msg: LCD写入8位数据
+ * @brief LCD写入8位数据
  * @param {uint8_t} dat 写入的数据
  * @return {*}
  */
@@ -78,7 +78,7 @@ void LCD_WR_DATA8(uint8_t dat)
 }
 
 /**
- * @msg: LCD写入16位数据
+ * @brief LCD写入16位数据
  * @param {uint16_t} dat  写入的数据
  * @return {*}
  */
@@ -91,7 +91,7 @@ void LCD_WR_DATA(uint16_t dat)
 }
 
 /**
- * @msg: LCD写入命令
+ * @brief LCD写入命令
  * @param {uint8_t} dat 写入的命令
  * @return {*}
  */
@@ -105,7 +105,7 @@ void LCD_WR_REG(uint8_t dat)
 }
 
 /**
- * @msg: 设置起始和结束地址
+ * @brief 设置起始和结束地址
  * @param {uint16_t} x1  设置列的起始地址
  * @param {uint16_t} y1  设置行的起始地址
  * @param {uint16_t} x2  设置列的结束地址
@@ -158,7 +158,7 @@ void LCD_Address_Set(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 }
 
 /**
- * @msg:
+ * @brief
  * @param {uint8_t} CMD         命令
  * @param {uint8_t} *Parameter  参数数组
  * @param {uint8_t} Len         参数长度
@@ -184,7 +184,7 @@ void LCD_WR_CMD(uint8_t *CMD, uint8_t Len)
 }
 
 /**
- * @msg: LCD初始化工作
+ * @brief LCD初始化工作
  * @param {*}
  * @return {*}
  */
@@ -228,7 +228,7 @@ void LCD_Init(void)
 }
 
 /**
- * @msg: 清除对应区域显示
+ * @brief 清除对应区域显示
  * @param {uint16_t} x_start
  * @param {uint16_t} y_start
  * @param {uint16_t} x_end
@@ -253,7 +253,7 @@ void LCD_Clear(uint16_t x_start, uint16_t y_start, uint16_t x_end, uint16_t y_en
 }
 
 /**
- * @msg: 设置SPI传输数据长度16位
+ * @brief 设置SPI传输数据长度16位
  * @param {*}
  * @return {*}
  */
@@ -268,7 +268,7 @@ void Set_SPI_DATASIZE_16BIT(void)
 }
 
 /**
- * @msg: 设置SPI传输数据长度8位
+ * @brief 设置SPI传输数据长度8位
  * @param {*}
  * @return {*}
  */
@@ -287,7 +287,7 @@ void Set_SPI_DATASIZE_8BIT(void)
 
 
 /**
- * @msg: 设置写入地址
+ * @brief 设置写入地址
  * @param {uint16_t} x1
  * @param {uint16_t} y1
  * @param {uint16_t} x2
@@ -329,7 +329,7 @@ void User_LCD_Address_Set(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 
 
 /**
- * @msg: 刷新图片
+ * @brief 刷新图片
  * @param {uint8_t} pic   存放图片的数组
  * @param {uint32_t} len        数组长度
  * @return {*}
@@ -490,7 +490,7 @@ void Demo_Images_Show(void)
 
 
 /**
- * @msg: 发送完成中断回调函数
+ * @brief 发送完成中断回调函数
  * @param {SPI_HandleTypeDef} *hspi
  * @return {*}
  */
@@ -499,7 +499,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 }
 
 /**
- * @msg: 定时器中断回调函数
+ * @brief 定时器中断回调函数
  * @param {TIM_HandleTypeDef} *htim
  * @return {*}
  */

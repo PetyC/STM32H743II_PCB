@@ -13,7 +13,7 @@ static void Flash_Error_Handler(void);
 
 
 /**
- * @msg: 初始化W25QXX
+ * @brief 初始化W25QXX
  * @param {*}
  * @return {uint8_t} 0:成功  1:失败
  */
@@ -40,7 +40,7 @@ uint8_t QSPI_W25Qx_Init(void)
 
 
 /**
- * @msg: 读取外部FLASH的型号  (使用SPI模式的指令)
+ * @brief 读取外部FLASH的型号  (使用SPI模式的指令)
  * @param {*}
  * @return {uint32_t}  FLASH的ID
  */
@@ -102,7 +102,7 @@ uint32_t QSPI_W25Qx_Read_Type(void)
 
 
 /**
- * @msg: 读取外部FLASH的ID  (使用SPI模式的指令)
+ * @brief 读取外部FLASH的ID  (使用SPI模式的指令)
  * @param {*}
  * @return {uint32_t}  FLASH的ID
  */
@@ -161,7 +161,7 @@ uint32_t QSPI_W25Qx_ReadID(void)
 }
 
 /**
- * @msg: 复位外部Flash
+ * @brief 复位外部Flash
  * @param {*}
  * @return {*}
  */
@@ -205,7 +205,7 @@ void QSPI_W25Qx_Reset_Memory(void)
 }
 
 /**
- * @msg: 擦除外部FLASH的扇区（大小：4KB)
+ * @brief 擦除外部FLASH的扇区（大小：4KB)
  * @param {uint32_t} _sectorAddr 扇区地址，以4KB为单位的地址，比如0，4096，8192等
  * @return {*}
  */
@@ -268,7 +268,7 @@ void QSPI_W25Qx_EraseSector(uint32_t _sectorAddr)
 }
 
 /**
- * @msg: 连续读取若干字节，字节的个数不能超出芯片容量  (从SPI模式切换到QSPI模式，读取完毕后切换回SPI模式（其他函数仅仅支持SPI模式）。)
+ * @brief 连续读取若干字节，字节的个数不能超出芯片容量  (从SPI模式切换到QSPI模式，读取完毕后切换回SPI模式（其他函数仅仅支持SPI模式）。)
  * @param {uint8_t} *_pBuf 读取数据的存放地址
  * @param {uint32_t} _read_Addr 起始的地址
  * @param {uint32_t} _read_Size  数据个数，可以大于W25Q128JV_PAGE_SIZE,但不能超出芯片总容量
@@ -337,7 +337,7 @@ void QSPI_W25Qx_Read_Buffer(uint8_t *_pBuf, uint32_t _read_Addr, uint32_t _read_
 }
 
 /**
- * @msg: 页编程，通过QSPI将数据写入外部FALSH (华邦的W25Q128JV仅仅支持SPI模式写入)
+ * @brief 页编程，通过QSPI将数据写入外部FALSH (华邦的W25Q128JV仅仅支持SPI模式写入)
  * @param {uint8_t} *_pBuf 需要存入数据的指针
  * @param {uint32_t} _write_Addr 目标区域首地址，即页首地址，比如0，256，512等。
  * @param {uint16_t} _write_Size 数据个数，不能超过页的大小，可以填入（1 ~ 256）
@@ -420,7 +420,7 @@ uint8_t QSPI_W25Qx_Write_Buffer(uint8_t *_pBuf, uint32_t _write_Addr, uint16_t _
 
 
 /**
- * @msg: 外部FLASH写使能 (使用SPI模式的指令)
+ * @brief 外部FLASH写使能 (使用SPI模式的指令)
  * @param {QSPI_HandleTypeDef} *hqspi
  * @return {*}
  */
@@ -483,7 +483,7 @@ static void QSPI_W25Qx_Write_Enable(QSPI_HandleTypeDef *hqspi)
 }
 
 /**
- * @msg: 外部FLASH芯片进入QSPI模式
+ * @brief 外部FLASH芯片进入QSPI模式
  * @param {QSPI_HandleTypeDef} *hqspi
  * @return {*}
  */
@@ -513,7 +513,7 @@ static void QSPI_W25Qx_Enter(QSPI_HandleTypeDef *hqspi)
 }
 
 /**
- * @msg:  外部FLASH芯片退出QSPI模式
+ * @brief  外部FLASH芯片退出QSPI模式
  * @param {QSPI_HandleTypeDef} *hqspi
  * @return {*}
  */
@@ -543,7 +543,7 @@ static void QSPI_W25Qx_Exit(QSPI_HandleTypeDef *hqspi)
 }
 
 /**
- * @msg: 等待QSPI Flash就绪
+ * @brief 等待QSPI Flash就绪
  * @param {uint32_t} Timeout   超时时间
  * @return {uint8_t}Flash的状态
  */
@@ -591,7 +591,7 @@ static uint8_t QSPI_W25Qx_AutoPollingMemRead(uint32_t Timeout)
 }
 
 /**
- * @msg: QSPI命令完成中断回调函数，
+ * @brief QSPI命令完成中断回调函数，
  * @param {QSPI_HandleTypeDef} *hqspi
  * @return {*}
  */
@@ -601,7 +601,7 @@ void HAL_QSPI_CmdCpltCallback(QSPI_HandleTypeDef *hqspi)
 }
 
 /**
- * @msg: QSPI接收完成中断回调函数
+ * @brief QSPI接收完成中断回调函数
  * @param {*}
  * @return {*}
  */
@@ -611,7 +611,7 @@ void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi)
 }
 
 /**
- * @msg:  QSPI发送完成中断回调函数
+ * @brief  QSPI发送完成中断回调函数
  * @param {QSPI_HandleTypeDef} *hqspi
  * @return {*}
  */
@@ -621,7 +621,7 @@ void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi)
 }
 
 /**
- * @msg: QSPI状态匹配回调中断回调函数
+ * @brief QSPI状态匹配回调中断回调函数
  * @param {QSPI_HandleTypeDef} *hqspi
  * @return {*}
  */
@@ -631,7 +631,7 @@ void HAL_QSPI_StatusMatchCallback(QSPI_HandleTypeDef *hqspi)
 }
 
 /**
- * @msg: 当FLASH发生错误时进入
+ * @brief 当FLASH发生错误时进入
  * @param {*}
  * @return {*}
  */

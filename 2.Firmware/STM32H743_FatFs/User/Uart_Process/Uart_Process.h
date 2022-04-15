@@ -1,10 +1,10 @@
 /*
- * @Descripttion:
+ * @Descripttion:串口接收数据处理 DMA+空闲中断+环形队列
  * @version: HAL STM32Cubemx
  * @Author: Pi
  * @Date: 2021-07-06 16:34:00
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2022-04-14 20:31:33
+ * @LastEditTime: 2022-04-15 19:15:05
  */
 #ifndef UART_PROCESS_H
 #define UART_PROCESS_H
@@ -16,28 +16,39 @@
 #include "string.h"
 #include "CRC.h"
 
-//串口错误标志
-#define ERROR_UART_CMD 0XFF //串口数据错误返回命令
-#define ERROR_OTHER 0X01    //数据格式错误
-#define ERROR_PE 0X02       //奇偶错误
-#define ERROR_NE 0X03       //噪声错误
-#define ERROR_FE 0X04       //帧错误
-#define ERROR_ORE 0X05      //溢出错误
-#define ERROR_CRC 0X07      // CRC校验错误
+#define Single_Buffer_Len 50 // DMA单次接收缓存长度
+#define RX_Buffer_Len 200    //接收区数据缓存长度
+#define RX_Len_Manage_LEN 20 //接收区数据每次收到数据长度数组 长度
 
-//缓存区长度
-#define UART_RX_LEN 10 //缓存区长度
+#define TX_Buffer_Len 200    //接收区数据缓存长度
+#define TX_Len_Manage_LEN 20 //接收区数据每次收到数据长度数组 长度
+
+
+typedef struct
+{
+  Buff_Manage_Str List_Manage;              //环形队列管理变量
+  uint8_t Single_Buffer[Single_Buffer_Len]; // DMA单次接收缓存
+  uint8_t Buffer[RX_Buffer_Len];            //接收区数据缓存
+  uint32_t RX_Len_Manage[RX_Len_Manage_LEN]; //接收区数据每次收到数据长度 (必须32位长度)
+} Usart_RX_Data_Str;
+
+
+typedef struct
+{
+  Buff_Manage_Str List_Manage;              //环形队列管理变量
+  uint8_t Buffer[TX_Buffer_Len];            //接收区数据缓存
+  uint32_t TX_Len_Manage[TX_Len_Manage_LEN]; //接收区数据每次收到数据长度 (必须32位长度)
+} Usart_TX_Data_Str;
+
 
 extern DMA_HandleTypeDef hdma_usart1_tx;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 
 
+void User_UART_IRQHandler(UART_HandleTypeDef *huart);
+void User_UART_IDLECallback(UART_HandleTypeDef *huart);
+void User_UART_RX_Handle(void);
 
-void USER_UART_IRQHandler(UART_HandleTypeDef *huart);
-void USER_UART_IDLECallback(UART_HandleTypeDef *huart);
-void USER_UART_RX_Handle(void);
+void User_UART_Init(void);
 
-
-
-void USER_UART_Loop_List_Init(void);
 #endif

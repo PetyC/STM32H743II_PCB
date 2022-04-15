@@ -93,7 +93,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+	
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -117,13 +117,13 @@ int main(void)
 //	Demo_Images_Show();
 	
   /* USER CODE END 2 */
-	
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
 		
-		USER_UART_RX_Handle();
+		User_UART_RX_Handle();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

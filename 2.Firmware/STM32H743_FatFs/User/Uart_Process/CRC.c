@@ -9,7 +9,6 @@
 * @retval CRC16 Value
 * @example
 **/
-
 uint16_t crc16_modbus(uint8_t *modbusdata, uint16_t length)
 {
  

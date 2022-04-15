@@ -63,8 +63,8 @@
   */
 
 #define STORAGE_LUN_NBR                  1
-#define STORAGE_BLK_NBR                  1024 * 4
-#define STORAGE_BLK_SIZ                  W25Q128JV_SECTOR_SIZE
+#define STORAGE_BLK_NBR                  0x10000
+#define STORAGE_BLK_SIZ                  0x200
 
 /* USER CODE BEGIN PRIVATE_DEFINES */
 //#define STORAGE_LUN_NBR                  1
