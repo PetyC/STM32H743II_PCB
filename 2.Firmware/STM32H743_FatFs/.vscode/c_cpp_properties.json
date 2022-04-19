@@ -3,8 +3,8 @@
         {
             "name": "STM32",
             "includePath": [
-                //"D:/Software/IDE/Keil5/ARM/ARMCC/**",		//keil5 目录
-                "E:/software/IDE/Keil_v5/ARM/ARMCC/**",		//keil5 目录
+                "D:/Software/IDE/Keil5/ARM/ARMCC/**",		//keil5 目录
+                //"E:/software/IDE/Keil_v5/ARM/ARMCC/**",		//keil5 目录
                 
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/User/**"
@@ -13,8 +13,8 @@
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": "${workspaceRoot}/.vscode/.browse.c_cpp.db",
                 "path": [
-                   // "D:/Software/IDE/Keil5/ARM/ARMCC/**",
-                   "E:/software/IDE/Keil_v5/ARM/ARMCC/**",		//keil5 目录
+                    "D:/Software/IDE/Keil5/ARM/ARMCC/**",
+                   //"E:/software/IDE/Keil_v5/ARM/ARMCC/**",		//keil5 目录
                     "${workspaceFolder}/**",
                     "${workspaceFolder}/User/**"
                 ]

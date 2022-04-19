@@ -36,7 +36,7 @@
 #include "User_Nand_Flash.h"
 #include "w25qxx.h"
 #include "Uart_Process.h"
-
+#include "stm_flash.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -67,7 +67,12 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+#define ADDR  0x08060000
+#define ADDR2  0x08080000
+uint32_t Read_data[100] = {0};
+uint32_t Write_data[100] = {0};
+uint32_t Read2_data[100] = {0};
+uint32_t Write2_data[100] = {0};
 /* USER CODE END 0 */
 
 /**
@@ -115,7 +120,40 @@ int main(void)
 //	User_Nand_Flash_Init();
  
 //	Demo_Images_Show();
+
+	for(uint32_t i = 0 ; i < 100 ; i++)
+	{
+		Write_data[i] = 0x11223344;
+    Write2_data[i] = 0x44556677;
+	}
+  
+	STMFLASH_Read(ADDR , Read_data , 100);
+  //STMFLASH_Read(ADDR2 , Read2_data , 100);
+
+ // STMFLASH_Write(ADDR , Write_data , 100);
+ // STMFLASH_Write(ADDR2 , Write2_data , 100);
 	
+  User_Flash_Write(ADDR , Write_data , 100);
+  //User_Flash_Write(ADDR2 , Write2_data , 100);
+
+  STMFLASH_Read(ADDR , Read_data , 100);
+  //STMFLASH_Read(ADDR2 , Read2_data , 100);
+
+
+  for(uint32_t i = 0 ; i < 100 ; i++)
+	{
+		Read_data[i] = 0x00000000;
+    Read2_data[i] = 0x00000000;
+	}
+
+
+  User_Flash_Erase(ADDR , 3);
+
+  STMFLASH_Read(ADDR , Read_data , 100);
+  //STMFLASH_Read(ADDR2 , Read2_data , 100);
+  
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -123,7 +161,7 @@ int main(void)
   while (1)
   {
 		
-		User_UART_RX_Handle();
+		//User_UART_RX_Handle();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
