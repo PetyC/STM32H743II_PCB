@@ -171,20 +171,20 @@ uint8_t User_Flash_Erase(uint32_t Addr, uint32_t Sectors_Number)
 		BANK_Number = FLASH_BANK_1;										//操作BANK1
 	}
 	
-	
 	__set_PRIMASK(1);    //关闭STM32总中断
-
-
+	
 	HAL_FLASH_Unlock();										//解锁
-
+	
 	FlashEraseInit.Banks = BANK_Number;											//操作BANK2
 	FlashEraseInit.TypeErase = FLASH_TYPEERASE_SECTORS;			//擦除类型，扇区擦除
 	FlashEraseInit.Sector = STMFLASH_GetFlashSector(Addr); //要擦除的扇区
 	FlashEraseInit.NbSectors = Sectors_Number;							//擦除页数
 	FlashEraseInit.VoltageRange = FLASH_VOLTAGE_RANGE_3;		//电压范围，VCC=2.7~3.6V之间!!
-
+	FLASH_WaitForLastOperation(FLASH_WAITETIME, BANK_Number); //等待上次操作完成
+	
 	FlashStatus = HAL_FLASHEx_Erase(&FlashEraseInit, &SectorError); 		//进行擦除
 	FLASH_WaitForLastOperation(FLASH_WAITETIME, BANK_Number); //等待上次操作完成
+	
 	HAL_FLASH_Lock(); //上锁
 
 	__set_PRIMASK(0);    //开启STM32总中断
@@ -225,8 +225,10 @@ uint8_t User_Flash_Write(uint32_t WriteAddr, uint32_t *pBuffer, uint32_t pBuffer
 		return 1;			//出错
 	}
 
-
+	
+	
 	__set_PRIMASK(1);    //关闭STM32总中断
+	
 	HAL_FLASH_Unlock();										//解锁
 
 	while (WriteAddr < endaddr) //写数据
@@ -237,6 +239,8 @@ uint8_t User_Flash_Write(uint32_t WriteAddr, uint32_t *pBuffer, uint32_t pBuffer
 		}
 		WriteAddr += 32;		//地址递增32位  4*8
 		pBuffer += 8;				//因为 uint32_t -> uint64_t 强制转换 
+		
+		FLASH_WaitForLastOperation(FLASH_WAITETIME, FLASH_BANK_1); //等待上次操作完成
 	}
 	
 	HAL_FLASH_Lock(); //上锁

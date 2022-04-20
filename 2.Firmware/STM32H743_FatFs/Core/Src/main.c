@@ -128,16 +128,23 @@ int main(void)
 	}
   
 	STMFLASH_Read(ADDR , Read_data , 100);
-  //STMFLASH_Read(ADDR2 , Read2_data , 100);
+  STMFLASH_Read(ADDR2 , Read2_data , 100);
 
  // STMFLASH_Write(ADDR , Write_data , 100);
  // STMFLASH_Write(ADDR2 , Write2_data , 100);
 	
-  User_Flash_Write(ADDR , Write_data , 100);
-  //User_Flash_Write(ADDR2 , Write2_data , 100);
+  if(User_Flash_Write(ADDR , Write_data , 100) == 1)
+	{
+		while(1);
+	}
+	if(User_Flash_Write(ADDR2 , Write2_data , 100) == 1)
+	{
+		while(1);
+	}
+  
 
   STMFLASH_Read(ADDR , Read_data , 100);
-  //STMFLASH_Read(ADDR2 , Read2_data , 100);
+  STMFLASH_Read(ADDR2 , Read2_data , 100);
 
 
   for(uint32_t i = 0 ; i < 100 ; i++)
@@ -150,7 +157,7 @@ int main(void)
   User_Flash_Erase(ADDR , 3);
 
   STMFLASH_Read(ADDR , Read_data , 100);
-  //STMFLASH_Read(ADDR2 , Read2_data , 100);
+  STMFLASH_Read(ADDR2 , Read2_data , 100);
   
 
 
