@@ -2,7 +2,7 @@
  * @Description: 
  * @Autor: Pi
  * @Date: 2022-04-20 00:11:15
- * @LastEditTime: 2022-04-20 03:00:35
+ * @LastEditTime: 2022-04-22 13:38:18
  */
 #ifndef STM_FLASH_H
 #define STM_FLASH_H
@@ -38,12 +38,9 @@
 
 
 
-void STMFLASH_Write(uint32_t WriteAddr,uint32_t *pBuffer,uint32_t NumToWrite);		//从指定地址开始写入指定长度的数据
-void STMFLASH_Read(uint32_t ReadAddr,uint32_t *pBuffer,uint32_t NumToRead);   		//从指定地址开始读出指定长度的数据
 
-
+void User_FLASH_Read_Buffer(uint32_t ReadAddr, uint32_t *pBuffer, uint32_t NumToRead);    //从指定地址开始读出指定长度的数据
 uint8_t User_Flash_Erase(uint32_t Addr, uint32_t Sectors_Number);
-
-uint8_t User_Flash_Write(uint32_t WriteAddr, uint32_t *pBuffer, uint32_t pBuffer_Len);
+uint8_t User_Flash_Write(uint32_t WriteAddr, uint32_t *pBuffer, uint32_t pBuffer_Len);    	//从指定地址开始写入指定长度的数据
 
 #endif

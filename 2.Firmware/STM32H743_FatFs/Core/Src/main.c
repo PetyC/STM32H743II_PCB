@@ -35,7 +35,7 @@
 #include "lcd_init.h"
 #include "User_Nand_Flash.h"
 #include "w25qxx.h"
-#include "Uart_Process.h"
+#include "Dev_Uart.h"
 #include "stm_flash.h"
 /* USER CODE END Includes */
 
@@ -67,12 +67,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#define ADDR  0x08060000
-#define ADDR2  0x08080000
-uint32_t Read_data[100] = {0};
-uint32_t Write_data[100] = {0};
-uint32_t Read2_data[100] = {0};
-uint32_t Write2_data[100] = {0};
+static uint32_t s_count = 0;
 /* USER CODE END 0 */
 
 /**
@@ -114,51 +109,15 @@ int main(void)
   MX_MDMA_Init();
   MX_FMC_Init();
   /* USER CODE BEGIN 2 */
-	HAL_GPIO_WritePin(ESP_POW_GPIO_Port , ESP_POW_Pin , GPIO_PIN_RESET);
+	//HAL_GPIO_WritePin(ESP_POW_GPIO_Port , ESP_POW_Pin , GPIO_PIN_RESET);
   User_FatFs_Init();
 //	LCD_Init();
 //	User_Nand_Flash_Init();
  
 //	Demo_Images_Show();
 
-	for(uint32_t i = 0 ; i < 100 ; i++)
-	{
-		Write_data[i] = 0x11223344;
-    Write2_data[i] = 0x44556677;
-	}
-  
-	STMFLASH_Read(ADDR , Read_data , 100);
-  STMFLASH_Read(ADDR2 , Read2_data , 100);
-
- // STMFLASH_Write(ADDR , Write_data , 100);
- // STMFLASH_Write(ADDR2 , Write2_data , 100);
-	
-  if(User_Flash_Write(ADDR , Write_data , 100) == 1)
-	{
-		while(1);
-	}
-	if(User_Flash_Write(ADDR2 , Write2_data , 100) == 1)
-	{
-		while(1);
-	}
-  
-
-  STMFLASH_Read(ADDR , Read_data , 100);
-  STMFLASH_Read(ADDR2 , Read2_data , 100);
-
-
-  for(uint32_t i = 0 ; i < 100 ; i++)
-	{
-		Read_data[i] = 0x00000000;
-    Read2_data[i] = 0x00000000;
-	}
-
-
-  User_Flash_Erase(ADDR , 3);
-
-  STMFLASH_Read(ADDR , Read_data , 100);
-  STMFLASH_Read(ADDR2 , Read2_data , 100);
-  
+	uint16_t size = 0;
+	uint8_t buf[256];
 
 
   /* USER CODE END 2 */
@@ -167,7 +126,22 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		
+			
+		s_count++;
+
+		if (s_count % 5000)
+		{
+ 
+			
+			/* 串口数据回环测试 */
+			size = User_Uart_Read(&huart1, buf, 256);
+			User_Uart_Write(&huart1, buf, size);
+
+			/* 将fifo数据拷贝到dma buf，并启动dma传输 */
+			User_UART_Poll_DMA_TX(&huart1);
+
+
+		}
 		//User_UART_RX_Handle();
     /* USER CODE END WHILE */
 

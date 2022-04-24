@@ -610,24 +610,19 @@
           <GroupName>User/Uart_Process</GroupName>
           <Files>
             <File>
-              <FileName>LoopList.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Uart_Process\LoopList.c</FilePath>
-            </File>
-            <File>
-              <FileName>Uart_Process.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Uart_Process\Uart_Process.c</FilePath>
-            </File>
-            <File>
               <FileName>CRC.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Uart_Process\CRC.c</FilePath>
             </File>
             <File>
-              <FileName>BufferManage.c</FileName>
+              <FileName>Dev_Uart.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\Uart_Process\BufferManage.c</FilePath>
+              <FilePath>..\User\Uart_Process\Dev_Uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>Fifo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Uart_Process\Fifo.c</FilePath>
             </File>
           </Files>
         </Group>
