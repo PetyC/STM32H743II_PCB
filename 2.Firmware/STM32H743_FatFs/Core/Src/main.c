@@ -37,6 +37,7 @@
 #include "w25qxx.h"
 #include "Dev_Uart.h"
 #include "stm_flash.h"
+#include "Config_Module.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -67,7 +68,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-static uint32_t s_count = 0;
+
 /* USER CODE END 0 */
 
 /**
@@ -77,7 +78,7 @@ static uint32_t s_count = 0;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -93,7 +94,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-	
+	HAL_Delay(1000);
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -109,16 +110,16 @@ int main(void)
   MX_MDMA_Init();
   MX_FMC_Init();
   /* USER CODE BEGIN 2 */
-	//HAL_GPIO_WritePin(ESP_POW_GPIO_Port , ESP_POW_Pin , GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(ESP_POW_GPIO_Port , ESP_POW_Pin , GPIO_PIN_SET);
   User_FatFs_Init();
 //	LCD_Init();
 //	User_Nand_Flash_Init();
- 
 //	Demo_Images_Show();
 
-	uint16_t size = 0;
-	uint8_t buf[256];
-
+	if(Config_Module_Block("AT+RESTORE\r\n",12,"ready", NULL) == 0)
+	{
+		HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_RESET);
+	}
 
   /* USER CODE END 2 */
 
@@ -127,21 +128,9 @@ int main(void)
   while (1)
   {
 			
-		s_count++;
+	
 
-		if (s_count % 5000)
-		{
- 
-			
-			/* 串口数据回环测试 */
-			size = User_Uart_Read(&huart1, buf, 256);
-			User_Uart_Write(&huart1, buf, size);
-
-			/* 将fifo数据拷贝到dma buf，并启动dma传输 */
-			User_UART_Poll_DMA_TX(&huart1);
-
-
-		}
+    
 		//User_UART_RX_Handle();
     /* USER CODE END WHILE */
 

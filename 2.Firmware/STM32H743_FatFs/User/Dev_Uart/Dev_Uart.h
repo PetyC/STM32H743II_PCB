@@ -4,7 +4,7 @@
  * @Author: Pi
  * @Date: 2021-07-06 16:34:00
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2022-04-24 20:33:01
+ * @LastEditTime: 2022-04-26 01:12:10
  */
 #ifndef DEV_UART_H
 #define DEV_UART_H
@@ -14,14 +14,27 @@
 #include "string.h"
 #include "Fifo.h"
 
+#define USE_UART1
+
+
+#ifdef	USE_UART1
+extern UART_HandleTypeDef huart1;
 extern DMA_HandleTypeDef hdma_usart1_tx;
 extern DMA_HandleTypeDef hdma_usart1_rx;
+#endif
+
+#ifdef	USE_UART2
+extern UART_HandleTypeDef huart2;
+extern DMA_HandleTypeDef hdma_usart2_tx;
+extern DMA_HandleTypeDef hdma_usart2_rx;
+#endif
 
 
 /* 串口设备数据结构 */
 typedef struct
 {
-	uint8_t status;		/* 发送状态 */
+	uint8_t TX_Status;		/* 发送状态 */
+	uint8_t RX_Status;	/*接收状态*/
 	_fifo_t tx_fifo;	/* 发送fifo */
 	_fifo_t rx_fifo;	/* 接收fifo */
 	uint8_t *dmarx_buf;	/* dma接收缓存 */
@@ -43,6 +56,9 @@ void User_UART_IRQHandler(UART_HandleTypeDef *huart);
 /*串口读写函数*/
 uint16_t User_Uart_Write(UART_HandleTypeDef *huart, const uint8_t *buf, uint16_t size);
 uint16_t User_Uart_Read(UART_HandleTypeDef *huart, uint8_t *buf, uint16_t size);
+
+/*判断是否接收到消息*/
+uint8_t User_UART_Get_RX_Flag(UART_HandleTypeDef *huart);
 
 void User_UART_Poll_DMA_TX(UART_HandleTypeDef *huart);
 
