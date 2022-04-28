@@ -2,7 +2,7 @@
  * @Description:AT指令阻塞版本
  * @Autor: Pi
  * @Date: 2022-04-19 17:14:34
- * @LastEditTime: 2022-04-26 02:07:08
+ * @LastEditTime: 2022-04-27 16:32:03
  */
 
 #include "Config_Module.h"
@@ -49,7 +49,7 @@ uint8_t Config_Module_Block(char *Dat, uint8_t Dat_Len , char *returnc, char *re
 		if ( User_UART_Get_RX_Flag(&huart1) == 0) //串口接收到一条完整的数据
 		{
 
-			User_Uart_Read(&huart1 , (uint8_t *)Config_Module_Buf , 500);
+			User_UART_Read(&huart1 , (uint8_t *)Config_Module_Buf , 500);
 			
 			if (returnc != NULL && strstr(Config_Module_Buf, returnc)) //比较数据
 			{
@@ -81,9 +81,85 @@ uint8_t Config_Module_Block(char *Dat, uint8_t Dat_Len , char *returnc, char *re
 	
 
 
-  
+}
 
 
+/*AT命令流程*/
+typedef enum 
+{
+	Send,
+	Wait,
+	Receive,
+	Out_Time,
+}Config_Process_En; 
+
+Config_Process_En Config_Process;
+
+/*ESP8266接收缓存*/
+#define CONFIG_BUFFER_LEN	1500
+uint8_t Config_Buffer[CONFIG_BUFFER_LEN];
+
+
+uint8_t Config_Module(uint8_t *Send_Data , uint8_t Send_Data_Len , uint8_t *returnc)
+{
+	/*实际接收到的数据长度*/
+	uint16_t Reality_Size = 0;
+	static uint32_t Out_Time_Tick = 0;
+	while(1)
+	{
+		switch (Config_Process)
+		{
+			/*发送指令*/
+			case Send:
+				HAL_UART_Transmit(&huart1 , Send_Data , Send_Data_Len , 0x500);
+				Config_Process = Wait;
+
+				/*更新超时计数*/
+				Out_Time_Tick = HAL_GetTick();
+
+			break;
+			
+			/*等待接收到指令*/
+			case Wait:
+				if( User_UART_Get_RX_Flag(&huart1) != 0)
+				{
+					/*超时超过5秒*/
+					if((HAL_GetTick() - Out_Time_Tick) > 5000 )		
+					{
+						Config_Process = Out_Time;
+					}
+				
+					break;
+				}
+
+				/*读出返回数据*/
+				Reality_Size = User_UART_Read(&huart1 , Config_Buffer , CONFIG_BUFFER_LEN);
+
+				/*判断是否返回期待数据*/
+				if(strstr((char *)Config_Buffer, (char *)returnc))
+				{
+					/*接收到数据*/
+					Config_Process = Receive;
+				}
+
+			
+			break;
+
+			/*接收到指令*/
+			case Receive:
+				return 0;
+
+
+			/*超时*/
+			case Out_Time:
+				return 1;
+
+
+			default:
+
+			break;
+		}
+	}
 
 
 }

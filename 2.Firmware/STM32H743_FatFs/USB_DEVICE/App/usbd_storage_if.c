@@ -63,8 +63,8 @@
   */
 
 #define STORAGE_LUN_NBR                  1
-#define STORAGE_BLK_NBR                  0x10000
-#define STORAGE_BLK_SIZ                  0x200
+#define STORAGE_BLK_NBR                  1024 * 4		// 扇区数量
+#define STORAGE_BLK_SIZ                  W25Q128JV_SECTOR_SIZE		// 扇区大小40
 
 /* USER CODE BEGIN PRIVATE_DEFINES */
 //#define STORAGE_LUN_NBR                  1

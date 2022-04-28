@@ -11,6 +11,12 @@
         "wt2003.h": "c",
         "app.h": "c",
         "at8870.h": "c",
-        "lcd_init.h": "c"
+        "lcd_init.h": "c",
+        "stm32h7xx_it.h": "c",
+        "string": "c",
+        "config_module.h": "c",
+        "fatfs.h": "c",
+        "ff.h": "c",
+        "user_fatfs.h": "c"
     }
 }

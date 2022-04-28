@@ -38,6 +38,7 @@
 #include "Dev_Uart.h"
 #include "stm_flash.h"
 #include "Config_Module.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,7 +69,6 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 /**
@@ -94,7 +94,9 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-	HAL_Delay(1000);
+
+	
+//	HAL_Delay(3000);
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -110,28 +112,31 @@ int main(void)
   MX_MDMA_Init();
   MX_FMC_Init();
   /* USER CODE BEGIN 2 */
-	HAL_GPIO_WritePin(ESP_POW_GPIO_Port , ESP_POW_Pin , GPIO_PIN_SET);
-  User_FatFs_Init();
+//  User_FatFs_Init();
 //	LCD_Init();
 //	User_Nand_Flash_Init();
 //	Demo_Images_Show();
+	HAL_GPIO_WritePin(ESP_POW_GPIO_Port , ESP_POW_Pin , GPIO_PIN_SET);
 
-	if(Config_Module_Block("AT+RESTORE\r\n",12,"ready", NULL) == 0)
-	{
-		HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_RESET);
-	}
-
+ //Config_Module("ATE0\r\n" , sizeof("ATE0\r\n") , "OK\r\n");
+	uint32_t size;
+	uint8_t buff[255];
+	static uint32_t count;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-			
-	
+		count++;
+		if(count %5000)
+		{
+			size = User_UART_Read(&huart1 , buff , 255);
+			User_UART_Write(&huart1 , buff , size);
+			User_UART_Poll_DMA_TX(&huart1);
+		}
 
-    
-		//User_UART_RX_Handle();
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
