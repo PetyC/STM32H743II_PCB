@@ -113,9 +113,9 @@ int main(void)
   MX_FMC_Init();
   /* USER CODE BEGIN 2 */
 //  User_FatFs_Init();
-//	LCD_Init();
+	LCD_Init();
 //	User_Nand_Flash_Init();
-//	Demo_Images_Show();
+	Demo_Images_Show();
 	HAL_GPIO_WritePin(ESP_POW_GPIO_Port , ESP_POW_Pin , GPIO_PIN_SET);
 
  //Config_Module("ATE0\r\n" , sizeof("ATE0\r\n") , "OK\r\n");

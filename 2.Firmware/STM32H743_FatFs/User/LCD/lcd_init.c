@@ -347,8 +347,7 @@ void User_LCD_ShowPicture(const uint8_t pic[], uint32_t len)
 
 
 uint8_t Images_Fish_Flag = 1;
-static uint8_t gImage_count = 2;
-static uint8_t FPS_Tick = 0;
+
 
 extern DMA_HandleTypeDef hdma_spi1_tx;
 extern TIM_HandleTypeDef htim15;

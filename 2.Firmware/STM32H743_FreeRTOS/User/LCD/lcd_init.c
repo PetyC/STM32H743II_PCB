@@ -2,7 +2,7 @@
  * @Description: LCD初始化文件
  * @Autor: Pi
  * @Date: 2022-01-24 13:59:34
- * @LastEditTime: 2022-03-23 21:48:01
+ * @LastEditTime: 2022-06-01 19:43:57
  */
 
 #include "lcd_init.h"
@@ -352,37 +352,11 @@ extern TIM_HandleTypeDef htim15;
 
 void Demo_Images_Show()
 {
-    memcpy(LCD_Buffer0 , gImage_1 , BUFFER_LEN);
-    memcpy(LCD_Buffer1 , gImage_2 , BUFFER_LEN);
-    
-    while (1)
-    {
-        static uint8_t gImage_count = 1;
-        
-        while (HAL_DMA_GetState(&hdma_spi1_tx) != HAL_DMA_STATE_READY);
 
-        switch (gImage_count)
-        {
-        case 1:
-            User_LCD_ShowPicture(LCD_Buffer0, BUFFER_LEN);
-            
-            break;
-
-        case 2:
-            User_LCD_ShowPicture(LCD_Buffer1, BUFFER_LEN);
-            break;
-
-        default:
-            break;
-        }
-
-        gImage_count++;
-
-        if (gImage_count > 2)
-        {
-            gImage_count = 1;
-        }
-    }
+   memcpy(LCD_Buffer0 , gImage_1 , BUFFER_LEN);
+	
+   User_LCD_ShowPicture(LCD_Buffer0, BUFFER_LEN);
+ 
 }
 
 

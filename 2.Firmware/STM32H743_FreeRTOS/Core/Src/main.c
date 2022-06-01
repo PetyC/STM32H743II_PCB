@@ -6,13 +6,12 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2022 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2022 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under Ultimate Liberty license
-  * SLA0044, the "License"; You may not use this file except in compliance with
-  * the License. You may obtain a copy of the License at:
-  *                             www.st.com/SLA0044
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -21,14 +20,17 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "dma.h"
+#include "mdma.h"
 #include "quadspi.h"
 #include "spi.h"
 #include "usart.h"
+#include "usb_otg.h"
 #include "gpio.h"
+#include "fmc.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "lcd_init.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -91,14 +93,14 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_SPI1_Init();
   MX_DMA_Init();
   MX_USART1_UART_Init();
   MX_QUADSPI_Init();
+  MX_MDMA_Init();
+  MX_SPI1_Init();
+  MX_USB_OTG_FS_PCD_Init();
+  MX_FMC_Init();
   /* USER CODE BEGIN 2 */
-
-  LCD_Init();     //初始化LCD
-
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
