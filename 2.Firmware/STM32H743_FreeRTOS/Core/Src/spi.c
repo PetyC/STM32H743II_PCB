@@ -34,7 +34,7 @@ void MX_SPI1_Init(void)
   /* USER CODE BEGIN SPI1_Init 0 */
 
   /* USER CODE END SPI1_Init 0 */
-	__HAL_RCC_DMA1_CLK_ENABLE();
+
   /* USER CODE BEGIN SPI1_Init 1 */
 
   /* USER CODE END SPI1_Init 1 */

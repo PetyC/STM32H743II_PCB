@@ -26,6 +26,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "lcd_init.h"
+#include "lcd.h"
+#include "Dev_Uart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,6 +52,7 @@
 osThreadId defaultTaskHandle;
 osThreadId KEY_TaskHandle;
 osThreadId LCD_TaskHandle;
+osThreadId Usart_TaskHandle;
 osSemaphoreId KEY_Binary_SemHandle;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -60,6 +63,7 @@ osSemaphoreId KEY_Binary_SemHandle;
 void StartDefaultTask(void const * argument);
 void Start_KEY_Task(void const * argument);
 void Start_LCD_Task(void const * argument);
+void Start_Usart_Task(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -123,6 +127,10 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(LCD_Task, Start_LCD_Task, osPriorityNormal, 0, 128);
   LCD_TaskHandle = osThreadCreate(osThread(LCD_Task), NULL);
 
+  /* definition and creation of Usart_Task */
+  osThreadDef(Usart_Task, Start_Usart_Task, osPriorityAboveNormal, 0, 128);
+  Usart_TaskHandle = osThreadCreate(osThread(Usart_Task), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -179,13 +187,42 @@ void Start_LCD_Task(void const * argument)
   /* USER CODE BEGIN Start_LCD_Task */
 
   LCD_Init();
-  Demo_Images_Show();
+  LCD_Fill(0,0 , 128 , 128 , BLACK);
+  
   /* Infinite loop */
   for(;;)
   {
     osDelay(1);
   }
   /* USER CODE END Start_LCD_Task */
+}
+
+/* USER CODE BEGIN Header_Start_Usart_Task */
+/**
+* @brief Function implementing the Usart_Task thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Start_Usart_Task */
+void Start_Usart_Task(void const * argument)
+{
+  /* USER CODE BEGIN Start_Usart_Task */
+  uint8_t Uart_Data[255];
+  /* Infinite loop */
+  for(;;)
+  {
+   
+    uint8_t size = User_UART_Read(&huart1 , Uart_Data , 255);
+
+    if(size !=0)
+    {
+      User_UART_Write(&huart1 , Uart_Data , size);
+      User_UART_Poll_DMA_TX(&huart1);
+      memset(Uart_Data , 0 , 255);
+    }
+    
+  }
+  /* USER CODE END Start_Usart_Task */
 }
 
 /* Private application code --------------------------------------------------*/

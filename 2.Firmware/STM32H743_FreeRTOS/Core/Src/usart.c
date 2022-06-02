@@ -21,7 +21,7 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "Dev_uart.h"
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart1;
@@ -68,7 +68,7 @@ void MX_USART1_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART1_Init 2 */
-
+  User_UART_Init(&huart1);
   /* USER CODE END USART1_Init 2 */
 
 }

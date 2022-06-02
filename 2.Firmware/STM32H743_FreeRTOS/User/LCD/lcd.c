@@ -2,13 +2,16 @@
 #include "lcd_init.h"
 #include "lcdfont.h"
 
-/******************************************************************************
-	  函数说明：在指定区域填充颜色
-	  入口数据：xsta,ysta   起始坐标
-				xend,yend   终止坐标
-								color       要填充的颜色
-	  返回值：  无
-******************************************************************************/
+
+/**
+ * @brief 在指定区域填充颜色
+ * @param {uint16_t} xsta 起始 X
+ * @param {uint16_t} ysta	起始 Y
+ * @param {uint16_t} xend 结束 X
+ * @param {uint16_t} yend 结束 Y
+ * @param {uint16_t} color	填充的颜色
+ * @return {*}
+ */
 void LCD_Fill(uint16_t xsta, uint16_t ysta, uint16_t xend, uint16_t yend, uint16_t color)
 {
 	uint16_t i, j;
