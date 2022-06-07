@@ -2,15 +2,16 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-04-14 16:11:43
- * @LastEditTime: 2022-06-02 19:57:02
+ * @LastEditTime: 2022-06-07 19:10:47
  */
 #include "Dev_Uart.h"
 
 /* 串口缓存大小 */
-#define UART1_TX_BUF_SIZE 512
+#define UART1_TX_BUF_SIZE 1024
 #define UART1_RX_BUF_SIZE 512
+#define UART1_DMA_TX_BUF_SIZE 1024
 #define UART1_DMA_RX_BUF_SIZE 512
-#define UART1_DMA_TX_BUF_SIZE 512
+
 
 
 /* 串口缓存 */

@@ -23,6 +23,7 @@
 #include "mdma.h"
 #include "quadspi.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "usb_otg.h"
 #include "gpio.h"
@@ -100,7 +101,10 @@ int main(void)
   MX_SPI1_Init();
   MX_USB_OTG_FS_PCD_Init();
   MX_FMC_Init();
+  MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
+  //打开任务统计功能的定时器
+  HAL_TIM_Base_Start_IT(&htim14);
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
@@ -184,7 +188,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+volatile uint32_t ulHighFrequencyTimerTicks;
 /* USER CODE END 4 */
 
 /**
@@ -204,7 +208,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-
+	 if (htim->Instance == TIM14)
+  {
+    ulHighFrequencyTimerTicks++;
+  }
   /* USER CODE END Callback 1 */
 }
 

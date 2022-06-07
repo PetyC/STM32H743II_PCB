@@ -17,6 +17,8 @@
         "config_module.h": "c",
         "fatfs.h": "c",
         "ff.h": "c",
-        "user_fatfs.h": "c"
+        "user_fatfs.h": "c",
+        "freertos.h": "c",
+        "freertosconfig.h": "c"
     }
 }
