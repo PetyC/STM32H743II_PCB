@@ -188,7 +188,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-volatile uint32_t ulHighFrequencyTimerTicks;
+extern volatile uint32_t ulHighFrequencyTimerTicks;
 /* USER CODE END 4 */
 
 /**

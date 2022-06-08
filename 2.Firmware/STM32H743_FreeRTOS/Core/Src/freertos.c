@@ -55,41 +55,74 @@ osThreadId defaultTaskHandle;
 osThreadId KEY_TaskHandle;
 osThreadId LCD_TaskHandle;
 osThreadId Usart_TaskHandle;
+osTimerId LED_TimerHandle;
+osTimerId Uart_TimerHandle;
 osSemaphoreId KEY_Binary_SemHandle;
+osSemaphoreId Uart_Time_Out_Binary_SemHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 
 /* USER CODE END FunctionPrototypes */
 
-void StartDefaultTask(void const *argument);
-void Start_KEY_Task(void const *argument);
-void Start_LCD_Task(void const *argument);
-void Start_Usart_Task(void const *argument);
+void StartDefaultTask(void const * argument);
+void Start_KEY_Task(void const * argument);
+void Start_LCD_Task(void const * argument);
+void Start_Usart_Task(void const * argument);
+void LED_Time_Callback(void const * argument);
+void Uart_Timer_Callback(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* GetIdleTaskMemory prototype (linked to static allocation support) */
-void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize);
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize );
+
+/* GetTimerTaskMemory prototype (linked to static allocation support) */
+void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer, StackType_t **ppxTimerTaskStackBuffer, uint32_t *pulTimerTaskStackSize );
 
 /* Hook prototypes */
 void configureTimerForRunTimeStats(void);
 unsigned long getRunTimeCounterValue(void);
+void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName);
 
 /* USER CODE BEGIN 1 */
 /* Functions needed when configGENERATE_RUN_TIME_STATS is on */
-extern volatile uint32_t ulHighFrequencyTimerTicks;
+#if(configGENERATE_RUN_TIME_STATS == 1 )
+volatile uint32_t ulHighFrequencyTimerTicks;
+#endif
 
 __weak void configureTimerForRunTimeStats(void)
 {
+#if(configGENERATE_RUN_TIME_STATS == 1 )
   ulHighFrequencyTimerTicks = 0;
+#endif
 }
 
 __weak unsigned long getRunTimeCounterValue(void)
 {
+#if(configGENERATE_RUN_TIME_STATS == 1 )  
   return ulHighFrequencyTimerTicks;
+#else
+  return 0;
+#endif
 }
 /* USER CODE END 1 */
+
+/* USER CODE BEGIN 4 */
+__weak void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName)
+{
+   /* Run time stack overflow checking is performed if
+   configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2. This hook function is
+   called if a stack overflow is detected. */
+
+  uint8_t Buff[50]="Task:";
+  strcat((char *)Buff , (char *)pcTaskName);
+  strcat((char *)Buff , " Stack is overflow!\r\n");
+
+  User_UART_Write(&huart1 , Buff , sizeof(Buff));
+  User_UART_Poll_DMA_TX(&huart1);
+}
+/* USER CODE END 4 */
 
 /* USER CODE BEGIN GET_IDLE_TASK_MEMORY */
 static StaticTask_t xIdleTaskTCBBuffer;
@@ -104,13 +137,25 @@ void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer, StackTyp
 }
 /* USER CODE END GET_IDLE_TASK_MEMORY */
 
-/**
- * @brief  FreeRTOS initialization
- * @param  None
- * @retval None
- */
-void MX_FREERTOS_Init(void)
+/* USER CODE BEGIN GET_TIMER_TASK_MEMORY */
+static StaticTask_t xTimerTaskTCBBuffer;
+static StackType_t xTimerStack[configTIMER_TASK_STACK_DEPTH];
+
+void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer, StackType_t **ppxTimerTaskStackBuffer, uint32_t *pulTimerTaskStackSize )
 {
+  *ppxTimerTaskTCBBuffer = &xTimerTaskTCBBuffer;
+  *ppxTimerTaskStackBuffer = &xTimerStack[0];
+  *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
+  /* place for user code */
+}
+/* USER CODE END GET_TIMER_TASK_MEMORY */
+
+/**
+  * @brief  FreeRTOS initialization
+  * @param  None
+  * @retval None
+  */
+void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -124,9 +169,22 @@ void MX_FREERTOS_Init(void)
   osSemaphoreDef(KEY_Binary_Sem);
   KEY_Binary_SemHandle = osSemaphoreCreate(osSemaphore(KEY_Binary_Sem), 1);
 
+  /* definition and creation of Uart_Time_Out_Binary_Sem */
+  osSemaphoreDef(Uart_Time_Out_Binary_Sem);
+  Uart_Time_Out_Binary_SemHandle = osSemaphoreCreate(osSemaphore(Uart_Time_Out_Binary_Sem), 1);
+
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
+
+  /* Create the timer(s) */
+  /* definition and creation of LED_Timer */
+  osTimerDef(LED_Timer, LED_Time_Callback);
+  LED_TimerHandle = osTimerCreate(osTimer(LED_Timer), osTimerPeriodic, NULL);
+
+  /* definition and creation of Uart_Timer */
+  osTimerDef(Uart_Timer, Uart_Timer_Callback);
+  Uart_TimerHandle = osTimerCreate(osTimer(Uart_Timer), osTimerOnce, NULL);
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
@@ -142,20 +200,25 @@ void MX_FREERTOS_Init(void)
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of KEY_Task */
-  osThreadDef(KEY_Task, Start_KEY_Task, osPriorityHigh, 0, 256);
+  osThreadDef(KEY_Task, Start_KEY_Task, osPriorityAboveNormal, 0, 256);
   KEY_TaskHandle = osThreadCreate(osThread(KEY_Task), NULL);
 
   /* definition and creation of LCD_Task */
-  osThreadDef(LCD_Task, Start_LCD_Task, osPriorityNormal, 0, 128);
+  osThreadDef(LCD_Task, Start_LCD_Task, osPriorityNormal, 0, 256);
   LCD_TaskHandle = osThreadCreate(osThread(LCD_Task), NULL);
 
   /* definition and creation of Usart_Task */
-  osThreadDef(Usart_Task, Start_Usart_Task, osPriorityAboveNormal, 0, 128);
+  osThreadDef(Usart_Task, Start_Usart_Task, osPriorityHigh, 0, 256);
   Usart_TaskHandle = osThreadCreate(osThread(Usart_Task), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+
+  /*开启LED定时器*/
+  osTimerStart(LED_TimerHandle , 1000);
+
   /* USER CODE END RTOS_THREADS */
+
 }
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -165,7 +228,7 @@ void MX_FREERTOS_Init(void)
  * @retval None
  */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const *argument)
+void StartDefaultTask(void const * argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
@@ -184,7 +247,7 @@ void StartDefaultTask(void const *argument)
  * @retval None
  */
 /* USER CODE END Header_Start_KEY_Task */
-void Start_KEY_Task(void const *argument)
+void Start_KEY_Task(void const * argument)
 {
   /* USER CODE BEGIN Start_KEY_Task */
   char pcWriteBuffer[512];
@@ -197,7 +260,7 @@ void Start_KEY_Task(void const *argument)
 
       if (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == 1)
       {
-
+#if (configUSE_TRACE_FACILITY == 1 &&configUSE_STATS_FORMATTING_FUNCTIONS == 1)
         memset(pcWriteBuffer, 0, 512);
         sprintf((char *)pcWriteBuffer, "\r\n%s\r\n", "name  state  priority  residue_stack  Number");
         strcat((char *)pcWriteBuffer, "---------------------------------------------\r\n");
@@ -206,7 +269,9 @@ void Start_KEY_Task(void const *argument)
         strcat((char *)pcWriteBuffer, "B : Blocked, R : Ready, D : Deleted, S : Suspended\r\n");
 
         User_UART_Write(&huart1, (uint8_t *)pcWriteBuffer, strlen(pcWriteBuffer));
-        
+       // User_UART_Poll_DMA_TX(&huart1);
+#endif
+#if (configGENERATE_RUN_TIME_STATS == 1 && configUSE_STATS_FORMATTING_FUNCTIONS== 1) 
         memset(pcWriteBuffer, 0, 512);
         strcat((char *)pcWriteBuffer , "\r\nName\t\tTime\t\tUsage rate\r\n" );
         strcat((char *)pcWriteBuffer, "---------------------------------------------\r\n");
@@ -214,8 +279,8 @@ void Start_KEY_Task(void const *argument)
         strcat((char *)pcWriteBuffer, "---------------------------------------------\r\n");
 
         User_UART_Write(&huart1, (uint8_t *)pcWriteBuffer, strlen(pcWriteBuffer));
-
         User_UART_Poll_DMA_TX(&huart1);
+#endif
       }
     }
 
@@ -231,7 +296,7 @@ void Start_KEY_Task(void const *argument)
  * @retval None
  */
 /* USER CODE END Header_Start_LCD_Task */
-void Start_LCD_Task(void const *argument)
+void Start_LCD_Task(void const * argument)
 {
   /* USER CODE BEGIN Start_LCD_Task */
 
@@ -253,26 +318,81 @@ void Start_LCD_Task(void const *argument)
  * @retval None
  */
 /* USER CODE END Header_Start_Usart_Task */
-void Start_Usart_Task(void const *argument)
+void Start_Usart_Task(void const * argument)
 {
   /* USER CODE BEGIN Start_Usart_Task */
-  uint8_t Uart_Data[255];
+
+  uint8_t Uart_Data[512];
+  uint16_t size = 0;
+  uint16_t TX_Buff_MAX = 400; 
+  bool Time_Out_Flag = 0;    //串口超时标志
+
   /* Infinite loop */
   for (;;)
   {
+    /*串口回显测试*/
+    vTaskSuspendAll();  //打开调度锁 禁止调度
 
-    uint8_t size = User_UART_Read(&huart1, Uart_Data, 255);
+    size = User_UART_Read(&huart1, Uart_Data, sizeof(Uart_Data)); 
+    User_UART_Write(&huart1, Uart_Data, size);
 
-    if (size != 0)
+    uint16_t Buff_Occupy = User_UART_Get_TX_Buff_Occupy(&huart1);
+
+    if(Buff_Occupy < TX_Buff_MAX && Buff_Occupy > 0)
     {
-      User_UART_Write(&huart1, Uart_Data, size);
+      //串口超时定时器开启
+      if(Time_Out_Flag == 0)
+      {
+        Time_Out_Flag = 1;
+        osTimerStart(Uart_TimerHandle , 10);
+ 
+      }
+  
+      if(osOK == osSemaphoreWait(Uart_Time_Out_Binary_SemHandle , 0))
+      {
+        Time_Out_Flag = 0;
+        User_UART_Poll_DMA_TX(&huart1);
+      }
+      
+    }
+    else if(User_UART_Get_TX_Buff_Occupy(&huart1) > TX_Buff_MAX)
+    {
       User_UART_Poll_DMA_TX(&huart1);
-      memset(Uart_Data, 0, 255);
+      
+        if(Time_Out_Flag == 1)
+        {
+          Time_Out_Flag = 0;
+          osTimerStop(Uart_TimerHandle);
+        }
+      
     }
 
-    osDelay(50);
+    xTaskResumeAll();  //恢复调度
+
+    osDelay(1);
   }
+  
   /* USER CODE END Start_Usart_Task */
+}
+
+/* LED_Time_Callback function */
+void LED_Time_Callback(void const * argument)
+{
+  /* USER CODE BEGIN LED_Time_Callback */
+  HAL_GPIO_TogglePin(LED2_GPIO_Port , LED2_Pin);
+  /* USER CODE END LED_Time_Callback */
+}
+
+/* Uart_Timer_Callback function */
+void Uart_Timer_Callback(void const * argument)
+{
+  /* USER CODE BEGIN Uart_Timer_Callback */
+
+  /*产生二值信号量*/
+  osSemaphoreRelease(Uart_Time_Out_Binary_SemHandle);
+
+
+  /* USER CODE END Uart_Timer_Callback */
 }
 
 /* Private application code --------------------------------------------------*/

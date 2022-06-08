@@ -2,15 +2,15 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-04-14 16:11:43
- * @LastEditTime: 2022-06-07 19:10:47
+ * @LastEditTime: 2022-06-08 19:49:24
  */
 #include "Dev_Uart.h"
 
 /* 串口缓存大小 */
 #define UART1_TX_BUF_SIZE 1024
-#define UART1_RX_BUF_SIZE 512
+#define UART1_RX_BUF_SIZE 1024
 #define UART1_DMA_TX_BUF_SIZE 1024
-#define UART1_DMA_RX_BUF_SIZE 512
+#define UART1_DMA_RX_BUF_SIZE 1024
 
 
 
@@ -37,16 +37,35 @@ static void User_UART_RxCplt_Callback(UART_HandleTypeDef *huart);
 static void User_UART_IDLE_Callback(UART_HandleTypeDef *huart);
 static void User_UART_TX_Cplt_Callback(UART_HandleTypeDef *huart);
 
+
+#define USE_FreeRTOS  1
+
+#if USE_FreeRTOS == 1
+#include "FreeRTOS.h"
+#include "task.h"
+
+volatile UBaseType_t uxSavedInterruptStatus;
+
+#endif
+
 /* fifo上锁函数 */
 static void fifo_lock(void)
 {
+#if USE_FreeRTOS == 1
+  uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
+#else
   __disable_irq();
+#endif
 }
 
 /* fifo解锁函数 */
 static void fifo_unlock(void)
 {
+#if USE_FreeRTOS == 1
+  taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
+#else
   __enable_irq();
+#endif
 }
 
 
@@ -255,6 +274,42 @@ void User_UART_IRQHandler(UART_HandleTypeDef *huart)
 
   }
 }
+
+
+
+/**
+ * @brief 获得TX已用BUF空间大小
+ * @param {UART_HandleTypeDef} *huart
+ * @return {*}
+ */
+uint16_t User_UART_Get_TX_Buff_Occupy(UART_HandleTypeDef *huart)
+{
+  if(huart == &huart1)
+  {
+    return fifo_get_occupy_size(&Uart_Dev_0.tx_fifo);
+  }
+
+  return 0;
+
+}
+
+
+
+/**
+ * @brief 获取TX空闲BUF空间大小
+ * @param {UART_HandleTypeDef} *huart
+ * @return {*}
+ */
+uint16_t User_UART_Get_TX_Buff_Free(UART_HandleTypeDef *huart)
+{
+  if(huart == &huart1)
+  {
+    return fifo_get_free_size(&Uart_Dev_0.tx_fifo);
+  }
+  
+  return 0;
+}
+
 
 
 

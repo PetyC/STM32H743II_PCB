@@ -4,7 +4,7 @@
  * @Author: Pi
  * @Date: 2021-07-06 16:34:00
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2022-06-02 19:10:45
+ * @LastEditTime: 2022-06-08 19:51:09
  */
 #ifndef DEV_UART_H
 #define DEV_UART_H
@@ -55,8 +55,11 @@ uint8_t User_UART_Get_RX_Flag(UART_HandleTypeDef *huart);
 /*发送Fifo中的消息*/
 void User_UART_Poll_DMA_TX(UART_HandleTypeDef *huart);
 
+/*TX Buff空闲空间*/
+uint16_t User_UART_Get_TX_Buff_Free(UART_HandleTypeDef *huart);
 
-
+/*TX Buff已用空间*/
+uint16_t User_UART_Get_TX_Buff_Occupy(UART_HandleTypeDef *huart);
 
 
 
