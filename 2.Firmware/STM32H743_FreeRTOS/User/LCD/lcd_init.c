@@ -2,11 +2,15 @@
  * @Description: LCD初始化文件
  * @Autor: Pi
  * @Date: 2022-01-24 13:59:34
- * @LastEditTime: 2022-06-01 19:43:57
+ * @LastEditTime: 2022-06-09 18:52:47
  */
 
 #include "lcd_init.h"
 #include "pic.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
+#include "cmsis_os.h"
 
 extern SPI_HandleTypeDef hspi1;
 
@@ -66,7 +70,7 @@ SRAMD4 uint8_t LCD_Buffer1[BUFFER_LEN];
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * @msg: LCD写入8位数据
+ * @brief LCD写入8位数据
  * @param {uint8_t} dat 写入的数据
  * @return {*}
  */
@@ -78,7 +82,7 @@ void LCD_WR_DATA8(uint8_t dat)
 }
 
 /**
- * @msg: LCD写入16位数据
+ * @brief LCD写入16位数据
  * @param {uint16_t} dat  写入的数据
  * @return {*}
  */
@@ -91,7 +95,7 @@ void LCD_WR_DATA(uint16_t dat)
 }
 
 /**
- * @msg: LCD写入命令
+ * @brief LCD写入命令
  * @param {uint8_t} dat 写入的命令
  * @return {*}
  */
@@ -105,7 +109,7 @@ void LCD_WR_REG(uint8_t dat)
 }
 
 /**
- * @msg: 设置起始和结束地址
+ * @brief 设置起始和结束地址
  * @param {uint16_t} x1  设置列的起始地址
  * @param {uint16_t} y1  设置行的起始地址
  * @param {uint16_t} x2  设置列的结束地址
@@ -158,7 +162,7 @@ void LCD_Address_Set(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 }
 
 /**
- * @msg:
+ * @brief
  * @param {uint8_t} CMD         命令
  * @param {uint8_t} *Parameter  参数数组
  * @param {uint8_t} Len         参数长度
@@ -184,7 +188,7 @@ void LCD_WR_CMD(uint8_t *CMD, uint8_t Len)
 }
 
 /**
- * @msg: LCD初始化工作
+ * @brief LCD初始化工作
  * @param {*}
  * @return {*}
  */
@@ -223,12 +227,10 @@ void LCD_Init(void)
     LCD_WR_CMD(Set_Interface_Pixel_CMD, sizeof(Set_Interface_Pixel_CMD));
 
     LCD_WR_CMD(Set_Display_on_CMD, sizeof(Set_Display_on_CMD));
-
-
 }
 
 /**
- * @msg: 清除对应区域显示
+ * @brief 清除对应区域显示
  * @param {uint16_t} x_start
  * @param {uint16_t} y_start
  * @param {uint16_t} x_end
@@ -253,7 +255,7 @@ void LCD_Clear(uint16_t x_start, uint16_t y_start, uint16_t x_end, uint16_t y_en
 }
 
 /**
- * @msg: 设置SPI传输数据长度16位
+ * @brief 设置SPI传输数据长度16位
  * @param {*}
  * @return {*}
  */
@@ -268,7 +270,7 @@ void Set_SPI_DATASIZE_16BIT(void)
 }
 
 /**
- * @msg: 设置SPI传输数据长度8位
+ * @brief 设置SPI传输数据长度8位
  * @param {*}
  * @return {*}
  */
@@ -282,12 +284,8 @@ void Set_SPI_DATASIZE_8BIT(void)
     hspi1.Init.DataSize = SPI_DATASIZE_8BIT; //(0x00000007UL)
 }
 
-
-
-
-
 /**
- * @msg: 设置写入地址
+ * @brief 设置写入地址
  * @param {uint16_t} x1
  * @param {uint16_t} y1
  * @param {uint16_t} x2
@@ -327,47 +325,57 @@ void User_LCD_Address_Set(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
     LCD_DC_Set(); //写数据
 }
 
-
 /**
- * @msg: 刷新图片
+ * @brief 刷新图片
  * @param {uint8_t} pic   存放图片的数组
  * @param {uint32_t} len        数组长度
  * @return {*}
  */
 void User_LCD_ShowPicture(const uint8_t pic[], uint32_t len)
 {
-    User_LCD_Address_Set(0,0,127,127);
+    User_LCD_Address_Set(0, 0, 127, 127);
     Set_SPI_DATASIZE_8BIT();
     HAL_SPI_Transmit_DMA(&hspi1, (uint8_t *)pic, len);
 }
 
+extern osSemaphoreId LCD_Binary_SemHandle;
 
-
-
-
-
-
-extern DMA_HandleTypeDef hdma_spi1_tx;
-extern TIM_HandleTypeDef htim15;
-
-void Demo_Images_Show()
+/**
+ * @brief 全屏填充
+ * @param {uint16_t} color
+ * @return {*}
+ */
+void User_LCD_Fill(uint16_t color)
 {
+    for (uint16_t j = 0; j < BUFFER_LEN / 2; j++)
+    {
+        LCD_Buffer0[j * 2] = (uint8_t)(color >> 8);
+        LCD_Buffer0[j * 2 + 1] = (uint8_t)(color);
+    }
 
-   memcpy(LCD_Buffer0 , gImage_1 , BUFFER_LEN);
-	
-   User_LCD_ShowPicture(LCD_Buffer0, BUFFER_LEN);
- 
+    if (osOK == osSemaphoreWait(LCD_Binary_SemHandle, osWaitForever))
+    {
+        User_LCD_ShowPicture(LCD_Buffer0, BUFFER_LEN);
+    }
 }
+
+
+
+
+
+
+
+
 
 
 
 /**
- * @msg: 发送完成中断回调函数
+ * @brief SPI发送完成中断回调函数
  * @param {SPI_HandleTypeDef} *hspi
  * @return {*}
  */
+
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-    
+    osSemaphoreRelease(LCD_Binary_SemHandle);
 }
-

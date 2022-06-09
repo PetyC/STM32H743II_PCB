@@ -2,7 +2,7 @@
  * @Description:LCD 驱动层相关函数
  * @Autor: Pi
  * @Date: 2022-01-14 16:06:56
- * @LastEditTime: 2022-03-23 17:23:26
+ * @LastEditTime: 2022-06-09 17:25:51
  */
 #ifndef __LCD_INIT_H
 #define __LCD_INIT_H
@@ -34,12 +34,12 @@ void Set_SPI_DATASIZE_8BIT(void);
 void LCD_Address_Set(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 
 
-void User_LCD_Fill(uint8_t *color);
+void User_LCD_Fill(uint16_t color);
 
 void User_LCD_ShowPicture(const uint8_t pic[], uint32_t len);
 
 
-void Demo_Images_Show(void);
+ 
 
 
 void User_LCD_Address_Set(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
