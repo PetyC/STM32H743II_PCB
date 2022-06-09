@@ -221,7 +221,7 @@ void MX_FREERTOS_Init(void)
   KEY_TaskHandle = osThreadCreate(osThread(KEY_Task), NULL);
 
   /* definition and creation of LCD_Task */
-  osThreadDef(LCD_Task, Start_LCD_Task, osPriorityNormal, 0, 256);
+  osThreadDef(LCD_Task, Start_LCD_Task, osPriorityNormal, 0, 2048);
   LCD_TaskHandle = osThreadCreate(osThread(LCD_Task), NULL);
 
   /* definition and creation of Usart_Task */
@@ -316,9 +316,13 @@ void Start_LCD_Task(void const *argument)
 {
   /* USER CODE BEGIN Start_LCD_Task */
 
-  LCD_Init();
-  LCD_Fill(0, 0, 128, 128, BLACK);
-  LCD_Fill(0, 0, 128, 128, GRED);
+  //LCD_Init();
+  //LCD_Fill(0, 0, 128, 128, BLACK);
+  //LCD_Fill(0, 0, 128, 128, GRED);
+	
+	User_LCD_Init();
+	User_LCD_Fill(BLACK);
+
   char TX_FPS_Buff[50];
   int FPS = 0;
 
@@ -329,26 +333,28 @@ void Start_LCD_Task(void const *argument)
   for (;;)
   { 
 
+
     //User_LCD_Fill(RED);
-    FPS++;
+    //FPS++;
+		//User_LCD_CPU_Show();
+		FPS++;
 
     if (osOK == osSemaphoreWait(LCD_FPS_Binary_SemHandle, 0))
     {
       sprintf((char *)TX_FPS_Buff, "LCD FPS:%d\r\n", FPS);
       User_UART_Write(&huart1, (uint8_t *)TX_FPS_Buff, strlen(TX_FPS_Buff));
-
       sprintf((char *)TX_FPS_Buff, "FPS:%d", FPS);
 
-     // LCD_ShowString( 80 , 116 , (uint8_t *)TX_FPS_Buff , RED , BLACK ,12 , 0);
+      //LCD_ShowString( 80 , 116 , (uint8_t *)TX_FPS_Buff , RED , BLACK ,12 , 0);
      
       FPS = 0;
       osTimerStart(LCD_TimerHandle, 1000);
     }
   
    
-    osDelayUntil(&Last_Wake_Time, 20);
     
-    //osDelayUntil(&Last_Wake_Time, 20);
+    
+    osDelayUntil(&Last_Wake_Time, 20);
   }
   /* USER CODE END Start_LCD_Task */
 }

@@ -2,7 +2,7 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-04-14 16:11:43
- * @LastEditTime: 2022-06-09 19:02:57
+ * @LastEditTime: 2022-06-09 23:01:37
  */
 #include "Dev_Uart.h"
 
@@ -38,13 +38,13 @@ static void User_UART_IDLE_Callback(UART_HandleTypeDef *huart);
 static void User_UART_TX_Cplt_Callback(UART_HandleTypeDef *huart);
 
 
-#define USE_FreeRTOS  1
+
 
 #if USE_FreeRTOS == 1
 #include "FreeRTOS.h"
 #include "task.h"
 
-volatile UBaseType_t uxSavedInterruptStatus;
+volatile static UBaseType_t uxSavedInterruptStatus = 0;
 
 #endif
 
@@ -363,7 +363,6 @@ uint8_t User_UART_Get_RX_Flag(UART_HandleTypeDef *huart)
   }
   
 }
-
 
 
 /**

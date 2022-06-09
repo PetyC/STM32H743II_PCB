@@ -2,7 +2,7 @@
  * @Description: ST7735S BSP支持包
  * @Autor: Pi
  * @Date: 2022-06-09 19:09:25
- * @LastEditTime: 2022-06-09 19:55:33
+ * @LastEditTime: 2022-06-09 23:15:46
  */
 #include "BSP_ST7735S.h"
 
@@ -55,15 +55,14 @@ uint8_t Set_Sleep_Out_CMD[] = {0x11};
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*只在内部使用的函数*/
-static void Set_SPI_DATASIZE_16BIT(void);
-static void Set_SPI_DATASIZE_8BIT(void);
+
 
 /**
  * @brief 设置SPI传输数据长度16位
  * @param {*}
  * @return {*}
  */
-static void Set_SPI_DATASIZE_16BIT(void)
+void Set_SPI_DATASIZE_16BIT(void)
 {
   SPI1->CFG1 &= ~(0x0000001f);              //置0
   SPI1->CFG1 |= SPI_DATASIZE_16BIT;         //再赋值
@@ -75,7 +74,7 @@ static void Set_SPI_DATASIZE_16BIT(void)
  * @param {*}
  * @return {*}
  */
-static void Set_SPI_DATASIZE_8BIT(void)
+void Set_SPI_DATASIZE_8BIT(void)
 {
   SPI1->CFG1 &= ~(0x0000001f);             //置0
   SPI1->CFG1 |= SPI_DATASIZE_8BIT;         //再赋值

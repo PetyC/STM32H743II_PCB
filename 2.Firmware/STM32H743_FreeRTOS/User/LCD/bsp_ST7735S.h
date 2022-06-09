@@ -2,7 +2,7 @@
  * @Description: ST7735S BSP支持包
  * @Autor: Pi
  * @Date: 2022-06-09 19:09:07
- * @LastEditTime: 2022-06-09 19:55:18
+ * @LastEditTime: 2022-06-09 23:16:04
  */
 #ifndef BSP_ST7735S_H
 #define BSP_ST7735S_H
@@ -33,5 +33,6 @@ void LCD_WR_DATA16(uint16_t dat);
 void LCD_WR_CMD(uint8_t *CMD, uint8_t Len);
 void LCD_Address_Set(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 
-
+void Set_SPI_DATASIZE_16BIT(void);
+void Set_SPI_DATASIZE_8BIT(void);
 #endif

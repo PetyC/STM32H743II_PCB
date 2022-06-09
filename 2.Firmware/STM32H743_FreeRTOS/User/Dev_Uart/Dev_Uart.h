@@ -4,7 +4,7 @@
  * @Author: Pi
  * @Date: 2021-07-06 16:34:00
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2022-06-08 19:51:09
+ * @LastEditTime: 2022-06-09 22:03:44
  */
 #ifndef DEV_UART_H
 #define DEV_UART_H
@@ -14,7 +14,8 @@
 #include "string.h"
 #include "Fifo.h"
 
-
+/*是否使用了FreeRTOS*/
+#define USE_FreeRTOS  1
 
 extern UART_HandleTypeDef huart1;
 extern DMA_HandleTypeDef hdma_usart1_tx;
