@@ -1,5 +1,5 @@
 #include "lcd.h"
-#include "lcd_init.h"
+#include "BSP_ST7735S.h"
 #include "lcdfont.h"
 
 
@@ -22,7 +22,7 @@ void LCD_Fill(uint16_t xsta, uint16_t ysta, uint16_t xend, uint16_t yend, uint16
 	{
 		for (j = xsta; j < xend; j++)
 		{
-			LCD_WR_DATA(color);
+			LCD_WR_DATA16(color);
 		}
 	}
 }
@@ -36,7 +36,7 @@ void LCD_Fill(uint16_t xsta, uint16_t ysta, uint16_t xend, uint16_t yend, uint16
 void LCD_DrawPoint(uint16_t x, uint16_t y, uint16_t color)
 {
 	LCD_Address_Set(x, y, x, y); //设置光标位置
-	LCD_WR_DATA(color);
+	LCD_WR_DATA16(color);
 }
 
 /******************************************************************************
@@ -201,9 +201,9 @@ void LCD_ShowChinese12x12(uint16_t x, uint16_t y, uint8_t *s, uint16_t fc, uint1
 					if (!mode) //非叠加方式
 					{
 						if (tfont12[k].Msk[i] & (0x01 << j))
-							LCD_WR_DATA(fc);
+							LCD_WR_DATA16(fc);
 						else
-							LCD_WR_DATA(bc);
+							LCD_WR_DATA16(bc);
 						m++;
 						if (m % sizey == 0)
 						{
@@ -261,9 +261,9 @@ void LCD_ShowChinese16x16(uint16_t x, uint16_t y, uint8_t *s, uint16_t fc, uint1
 					if (!mode) //非叠加方式
 					{
 						if (tfont16[k].Msk[i] & (0x01 << j))
-							LCD_WR_DATA(fc);
+							LCD_WR_DATA16(fc);
 						else
-							LCD_WR_DATA(bc);
+							LCD_WR_DATA16(bc);
 						m++;
 						if (m % sizey == 0)
 						{
@@ -321,9 +321,9 @@ void LCD_ShowChinese24x24(uint16_t x, uint16_t y, uint8_t *s, uint16_t fc, uint1
 					if (!mode) //非叠加方式
 					{
 						if (tfont24[k].Msk[i] & (0x01 << j))
-							LCD_WR_DATA(fc);
+							LCD_WR_DATA16(fc);
 						else
-							LCD_WR_DATA(bc);
+							LCD_WR_DATA16(bc);
 						m++;
 						if (m % sizey == 0)
 						{
@@ -381,9 +381,9 @@ void LCD_ShowChinese32x32(uint16_t x, uint16_t y, uint8_t *s, uint16_t fc, uint1
 					if (!mode) //非叠加方式
 					{
 						if (tfont32[k].Msk[i] & (0x01 << j))
-							LCD_WR_DATA(fc);
+							LCD_WR_DATA16(fc);
 						else
-							LCD_WR_DATA(bc);
+							LCD_WR_DATA16(bc);
 						m++;
 						if (m % sizey == 0)
 						{
@@ -446,9 +446,9 @@ void LCD_ShowChar(uint16_t x, uint16_t y, uint8_t num, uint16_t fc, uint16_t bc,
 			if (!mode) //非叠加模式
 			{
 				if (temp & (0x01 << t))
-					LCD_WR_DATA(fc);
+					LCD_WR_DATA16(fc);
 				else
-					LCD_WR_DATA(bc);
+					LCD_WR_DATA16(bc);
 				m++;
 				if (m % sizex == 0)
 				{

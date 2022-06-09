@@ -2,7 +2,7 @@
  * @Description: LCD初始化文件
  * @Autor: Pi
  * @Date: 2022-01-24 13:59:34
- * @LastEditTime: 2022-06-09 18:52:47
+ * @LastEditTime: 2022-06-09 19:32:29
  */
 
 #include "lcd_init.h"
@@ -11,6 +11,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "cmsis_os.h"
+
 
 extern SPI_HandleTypeDef hspi1;
 
@@ -66,6 +67,7 @@ uint8_t Set_Sleep_Out_CMD[] = {0x11};
 
 SRAMD4 uint8_t LCD_Buffer0[BUFFER_LEN];
 SRAMD4 uint8_t LCD_Buffer1[BUFFER_LEN];
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -357,6 +359,8 @@ void User_LCD_Fill(uint16_t color)
     {
         User_LCD_ShowPicture(LCD_Buffer0, BUFFER_LEN);
     }
+
+    
 }
 
 

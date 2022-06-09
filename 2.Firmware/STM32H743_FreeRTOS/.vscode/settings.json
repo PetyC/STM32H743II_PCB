@@ -19,6 +19,7 @@
         "ff.h": "c",
         "user_fatfs.h": "c",
         "freertos.h": "c",
-        "freertosconfig.h": "c"
+        "freertosconfig.h": "c",
+        "bsp_LCD.H": "cpp"
     }
 }

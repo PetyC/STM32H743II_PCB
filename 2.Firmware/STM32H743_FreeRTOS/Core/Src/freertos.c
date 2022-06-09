@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "lcd_init.h"
+#include "bsp_lcd.h"
 #include "lcd.h"
 #include "Dev_Uart.h"
 #include "stdio.h"
@@ -318,7 +318,7 @@ void Start_LCD_Task(void const *argument)
 
   LCD_Init();
   LCD_Fill(0, 0, 128, 128, BLACK);
-
+  LCD_Fill(0, 0, 128, 128, GRED);
   char TX_FPS_Buff[50];
   int FPS = 0;
 
@@ -329,7 +329,7 @@ void Start_LCD_Task(void const *argument)
   for (;;)
   { 
 
-    User_LCD_Fill(RED);
+    //User_LCD_Fill(RED);
     FPS++;
 
     if (osOK == osSemaphoreWait(LCD_FPS_Binary_SemHandle, 0))
@@ -339,9 +339,8 @@ void Start_LCD_Task(void const *argument)
 
       sprintf((char *)TX_FPS_Buff, "FPS:%d", FPS);
 
-      LCD_ShowString( 80 , 116 , (uint8_t *)TX_FPS_Buff , RED , BLACK ,12 , 0);
+     // LCD_ShowString( 80 , 116 , (uint8_t *)TX_FPS_Buff , RED , BLACK ,12 , 0);
      
-      
       FPS = 0;
       osTimerStart(LCD_TimerHandle, 1000);
     }

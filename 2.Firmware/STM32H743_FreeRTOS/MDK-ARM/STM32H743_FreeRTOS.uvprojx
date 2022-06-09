@@ -677,9 +677,9 @@
               <FilePath>..\User\LCD\lcd.c</FilePath>
             </File>
             <File>
-              <FileName>lcd_init.c</FileName>
+              <FileName>bsp_lcd.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\LCD\lcd_init.c</FilePath>
+              <FilePath>..\User\LCD\bsp_lcd.c</FilePath>
             </File>
           </Files>
         </Group>
