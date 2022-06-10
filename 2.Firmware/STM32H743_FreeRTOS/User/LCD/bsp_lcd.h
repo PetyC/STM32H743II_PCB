@@ -2,7 +2,7 @@
  * @Description: LCD 应用
  * @Autor: Pi
  * @Date: 2022-06-09 19:52:33
- * @LastEditTime: 2022-06-09 23:42:31
+ * @LastEditTime: 2022-06-10 16:54:47
  */
 #ifndef BSP_LCD_H
 #define BSP_LCD_H
@@ -14,6 +14,7 @@
 
 /*是否使用了FreeRTOS*/
 #define USE_FreeRTOS  1
+
 
 /* SPI设备数据结构 */
 typedef struct

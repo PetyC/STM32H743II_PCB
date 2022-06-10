@@ -32,13 +32,17 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "User_FatFs.h"
-#include "lcd_init.h"
 #include "User_Nand_Flash.h"
 #include "w25qxx.h"
 #include "Dev_Uart.h"
 #include "stm_flash.h"
 #include "Config_Module.h"
 
+
+#include "st7735s.h"
+#include "fonts.h"
+#include "gfx.h"
+#include "LCD_INIT.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -113,9 +117,23 @@ int main(void)
   MX_FMC_Init();
   /* USER CODE BEGIN 2 */
 //  User_FatFs_Init();
-	LCD_Init();
+
 //	User_Nand_Flash_Init();
-	Demo_Images_Show();
+  //ST7735S_Init();
+
+  LCD_Init();
+
+  HAL_Delay(100);
+
+ // setOrientation(R270);
+
+  setColor(0,255,255);
+  fillScreen();
+  HAL_Delay(1000);
+  setColor(0,0,255);
+  fillScreen();
+
+
 	HAL_GPIO_WritePin(ESP_POW_GPIO_Port , ESP_POW_Pin , GPIO_PIN_SET);
 
  //Config_Module("ATE0\r\n" , sizeof("ATE0\r\n") , "OK\r\n");
