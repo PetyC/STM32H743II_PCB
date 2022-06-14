@@ -2,7 +2,7 @@
  * @Description: LCD 应用
  * @Autor: Pi
  * @Date: 2022-06-09 19:52:29
- * @LastEditTime: 2022-06-10 00:47:43
+ * @LastEditTime: 2022-06-14 19:04:30
  */
 #include "bsp_lcd.h"
 #include "BSP_ST7735S.h"
@@ -71,7 +71,6 @@ static void User_SPI_TX_Cplt_Callback(SPI_HandleTypeDef *hspi)
  */
 void User_LCD_Init(void)
 {
-
   /* 配置串口1收发fifo */
   fifo_register(&LCD_Dev.fifo, &LCD_Buf[0], sizeof(LCD_Buf), fifo_lock, fifo_unlock);
 

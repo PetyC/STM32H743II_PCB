@@ -2,7 +2,7 @@
  * @Description: LCD初始化文件
  * @Autor: Pi
  * @Date: 2022-01-24 13:59:34
- * @LastEditTime: 2022-04-15 16:15:19
+ * @LastEditTime: 2022-06-14 21:40:56
  */
 
 #include "lcd_init.h"

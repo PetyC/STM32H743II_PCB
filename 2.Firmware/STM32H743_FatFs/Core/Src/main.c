@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2022 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2022 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -38,11 +38,9 @@
 #include "stm_flash.h"
 #include "Config_Module.h"
 
-
 #include "st7735s.h"
 #include "fonts.h"
 #include "gfx.h"
-#include "LCD_INIT.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,7 +66,7 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
- 
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -82,7 +80,7 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -99,8 +97,7 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
-	
-//	HAL_Delay(3000);
+  //	HAL_Delay(3000);
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -115,44 +112,61 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_MDMA_Init();
   MX_FMC_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-//  User_FatFs_Init();
+  //  User_FatFs_Init();
 
-//	User_Nand_Flash_Init();
-  //ST7735S_Init();
+  //	User_Nand_Flash_Init();
+  // ST7735S_Init();
 
-  LCD_Init();
+//  HAL_TIM_PWM_Start(&htim1 , TIM_CHANNEL_1);
+//  __HAL_TIM_SET_COMPARE(&htim1 , TIM_CHANNEL_1 , 0);
+//  __HAL_TIM_SET_COMPARE(&htim1 , TIM_CHANNEL_1 , 250);
+//  __HAL_TIM_SET_COMPARE(&htim1 , TIM_CHANNEL_1 , 500);
+//  __HAL_TIM_SET_COMPARE(&htim1 , TIM_CHANNEL_1 , 750);
+//  __HAL_TIM_SET_COMPARE(&htim1 , TIM_CHANNEL_1 , 1000);
 
+
+  ST7735S_Init();
+  setOrientation(R0);
+  
   HAL_Delay(100);
 
- // setOrientation(R270);
+  // setOrientation(R270);
 
-  setColor(0,255,255);
+  setColor(0, 255, 255);
   fillScreen();
-  HAL_Delay(1000);
-  setColor(0,0,255);
+  HAL_Delay(100);
+  setColor(0, 0, 255);
   fillScreen();
+  //HAL_Delay(100);
+
+  setColor(31, 63, 31);
+  setbgColor(0, 0, 255);
+  setFont(ter_u24b);
+  drawText(0, 50, "Hi World!");
+
+  HAL_GPIO_WritePin(ESP_POW_GPIO_Port, ESP_POW_Pin, GPIO_PIN_SET);
+
+  // Config_Module("ATE0\r\n" , sizeof("ATE0\r\n") , "OK\r\n");
+  uint32_t size;
+  uint8_t buff[255];
+  static uint32_t count;
 
 
-	HAL_GPIO_WritePin(ESP_POW_GPIO_Port , ESP_POW_Pin , GPIO_PIN_SET);
-
- //Config_Module("ATE0\r\n" , sizeof("ATE0\r\n") , "OK\r\n");
-	uint32_t size;
-	uint8_t buff[255];
-	static uint32_t count;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		count++;
-		if(count %5000)
-		{
-			size = User_UART_Read(&huart1 , buff , 255);
-			User_UART_Write(&huart1 , buff , size);
-			User_UART_Poll_DMA_TX(&huart1);
-		}
+    count++;
+    if (count % 5000)
+    {
+      size = User_UART_Read(&huart1, buff, 255);
+      User_UART_Write(&huart1, buff, size);
+      User_UART_Poll_DMA_TX(&huart1);
+    }
 
 
     /* USER CODE END WHILE */

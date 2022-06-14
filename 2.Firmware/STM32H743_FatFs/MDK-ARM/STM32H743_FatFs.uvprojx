@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../FATFS/Target;../FATFS/App;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FatFs/src;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;..\User\New_LCD;../User/W25QXX;../User/User_FatFs;../USB_DEVICE/App;../USB_DEVICE/Target;../Middlewares/ST/STM32_USB_Device_Library/Core/Inc;../Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc;../User/Nand_Flash;../User/Dev_Uart;../User/STM_Flash;../User/Config_Module;..\User\LCD</IncludePath>
+              <IncludePath>../Core/Inc;../FATFS/Target;../FATFS/App;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FatFs/src;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../User/New_LCD;../User/W25QXX;../User/User_FatFs;../USB_DEVICE/App;../USB_DEVICE/Target;../Middlewares/ST/STM32_USB_Device_Library/Core/Inc;../Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc;../User/Nand_Flash;../User/Dev_Uart;../User/STM_Flash;../User/Config_Module</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -600,14 +600,9 @@
               <FilePath>..\User\New_LCD\st7735s.c</FilePath>
             </File>
             <File>
-              <FileName>st7735s_compat.c</FileName>
+              <FileName>bsp_st7735s.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\New_LCD\st7735s_compat.c</FilePath>
-            </File>
-            <File>
-              <FileName>lcd_init.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\LCD\lcd_init.c</FilePath>
+              <FilePath>..\User\New_LCD\bsp_st7735s.c</FilePath>
             </File>
           </Files>
         </Group>
