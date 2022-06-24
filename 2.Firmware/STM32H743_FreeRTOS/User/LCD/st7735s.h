@@ -1,37 +1,47 @@
 /*
- * @Description: 
+ * @Description:
  * @Autor: Pi
  * @Date: 2022-06-09 18:54:44
- * @LastEditTime: 2022-06-10 17:05:30
+ * @LastEditTime: 2022-06-24 18:28:42
  */
-#ifndef __ST7735S_h__
-#define __ST7735S_h__
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef ST7735S_H
+#define ST7735S_H
 
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
-#include "st7735s_compat.h"
+#include "bsp_st7735s.h"
 
 /* undef if low on mem */
-#if !defined (BUFFER) && !defined (BUFFER1) && !defined (HVBUFFER)
-  #warning no buffer defined, defining BUFFER1
-  #define BUFFER1
+#if !defined(BUFFER) && !defined(BUFFER1) && !defined(HVBUFFER)
+#warning no buffer defined, defining BUFFER1
+#define BUFFER1
 #endif
 
-typedef enum { R0, R90, R180, R270 } rotation_t;
-typedef enum { ON, OFF } idlemode_t;
+typedef enum
+{
+    R0,
+    R90,
+    R180,
+    R270
+} rotation_t;
+typedef enum
+{
+    ON,
+    OFF
+} idlemode_t;
 
-typedef struct  {
-    union {
-        struct {
-            uint16_t r:5;
-            uint16_t g:6;
-            uint16_t b:5;
+typedef struct
+{
+    union
+    {
+        struct
+        {
+            uint16_t r : 5;
+            uint16_t g : 6;
+            uint16_t b : 5;
         } __attribute__((packed));
         uint8_t u[2];
     };
@@ -44,7 +54,7 @@ extern color565_t color;
 extern color565_t bg_color;
 
 void Delay(uint32_t);
-void Backlight_Pct(uint8_t p);
+
 
 void ST7735S_Init(void);
 
@@ -60,9 +70,7 @@ void ST7735S_tearingOff(void);
 void ST7735S_partialArea(uint16_t, uint16_t);
 void ST7735S_normalMode(void);
 void ST7735S_scroll(uint8_t);
-#ifdef __cplusplus
-} // extern "C"
-#endif
+
+
 
 #endif
-

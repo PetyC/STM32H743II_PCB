@@ -1,41 +1,52 @@
 /*
- * @Description: ST7735S BSP支持包
+ * @Description: 
  * @Autor: Pi
- * @Date: 2022-06-09 19:09:07
- * @LastEditTime: 2022-06-10 16:53:48
+ * @Date: 2022-06-09 18:54:44
+ * @LastEditTime: 2022-06-24 19:27:26
  */
-#ifndef BSP_ST7735S_H
-#define BSP_ST7735S_H
+#ifndef  BSP_S7735_H
+#define  BSP_S7735_H
 
+#include <inttypes.h>
 #include "main.h"
-#include <string.h>
- 
-/*屏幕分辨率*/
-#define LCD_W 128
-#define LCD_H 128
-/*屏幕方向 0~3*/
-#define USE_HORIZONTAL 3
 
-/*GPIO操作*/
-#define LCD_RES_Clr() LCD_RES_GPIO_Port->BSRR = (uint32_t)LCD_RES_Pin << 16U
-#define LCD_RES_Set() LCD_RES_GPIO_Port->BSRR = LCD_RES_Pin
+/*屏幕尺寸*/
+#define defWIDTH   128
+#define defHEIGHT  128
+#define defXSTART  1
+#define defYSTART  2
 
-#define LCD_DC_Clr() LCD_DC_GPIO_Port->BSRR = (uint32_t)LCD_DC_Pin << 16U 
-#define LCD_DC_Set() LCD_DC_GPIO_Port->BSRR = LCD_DC_Pin                  
+/*显示方向 0~3*/
+#define USE_HORIZONTAL 2
 
-#define LCD_BLK_Clr() LCD_BLK_GPIO_Port->BSRR = (uint32_t)LCD_BLK_Pin << 16U 
-#define LCD_BLK_Set() LCD_BLK_GPIO_Port->BSRR = LCD_BLK_Pin                  
+#define BUFFER     //全帧宽度*高度* 2字节大小。非常快
+//#define BUFFER1        //实际上没有缓冲写，很慢，因为内存有限
+//#define HVBUFFER      //行缓冲区宽度* 2字节大小。用作行或列缓冲区。
+
+/*指定区域存放数据*/
+#define SRAMD3 __attribute__((section(".RAM_D3")))
+
+/*IO操作*/
+#define Pin_RES_Low()   LCD_RES_GPIO_Port->BSRR = (uint32_t)LCD_RES_Pin << 16U
+#define Pin_RES_High()  LCD_RES_GPIO_Port->BSRR = LCD_RES_Pin
+
+#define Pin_DC_Low()    LCD_DC_GPIO_Port->BSRR = (uint32_t)LCD_DC_Pin << 16U  
+#define Pin_DC_High()   LCD_DC_GPIO_Port->BSRR = LCD_DC_Pin                  
+
+//#define Pin_BLK_Low()   LCD_BLK_GPIO_Port->BSRR = (uint32_t)LCD_BLK_Pin << 16U
+//#define Pin_BLK_High()   LCD_BLK_GPIO_Port->BSRR = LCD_BLK_Pin
 
 
-void LCD_Init(void);
-void LCD_WR_DATA8(uint8_t dat);
-void LCD_WR_DATA16(uint16_t dat);
-void LCD_WR_CMD(uint8_t *CMD, uint8_t Len);
-void LCD_Address_Set(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 
 
 
-/*暂时暴露出接口*/
-void Set_SPI_DATASIZE_16BIT(void);
-void Set_SPI_DATASIZE_8BIT(void);
+void SPI_Transmit(uint8_t *data , uint16_t len);
+void SPI_TransmitCmd(uint8_t *data , uint16_t len);
+void SPI_TransmitData(uint8_t *data , uint16_t len);
+
+void Backlight_Pct(uint8_t pct);
+void _Delay(uint32_t d);
+
+
+
 #endif

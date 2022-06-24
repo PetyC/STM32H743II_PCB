@@ -25,8 +25,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "bsp_lcd.h"
-#include "lcd.h"
+#include "st7735s.h"
+#include "fonts.h"
+#include "gfx.h"
+
 #include "Dev_Uart.h"
 #include "stdio.h"
 
@@ -68,21 +70,21 @@ osSemaphoreId LCD_FPS_Binary_SemHandle;
 
 /* USER CODE END FunctionPrototypes */
 
-void StartDefaultTask(void const *argument);
-void Start_KEY_Task(void const *argument);
-void Start_LCD_Task(void const *argument);
-void Start_Usart_Task(void const *argument);
-void LED_Time_Callback(void const *argument);
-void Uart_Timer_Callback(void const *argument);
-void LCD_Timer_Callback(void const *argument);
+void StartDefaultTask(void const * argument);
+void Start_KEY_Task(void const * argument);
+void Start_LCD_Task(void const * argument);
+void Start_Usart_Task(void const * argument);
+void LED_Time_Callback(void const * argument);
+void Uart_Timer_Callback(void const * argument);
+void LCD_Timer_Callback(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* GetIdleTaskMemory prototype (linked to static allocation support) */
-void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize);
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize );
 
 /* GetTimerTaskMemory prototype (linked to static allocation support) */
-void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuffer, StackType_t **ppxTimerTaskStackBuffer, uint32_t *pulTimerTaskStackSize);
+void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer, StackType_t **ppxTimerTaskStackBuffer, uint32_t *pulTimerTaskStackSize );
 
 /* Hook prototypes */
 void configureTimerForRunTimeStats(void);
@@ -155,12 +157,11 @@ void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuffer, StackT
 /* USER CODE END GET_TIMER_TASK_MEMORY */
 
 /**
- * @brief  FreeRTOS initialization
- * @param  None
- * @retval None
- */
-void MX_FREERTOS_Init(void)
-{
+  * @brief  FreeRTOS initialization
+  * @param  None
+  * @retval None
+  */
+void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -221,7 +222,7 @@ void MX_FREERTOS_Init(void)
   KEY_TaskHandle = osThreadCreate(osThread(KEY_Task), NULL);
 
   /* definition and creation of LCD_Task */
-  osThreadDef(LCD_Task, Start_LCD_Task, osPriorityNormal, 0, 2048);
+  osThreadDef(LCD_Task, Start_LCD_Task, osPriorityNormal, 0, 256);
   LCD_TaskHandle = osThreadCreate(osThread(LCD_Task), NULL);
 
   /* definition and creation of Usart_Task */
@@ -236,6 +237,7 @@ void MX_FREERTOS_Init(void)
   /*开启LCD定时器*/
   osTimerStart(LCD_TimerHandle, 1000);
   /* USER CODE END RTOS_THREADS */
+
 }
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -245,7 +247,7 @@ void MX_FREERTOS_Init(void)
  * @retval None
  */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const *argument)
+void StartDefaultTask(void const * argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
@@ -264,7 +266,7 @@ void StartDefaultTask(void const *argument)
  * @retval None
  */
 /* USER CODE END Header_Start_KEY_Task */
-void Start_KEY_Task(void const *argument)
+void Start_KEY_Task(void const * argument)
 {
   /* USER CODE BEGIN Start_KEY_Task */
   char pcWriteBuffer[512];
@@ -312,16 +314,20 @@ void Start_KEY_Task(void const *argument)
  * @retval None
  */
 /* USER CODE END Header_Start_LCD_Task */
-void Start_LCD_Task(void const *argument)
+void Start_LCD_Task(void const * argument)
 {
   /* USER CODE BEGIN Start_LCD_Task */
 
-  //LCD_Init();
-  //LCD_Fill(0, 0, 128, 128, BLACK);
-  //LCD_Fill(0, 0, 128, 128, GRED);
-	
-	User_LCD_Init();
-	User_LCD_Fill(BLACK);
+  setOrientation(R0);
+
+  setColor(0, 0, 255);
+  fillScreen();
+
+  setColor(31, 63, 31);
+  setbgColor(0, 0, 255);
+  setFont(ter_u24b);
+  drawText(0, 50, "Hi World!");
+  flushBuffer();
 
   char TX_FPS_Buff[50];
   int FPS = 0;
@@ -334,9 +340,7 @@ void Start_LCD_Task(void const *argument)
   { 
 
 
-    //User_LCD_Fill(RED);
-    //FPS++;
-		//User_LCD_CPU_Show();
+
 		FPS++;
 
     if (osOK == osSemaphoreWait(LCD_FPS_Binary_SemHandle, 0))
@@ -366,7 +370,7 @@ void Start_LCD_Task(void const *argument)
  * @retval None
  */
 /* USER CODE END Header_Start_Usart_Task */
-void Start_Usart_Task(void const *argument)
+void Start_Usart_Task(void const * argument)
 {
   /* USER CODE BEGIN Start_Usart_Task */
 
@@ -425,7 +429,7 @@ void Start_Usart_Task(void const *argument)
 }
 
 /* LED_Time_Callback function */
-void LED_Time_Callback(void const *argument)
+void LED_Time_Callback(void const * argument)
 {
   /* USER CODE BEGIN LED_Time_Callback */
   HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
@@ -433,7 +437,7 @@ void LED_Time_Callback(void const *argument)
 }
 
 /* Uart_Timer_Callback function */
-void Uart_Timer_Callback(void const *argument)
+void Uart_Timer_Callback(void const * argument)
 {
   /* USER CODE BEGIN Uart_Timer_Callback */
 
@@ -444,7 +448,7 @@ void Uart_Timer_Callback(void const *argument)
 }
 
 /* LCD_Timer_Callback function */
-void LCD_Timer_Callback(void const *argument)
+void LCD_Timer_Callback(void const * argument)
 {
   /* USER CODE BEGIN LCD_Timer_Callback */
   /*产生二值信号量*/

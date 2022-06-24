@@ -31,7 +31,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "lcd_init.h"
+#include "st7735s.h"
+#include "fonts.h"
+#include "gfx.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -102,9 +104,14 @@ int main(void)
   MX_USB_OTG_FS_PCD_Init();
   MX_FMC_Init();
   MX_TIM14_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   //打开任务统计功能的定时器
   HAL_TIM_Base_Start_IT(&htim14);
+
+  //LCD初始化
+  ST7735S_Init();
+
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */

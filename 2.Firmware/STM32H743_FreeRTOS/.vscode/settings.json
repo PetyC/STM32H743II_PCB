@@ -20,6 +20,8 @@
         "user_fatfs.h": "c",
         "freertos.h": "c",
         "freertosconfig.h": "c",
-        "bsp_LCD.H": "cpp"
+        "bsp_LCD.H": "cpp",
+        "stddef.h": "c",
+        "st7735s.h": "c"
     }
 }

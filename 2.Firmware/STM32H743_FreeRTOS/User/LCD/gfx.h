@@ -1,9 +1,12 @@
+/*
+ * @Description: 
+ * @Autor: Pi
+ * @Date: 2022-06-14 19:07:10
+ * @LastEditTime: 2022-06-14 21:48:01
+ */
 #ifndef __GFX_H__
 #define __GFX_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void setPixel(uint16_t, uint16_t);
 /* background pixel used for font draw */
@@ -29,9 +32,7 @@ void filledRect(uint16_t, uint16_t, uint16_t, uint16_t);
 void setColor24(uint32_t);
 void setbgColor24(uint32_t);
 
-#ifdef __cplusplus
-} // extern "C"
-#endif
+
 
 #endif
 

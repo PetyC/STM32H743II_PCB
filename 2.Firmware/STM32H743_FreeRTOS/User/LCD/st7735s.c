@@ -1,6 +1,5 @@
-#include <stdint.h>
 #include "st7735s.h"
-#include "st7735s_compat.h"
+
 
 typedef enum
 {
@@ -61,15 +60,62 @@ typedef enum
     GCV = 0xfc,       /* Gate Pump Clock Frequency Variable */
 } ST7735S_Command;
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*相关命令参数*/
+uint8_t Set_Frame_Rate_CMD0[] = {0xB1, 0x02, 0x35, 0x36};                   // Frame rate 80Hz   全色正常模式
+uint8_t Set_Frame_Rate_CMD1[] = {0xB2, 0x02, 0x35, 0x36};                   // Frame rate 80Hz   空闲模式8色
+uint8_t Set_Frame_Rate_CMD2[] = {0xB3, 0x02, 0x35, 0x36, 0x02, 0x35, 0x36}; // Frame rate 80Hz   局部模式全色
+
+uint8_t Set_Display_Inversion_CMD[] = {0xB4, 0x03}; //开启反转
+
+//------------------------------------ST7735S Power Sequence-----------------------------------------//
+uint8_t Set_Power_Sequence_CMD0[] = {0xC0, 0xA2, 0x02, 0x84}; //电源控制1
+uint8_t Set_Power_Sequence_CMD1[] = {0xC1, 0xC5};             //电源控制2
+uint8_t Set_Power_Sequence_CMD2[] = {0xC2, 0x0D, 0x00};       //电源控制3  正常全色模式
+uint8_t Set_Power_Sequence_CMD3[] = {0xC3, 0x8D, 0x2A};       //电源控制3  正常全色模式
+uint8_t Set_Power_Sequence_CMD4[] = {0xC4, 0x8D, 0xEE};       //电源控制3  正常全色模式
+//---------------------------------End ST7735S Power Sequence---------------------------------------//
+
+// VCOM
+uint8_t Set_VCOM_CMD[] = {0xC5, 0x0a};
+
+//内存数据访问控制  通过设置此选项来改变屏幕方向
+#if (USE_HORIZONTAL == 0)
+uint8_t Set_Memory_Data_Access_CMD[] = {0x36, 0x08}; // 0x08 0xC8 0x78 0xA8
+#elif (USE_HORIZONTAL == 1)
+uint8_t Set_Memory_Data_Access_CMD[] = {0x36, 0xC8}; // 0x08 0xC8 0x78 0xA8
+#elif (USE_HORIZONTAL == 2)
+uint8_t Set_Memory_Data_Access_CMD[] = {0x36, 0x78}; // 0x08 0xC8 0x78 0xA8
+#else
+uint8_t Set_Memory_Data_Access_CMD[] = {0x36, 0xA8}; // 0x08 0xC8 0x78 0xA8
+#endif
+
+//------------------------------------ST7735S Gamma Sequence-----------------------------------------//
+uint8_t Set_Gamma_Sequence_CMD0[] = {0XE0, 0x12, 0x1C, 0x10, 0x18, 0x33, 0x2C, 0x25, 0x28, 0x28, 0x27, 0x2F, 0x3C, 0x00, 0x03, 0x03, 0x10}; //伽马 + 矫正
+uint8_t Set_Gamma_Sequence_CMD1[] = {0XE1, 0x12, 0x1C, 0x10, 0x18, 0x2D, 0x28, 0x23, 0x28, 0x28, 0x26, 0x2F, 0x3B, 0x00, 0x03, 0x03, 0x10}; //伽马 - 矫正
+//------------------------------------End ST7735S Gamma Sequence-----------------------------------------//
+
+// 65k mode
+uint8_t Set_Interface_Pixel_CMD[] = {
+    0x3A,
+    0x05,
+}; // 16-Bit
+// Display on
+uint8_t Set_Display_on_CMD[] = {0x29};
+// Sleep out
+uint8_t Set_Sleep_Out_CMD[] = {0x11};
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #if defined(BUFFER)
 #define FRAMESIZE (defWIDTH * defHEIGHT)
-color565_t frame[FRAMESIZE] = {0};
+SRAMD3 color565_t frame[FRAMESIZE] = {0};
 #elif defined(BUFFER1)
 #define FRAMESIZE 1
-color565_t frame[FRAMESIZE] = {0};
+SRAMD3 color565_t frame[FRAMESIZE] = {0};
 #elif defined(HVBUFFER)
-color565_t hvframe[defWIDTH] = {0};
-color565_t hvcolor1;
+SRAMD3 color565_t hvframe[defWIDTH] = {0};
+SRAMD3 color565_t hvcolor1;
 typedef enum
 {
     HF,
@@ -92,74 +138,41 @@ uint8_t madctl;
 color565_t color;
 color565_t bg_color;
 
-/* columns: 1 = # of params, 2 = command, 3 .. = params */
-static uint8_t init_cmd[] = {
-    1, SWRESET,                                     /* software reset */
-    1, SLPOUT,                                      /* sleep out, turn off sleep mode */
-    1, DISPOFF,                                     /*  output from frame mem disabled */
-    4, FRMCTR1, 0x00, 0b111111, 0b111111,           /* frame frequency normal mode (highest frame rate in normal mode) */
-    4, FRMCTR2, 0b1111, 0x01, 0x01,                 /* frame frequency idle mode */
-    7, FRMCTR3, 0x05, 0x3c, 0x3c, 0x05, 0x3c, 0x3c, /* frame freq partial mode: 1-3 dot inv, 4-6 col inv */
-    2, INVCTR, 0x03,                                /* display inversion control: 3-bit 0=dot, 1=col */
 
-    4, PWCTR1, 0b11111100, 0x08, 0b10, /* power control */
-    2, PWCTR2, 0xc0,
-    3, PWCTR3, 0x0d, 0x00,
-    3, PWCTR4, 0x8d, 0x2a,
-    3, PWCTR5, 0x8d, 0xee, /* partial */
 
-    /* display brightness and gamma */
-    2, GCV, 0b11011000,     /* auto gate pump freq, max power save */
-    2, NVFCTR1, 0b01000000, /* automatic adjust gate pumping clock for saving power consumption */
-    2, VMCTR1, 0b001111,    /* VCOM voltage setting */
-    2, VMOFCTR, 0b10000,    /* ligthness of black color 0-0x1f */
-    2, GAMSET, 0x08,        /* gamma 1, 2, 4, 8 */
 
-    2, MADCTL, 0b01100000, /* row oder, col order, row colum xchange, vert refr order, rgb/bgr, hor refr order, 0, 0 */
-    2, COLMOD, 0x05,       /* 3=12bit, 5=16-bit, 6=18-bit  pixel color mode */
-    17, GMCTRP1, 0x02, 0x1c, 0x07, 0x12, 0x37, 0x32, 0x29, 0x2c,
-    0x29, 0x25, 0x2b, 0x39, 0x00, 0x01, 0x03, 0x10,
-    17, GMCTRN1, 0x03, 0x1d, 0x07, 0x06, 0x2E, 0x2C, 0x29, 0x2c,
-    0x2e, 0x2e, 0x37, 0x3f, 0x00, 0x00, 0x02, 0x10,
-    5, CASET, 0, 0, 0, defHEIGHT - 1,
-    5, RASET, 0, 0, 0, defWIDTH - 1,
-    1, INVON,  /* display inversion on/off */
-    1, IDMOFF, /* idle mode off */
-    1, NORON,  /* normal display mode on */
-    1, DISPON, /* recover from display off, output from frame mem enabled */
-};
-
-void initCommands(void)
-{
-    uint8_t args;
-
-    for (uint16_t i = 0; i < sizeof(init_cmd); i += args + 1)
-    {
-        args = init_cmd[i];
-
-        SPI_Transmit(args, &init_cmd[i + 1]);
-    }
-}
-
-uint8_t backlight_pct;
-
+/**
+ * @brief 进入睡眠模式
+ * @return {*}
+ */
 void ST7735S_sleepIn(void)
 {
 
-    uint8_t pct = backlight_pct;
-    Pin_BLK_Pct(0);
-    backlight_pct = pct;
+    Backlight_Pct(0);
+  
+
     uint8_t cmd[] = {DISPOFF, SLPIN};
-    SPI_TransmitCmd(2, cmd);
+    SPI_TransmitCmd(cmd, 2);
 }
 
+/**
+ * @brief 退出睡眠模式
+ * @return {*}
+ */
 void ST7735S_sleepOut(void)
 {
-    Pin_BLK_Pct(backlight_pct);
+    Backlight_Pct(60);
+
     uint8_t cmd[] = {SLPOUT, DISPON};
-    SPI_TransmitCmd(2, cmd);
+    SPI_TransmitCmd(cmd, 2);
 }
 
+
+/**
+ * @brief 设置原点显示方向
+ * @param {rotation_t} r
+ * @return {*}
+ */
 void setOrientation(rotation_t r)
 {
 
@@ -167,7 +180,7 @@ void setOrientation(rotation_t r)
     {
     case R0:
     {
-        madctl = 0b01100000;
+        madctl = 0x78;
         WIDTH = defWIDTH;
         HEIGHT = defHEIGHT;
         XSTART = defXSTART;
@@ -176,7 +189,7 @@ void setOrientation(rotation_t r)
     }
     case R90:
     {
-        madctl = 0b11000000;
+        madctl = 0xC8;      
         WIDTH = defHEIGHT;
         HEIGHT = defWIDTH;
         XSTART = defYSTART;
@@ -185,7 +198,7 @@ void setOrientation(rotation_t r)
     }
     case R180:
     {
-        madctl = 0b10100000;
+        madctl = 0xA8;   
         WIDTH = defWIDTH;
         HEIGHT = defHEIGHT;
         XSTART = defXSTART;
@@ -194,7 +207,7 @@ void setOrientation(rotation_t r)
     }
     case R270:
     {
-        madctl = 0b01000000;
+        madctl = 0x08;
         WIDTH = defHEIGHT;
         HEIGHT = defWIDTH;
         XSTART = defYSTART;
@@ -202,11 +215,9 @@ void setOrientation(rotation_t r)
         break;
     }
     }
-
-    madctl = 0xA8;
-
+    
     uint8_t cmd[] = {MADCTL, madctl};
-    SPI_Transmit(2, cmd);
+    SPI_Transmit(cmd, 2);
 }
 
 void resetWindow(void)
@@ -233,25 +244,47 @@ void updateWindow(uint16_t x, uint16_t y)
     }
 }
 
+/**
+ * @brief LCD初始化工作
+ * @param {*}
+ * @return {*}
+ */
 void ST7735S_Init(void)
 {
 
-
-
-    /* backlight */
-    Pin_BLK_Pct(100);
-
-    /* hard reset */
+    Pin_RES_Low(); //复位
+    Delay(100);
     Pin_RES_High();
-    
-    Pin_DC_Low();
-    Delay(2); /* 10µs min */
-    Pin_RES_Low();
-    Delay(2); /* 10µs min */
-    Pin_RES_High();
-    Delay(2);
+    Delay(100);
+    Backlight_Pct(70); //打开背光
+    Delay(100);
 
-    initCommands();
+    SPI_Transmit(Set_Sleep_Out_CMD, sizeof(Set_Sleep_Out_CMD));
+    Delay(120); // Delay 120ms
+
+    SPI_Transmit(Set_Frame_Rate_CMD0, sizeof(Set_Frame_Rate_CMD0));
+    SPI_Transmit(Set_Frame_Rate_CMD1, sizeof(Set_Frame_Rate_CMD1));
+    SPI_Transmit(Set_Frame_Rate_CMD2, sizeof(Set_Frame_Rate_CMD2));
+
+    SPI_Transmit(Set_Display_Inversion_CMD, sizeof(Set_Display_Inversion_CMD));
+
+    SPI_Transmit(Set_Power_Sequence_CMD0, sizeof(Set_Power_Sequence_CMD0));
+    SPI_Transmit(Set_Power_Sequence_CMD1, sizeof(Set_Power_Sequence_CMD1));
+    SPI_Transmit(Set_Power_Sequence_CMD2, sizeof(Set_Power_Sequence_CMD2));
+    SPI_Transmit(Set_Power_Sequence_CMD3, sizeof(Set_Power_Sequence_CMD3));
+    SPI_Transmit(Set_Power_Sequence_CMD4, sizeof(Set_Power_Sequence_CMD4));
+
+    SPI_Transmit(Set_VCOM_CMD, sizeof(Set_VCOM_CMD));
+
+    SPI_Transmit(Set_Memory_Data_Access_CMD, sizeof(Set_Memory_Data_Access_CMD));
+
+    SPI_Transmit(Set_Gamma_Sequence_CMD0, sizeof(Set_Gamma_Sequence_CMD0));
+    SPI_Transmit(Set_Gamma_Sequence_CMD1, sizeof(Set_Gamma_Sequence_CMD1));
+
+    SPI_Transmit(Set_Interface_Pixel_CMD, sizeof(Set_Interface_Pixel_CMD));
+
+    SPI_Transmit(Set_Display_on_CMD, sizeof(Set_Display_on_CMD));
+
 }
 
 void ST7735S_flush(void)
@@ -263,37 +296,37 @@ void ST7735S_flush(void)
     uint8_t ras[] = {RASET, ym >> 8, ym, yx >> 8, yx};
     uint8_t ram[] = {RAMWR};
 
-    SPI_Transmit(sizeof(cas), cas);
-    SPI_Transmit(sizeof(ras), ras);
-    SPI_TransmitCmd(1, ram);
+    SPI_Transmit(cas, sizeof(cas));
+    SPI_Transmit(ras, sizeof(ras));
+    SPI_TransmitCmd(ram, 1);
 
 #if defined(BUFFER)
 #if 1
     uint16_t len = (xmax - xmin + 1) * 2;
     for (uint16_t y = ymin; y <= ymax; y++)
-        SPI_TransmitData(len, (uint8_t *)&frame[WIDTH * y + xmin]);
+        SPI_TransmitData((uint8_t *)&frame[WIDTH * y + xmin], len);
 #else
     uint16_t len = (xmax - xmin + 1) * 2 * (ymax - ymin + 1);
-    SPI_TransmitData(len, (uint8_t *)&frame[WIDTH * ymin + xmin]);
+    SPI_TransmitData((uint8_t *)&frame[WIDTH * ymin + xmin], len);
 #endif
 #elif defined(HVBUFFER)
     if (hvtype == VF)
     { // horiz line
         uint16_t len = (xmax - xmin + 1) * 2;
-        SPI_TransmitData(len, (uint8_t *)&hvframe[xmin]);
+        SPI_TransmitData((uint8_t *)&hvframe[xmin], len);
     }
     else if (hvtype == HF)
     { // vert line
         uint16_t len = (ymax - ymin + 1) * 2;
-        SPI_TransmitData(len, (uint8_t *)&hvframe[ymin]);
+        SPI_TransmitData((uint8_t *)&hvframe[ymin], len);
     }
     else if (hvtype == ONE)
     { // single pixel
-        SPI_TransmitData(2, (uint8_t *)&hvcolor1);
+        SPI_TransmitData((uint8_t *)&hvcolor1, 2);
     }
     hvtype = NONE;
 #elif defined(BUFFER1)
-    SPI_TransmitData(2, (uint8_t *)&frame[0]);
+    SPI_TransmitData((uint8_t *)&frame[0], 2);
 #else
 #error buffer not defined.
 #endif
@@ -435,13 +468,13 @@ bool ST7735S_defineScrollArea(uint16_t x, uint16_t x2)
 
     /* reset mv */
     uint8_t CMD1[] = {MADCTL, madctl & ~(1 << 5)};
-    SPI_Transmit(sizeof(CMD1), CMD1);
+    SPI_Transmit(CMD1, sizeof(CMD1));
 
     uint8_t CMD[] = {SCRLAR, tfa >> 8, tfa,
                      vsa >> 8, vsa,
                      bfa >> 8, bfa};
 
-    SPI_Transmit(sizeof(CMD), CMD);
+    SPI_Transmit(CMD, sizeof(CMD));
 
     return true;
 }
@@ -450,30 +483,30 @@ void ST7735S_tearingOn(bool blanking_only)
 {
 
     uint8_t CMD[] = {TEON, (blanking_only) ? 0 : 1};
-    SPI_Transmit(2, CMD);
+    SPI_Transmit(CMD, 2);
 }
 
 void ST7735S_tearingOff(void)
 {
 
     uint8_t CMD[] = {TEOFF};
-    SPI_Transmit(1, CMD);
+    SPI_Transmit(CMD, 1);
 }
 
 void ST7735S_scroll(uint8_t line)
 {
 
     uint8_t CMD[] = {VSCSAD, 0, line};
-    SPI_Transmit(3, CMD);
+    SPI_Transmit(CMD, 3);
 }
 
 void ST7735S_normalMode(void)
 {
     uint8_t CMD[] = {NORON};
-    SPI_Transmit(1, CMD);
+    SPI_Transmit(CMD, 1);
     /* reset mv */
     uint8_t CMD1[] = {MADCTL, madctl};
-    SPI_Transmit(sizeof(CMD1), CMD1);
+    SPI_Transmit(CMD1, sizeof(CMD1));
 }
 
 void ST7735S_partialArea(uint16_t from, uint16_t to)
@@ -481,15 +514,15 @@ void ST7735S_partialArea(uint16_t from, uint16_t to)
     /* set ml */
     uint8_t bit = (from > to) ? 0 : 1;
     uint8_t CMD1[] = {MADCTL, madctl & ~(bit << 4)};
-    SPI_Transmit(sizeof(CMD1), CMD1);
+    SPI_Transmit(CMD1, sizeof(CMD1));
 
     uint8_t CMD[] = {PTLAR, (WIDTH - to + XSTART) >> 8, WIDTH - to + XSTART,
                      (WIDTH - from + XSTART) >> 8, WIDTH - from + XSTART};
-    SPI_Transmit(sizeof(CMD), CMD);
+    SPI_Transmit(CMD, sizeof(CMD));
 
     /* partial mode on */
     uint8_t CMD2[] = {PTLON};
-    SPI_Transmit(sizeof(CMD2), CMD2);
+    SPI_Transmit(CMD2, sizeof(CMD2));
 }
 
 void Delay(uint32_t d)
@@ -497,12 +530,3 @@ void Delay(uint32_t d)
     _Delay(d);
 }
 
-/**
- * @brief LCD背光调整
- * @param {uint8_t} p
- * @return {*}
- */
-void Backlight_Pct(uint8_t p)
-{
-    Pin_BLK_Pct(p % 101);
-}
