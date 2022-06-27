@@ -56,6 +56,7 @@ osThreadId LCD_TaskHandle;
 osThreadId Usart_TaskHandle;
 osTimerId Uart_TimerHandle;
 osSemaphoreId Uart_Time_Out_Binary_SemHandle;
+osSemaphoreId Key_ON_Binary_SemHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -165,6 +166,10 @@ void MX_FREERTOS_Init(void) {
   osSemaphoreDef(Uart_Time_Out_Binary_Sem);
   Uart_Time_Out_Binary_SemHandle = osSemaphoreCreate(osSemaphore(Uart_Time_Out_Binary_Sem), 1);
 
+  /* definition and creation of Key_ON_Binary_Sem */
+  osSemaphoreDef(Key_ON_Binary_Sem);
+  Key_ON_Binary_SemHandle = osSemaphoreCreate(osSemaphore(Key_ON_Binary_Sem), 1);
+
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
@@ -196,7 +201,7 @@ void MX_FREERTOS_Init(void) {
   LCD_TaskHandle = osThreadCreate(osThread(LCD_Task), NULL);
 
   /* definition and creation of Usart_Task */
-  osThreadDef(Usart_Task, Start_Usart_Task, osPriorityHigh, 0, 256);
+  osThreadDef(Usart_Task, Start_Usart_Task, osPriorityHigh, 0, 512);
   Usart_TaskHandle = osThreadCreate(osThread(Usart_Task), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -281,7 +286,7 @@ void Uart_Timer_Callback(void const * argument)
 {
   /* USER CODE BEGIN Uart_Timer_Callback */
 
-  /*产生二值信号量*/
+  /*产生二�?�信号量*/
   osSemaphoreRelease(Uart_Time_Out_Binary_SemHandle);
 
   /* USER CODE END Uart_Timer_Callback */

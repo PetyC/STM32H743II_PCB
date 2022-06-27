@@ -109,7 +109,7 @@ int main(void)
   //打开任务统计功能的定时器
   HAL_TIM_Base_Start_IT(&htim14);
 
-  //LCD初始化
+  //LCD初始�?
   ST7735S_Init();
 
   /* USER CODE END 2 */

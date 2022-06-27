@@ -2,13 +2,14 @@
  * @Description: KEY按键任务
  * @Autor: Pi
  * @Date: 2022-06-27 18:29:29
- * @LastEditTime: 2022-06-27 18:35:13
+ * @LastEditTime: 2022-06-28 03:49:29
  */
 #include "KEY_Task.h"
 
-
 extern UART_HandleTypeDef huart1;
 
+/*FreeRTOS相关变量*/
+extern osSemaphoreId Key_ON_Binary_SemHandle;
 
 /**
  * @brief KEY按键任务，按下打印任务相关信息
@@ -17,7 +18,7 @@ extern UART_HandleTypeDef huart1;
 void KEY_Task(void const *argument)
 {
   /* USER CODE BEGIN Start_KEY_Task */
-  char pcWriteBuffer[512];
+  //  char pcWriteBuffer[512];
   /* Infinite loop */
   for (;;)
   {
@@ -27,6 +28,9 @@ void KEY_Task(void const *argument)
 
       if (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == 1)
       {
+        //产生2进制信号量
+        osSemaphoreRelease(Key_ON_Binary_SemHandle);
+        /*
 #if (configUSE_TRACE_FACILITY == 1 && configUSE_STATS_FORMATTING_FUNCTIONS == 1)
         memset(pcWriteBuffer, 0, 512);
         sprintf((char *)pcWriteBuffer, "\r\n%s\r\n", "name  state  priority  residue_stack  Number");
@@ -47,6 +51,7 @@ void KEY_Task(void const *argument)
         User_UART_Write(&huart1, (uint8_t *)pcWriteBuffer, strlen(pcWriteBuffer));
 
 #endif
+*/
       }
     }
 
