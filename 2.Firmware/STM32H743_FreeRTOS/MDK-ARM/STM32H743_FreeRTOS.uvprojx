@@ -210,7 +210,7 @@
             <Ra2Chk>0</Ra2Chk>
             <Ra3Chk>0</Ra3Chk>
             <Im1Chk>1</Im1Chk>
-            <Im2Chk>0</Im2Chk>
+            <Im2Chk>1</Im2Chk>
             <OnChipMemories>
               <Ocm1>
                 <Type>0</Type>
@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../User/LCD;../User/Dev_Uart</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../User/Driver/Dev_Uart;../User/Driver/LCD;..\User\APP;..\User\APP</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -669,27 +669,47 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>User/APP/Task</GroupName>
+          <Files>
+            <File>
+              <FileName>LCD_Task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\APP\LCD_Task.c</FilePath>
+            </File>
+            <File>
+              <FileName>Uart_Task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\APP\Uart_Task.c</FilePath>
+            </File>
+            <File>
+              <FileName>KEY_Task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\APP\KEY_Task.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>User/LCD</GroupName>
           <Files>
             <File>
-              <FileName>bsp_ST7735S.c</FileName>
+              <FileName>bsp_st7735s.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\LCD\bsp_ST7735S.c</FilePath>
+              <FilePath>..\User\Driver\LCD\bsp_st7735s.c</FilePath>
             </File>
             <File>
               <FileName>fonts.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\LCD\fonts.c</FilePath>
+              <FilePath>..\User\Driver\LCD\fonts.c</FilePath>
             </File>
             <File>
               <FileName>gfx.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\LCD\gfx.c</FilePath>
+              <FilePath>..\User\Driver\LCD\gfx.c</FilePath>
             </File>
             <File>
               <FileName>st7735s.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\LCD\st7735s.c</FilePath>
+              <FilePath>..\User\Driver\LCD\st7735s.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -699,17 +719,17 @@
             <File>
               <FileName>CRC.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\Dev_Uart\CRC.c</FilePath>
+              <FilePath>..\User\Driver\Dev_Uart\CRC.c</FilePath>
             </File>
             <File>
               <FileName>Dev_Uart.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\Dev_Uart\Dev_Uart.c</FilePath>
+              <FilePath>..\User\Driver\Dev_Uart\Dev_Uart.c</FilePath>
             </File>
             <File>
               <FileName>Fifo.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\Dev_Uart\Fifo.c</FilePath>
+              <FilePath>..\User\Driver\Dev_Uart\Fifo.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -6,7 +6,9 @@
                 //"D:/Software/IDE/Keil5/ARM/ARMCC/**",		//keil5 目录
                 "E:/software/IDE/Keil_v5/ARM/ARMCC/**", //keil5 目录
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/User/**"
+                "${workspaceFolder}/User/**",
+                "${workspaceFolder}/User/Driver/**",
+                "${workspaceFolder}/User/APP/**"
             ],
             "defines": [
                 "_DEBUG",

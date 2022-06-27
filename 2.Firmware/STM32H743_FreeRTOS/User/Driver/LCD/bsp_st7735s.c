@@ -2,7 +2,7 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-06-09 18:54:44
- * @LastEditTime: 2022-06-24 19:07:50
+ * @LastEditTime: 2022-06-27 15:04:14
  */
 #include "bsp_st7735s.h"
 
@@ -63,8 +63,8 @@ void SPI_TransmitCmd(uint8_t *data, uint16_t len)
 void SPI_TransmitData(uint8_t *data, uint16_t len)
 {
     Pin_DC_High();
-    //HAL_SPI_Transmit(&hspi1, data, len, 0xFF);
-    HAL_SPI_Transmit_DMA(&hspi1, data, len);
+    HAL_SPI_Transmit(&hspi1, data, len, 0xFF);
+    //HAL_SPI_Transmit_DMA(&hspi1, data, len);
 }
 
 /**

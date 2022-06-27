@@ -22,6 +22,11 @@
         "freertosconfig.h": "c",
         "bsp_LCD.H": "cpp",
         "stddef.h": "c",
-        "st7735s.h": "c"
+        "st7735s.h": "c",
+        "fonts.h": "c",
+        "lcd_task.h": "c",
+        "cmsis_os.h": "c",
+        "key_task.h": "c",
+        "stdio.h": "c"
     }
 }

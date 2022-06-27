@@ -2,7 +2,7 @@
  * @Description: 
  * @Autor: Pi
  * @Date: 2022-06-09 18:54:44
- * @LastEditTime: 2022-06-24 19:27:26
+ * @LastEditTime: 2022-06-27 15:05:26
  */
 #ifndef  BSP_S7735_H
 #define  BSP_S7735_H
@@ -32,11 +32,6 @@
 
 #define Pin_DC_Low()    LCD_DC_GPIO_Port->BSRR = (uint32_t)LCD_DC_Pin << 16U  
 #define Pin_DC_High()   LCD_DC_GPIO_Port->BSRR = LCD_DC_Pin                  
-
-//#define Pin_BLK_Low()   LCD_BLK_GPIO_Port->BSRR = (uint32_t)LCD_BLK_Pin << 16U
-//#define Pin_BLK_High()   LCD_BLK_GPIO_Port->BSRR = LCD_BLK_Pin
-
-
 
 
 
