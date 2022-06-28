@@ -105,11 +105,12 @@ int main(void)
   MX_FMC_Init();
   MX_TIM14_Init();
   MX_TIM1_Init();
+  MX_TIM13_Init();
   /* USER CODE BEGIN 2 */
   //打开任务统计功能的定时器
   HAL_TIM_Base_Start_IT(&htim14);
 
-  //LCD初始�?
+  //LCD初始�?
   ST7735S_Init();
 
   /* USER CODE END 2 */

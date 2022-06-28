@@ -20,6 +20,7 @@
 
 #include "Dev_Uart.h"
 
+
 void LCD_Task(void const * argument);
 
 #endif

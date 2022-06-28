@@ -2,13 +2,17 @@
  * @Description: UART任务
  * @Autor: Pi
  * @Date: 2022-06-27 15:30:24
- * @LastEditTime: 2022-06-27 18:29:06
+ * @LastEditTime: 2022-06-28 19:55:35
  */
 #include "Uart_Task.h"
 
-
+/*FreeRTOS相关变量*/
 extern osTimerId Uart_TimerHandle;
 extern osSemaphoreId Uart_Time_Out_Binary_SemHandle;
+
+
+/*系统相关变量*/
+extern TIM_HandleTypeDef htim13;
 
 
 /**
@@ -72,4 +76,24 @@ void Usart_Task(void const * argument)
   }
 
   /* USER CODE END Start_Usart_Task */
+}
+
+
+
+/**
+ * @brief 定时器回调函数
+ * @param {TIM_HandleTypeDef} *htim
+ * @return {*}
+ */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+
+  if(htim == &htim13)
+  {
+    HAL_TIM_Base_Stop(&htim13);
+    
+  }
+    
+ 
+
 }

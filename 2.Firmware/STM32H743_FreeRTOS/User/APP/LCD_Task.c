@@ -2,7 +2,7 @@
  * @Description: LCD显示任务
  * @Autor: Pi
  * @Date: 2022-06-27 15:14:05
- * @LastEditTime: 2022-06-28 03:49:20
+ * @LastEditTime: 2022-06-28 14:28:46
  */
 #include "LCD_Task.h"
 #include "stdio.h"
@@ -12,9 +12,11 @@ extern osSemaphoreId Key_ON_Binary_SemHandle;
 
 /*内部使用函数*/
 static void LCD_Task_Display(uint8_t Type);
+
 static void Task_Name_Handle(char *Name_Buff, const char *pcTaskName);
 static void Task_CPU_Handle(char *CPU_Buff, const uint32_t RunTimeCounter, uint32_t ulTotalRunTime);
 static void Task_Current_Handle(char *CurrentState_Buff, eTaskState eCurrentState);
+
 
 /**
  * @brief LCD任务
@@ -26,7 +28,6 @@ void LCD_Task(void const *argument)
 
   //设置显示方向
   setOrientation(R0);
-
   setColor(0, 0, 0);
   fillScreen();
 
@@ -82,6 +83,7 @@ static void LCD_Task_Display(uint8_t Type)
   setFont(ter_u12b);
 
   static uint8_t Type_Last;
+  
   /*非同一页面*/
   if (Type != Type_Last)
   {

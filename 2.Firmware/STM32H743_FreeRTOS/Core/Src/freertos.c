@@ -286,7 +286,7 @@ void Uart_Timer_Callback(void const * argument)
 {
   /* USER CODE BEGIN Uart_Timer_Callback */
 
-  /*产生二�?�信号量*/
+  /*产生2进制信号量*/
   osSemaphoreRelease(Uart_Time_Out_Binary_SemHandle);
 
   /* USER CODE END Uart_Timer_Callback */
