@@ -53,7 +53,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+extern osSemaphoreId Uart_Time_Out_Binary_SemHandle;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -110,7 +110,7 @@ int main(void)
   //打开任务统计功能的定时器
   HAL_TIM_Base_Start_IT(&htim14);
 
-  //LCD初始�?
+  //LCD初始化
   ST7735S_Init();
 
   /* USER CODE END 2 */
@@ -210,15 +210,18 @@ extern volatile uint32_t ulHighFrequencyTimerTicks;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-
+  if (htim->Instance == TIM17) {
+    HAL_IncTick();
+  }
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM17) {
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-	 if (htim->Instance == TIM14)
+  if(htim->Instance == TIM13)
   {
-    ulHighFrequencyTimerTicks++;
+    HAL_TIM_Base_Stop(&htim13);
+    osSemaphoreRelease(Uart_Time_Out_Binary_SemHandle);
   }
   /* USER CODE END Callback 1 */
 }

@@ -54,7 +54,6 @@ osThreadId defaultTaskHandle;
 osThreadId KEY_TaskHandle;
 osThreadId LCD_TaskHandle;
 osThreadId Usart_TaskHandle;
-osTimerId Uart_TimerHandle;
 osSemaphoreId Uart_Time_Out_Binary_SemHandle;
 osSemaphoreId Key_ON_Binary_SemHandle;
 
@@ -67,7 +66,6 @@ void StartDefaultTask(void const * argument);
 void Start_KEY_Task(void const * argument);
 void Start_LCD_Task(void const * argument);
 void Start_Usart_Task(void const * argument);
-void Uart_Timer_Callback(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -174,11 +172,6 @@ void MX_FREERTOS_Init(void) {
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
 
-  /* Create the timer(s) */
-  /* definition and creation of Uart_Timer */
-  osTimerDef(Uart_Timer, Uart_Timer_Callback);
-  Uart_TimerHandle = osTimerCreate(osTimer(Uart_Timer), osTimerOnce, NULL);
-
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
@@ -279,17 +272,6 @@ void Start_Usart_Task(void const * argument)
   Usart_Task(argument);
 
   /* USER CODE END Start_Usart_Task */
-}
-
-/* Uart_Timer_Callback function */
-void Uart_Timer_Callback(void const * argument)
-{
-  /* USER CODE BEGIN Uart_Timer_Callback */
-
-  /*产生2进制信号量*/
-  osSemaphoreRelease(Uart_Time_Out_Binary_SemHandle);
-
-  /* USER CODE END Uart_Timer_Callback */
 }
 
 /* Private application code --------------------------------------------------*/

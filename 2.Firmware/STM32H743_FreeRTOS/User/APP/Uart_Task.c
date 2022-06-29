@@ -2,7 +2,7 @@
  * @Description: UART任务
  * @Autor: Pi
  * @Date: 2022-06-27 15:30:24
- * @LastEditTime: 2022-06-28 19:55:35
+ * @LastEditTime: 2022-06-29 14:59:00
  */
 #include "Uart_Task.h"
 
@@ -33,7 +33,7 @@ void Usart_Task(void const * argument)
   for (;;)
   {
     /*串口回显测试*/
-    vTaskSuspendAll(); //打开调度锁 禁止调度
+   //vTaskSuspendAll(); //打开调度锁 禁止调度
 
     size = User_UART_Read(&huart1, Uart_Data, sizeof(Uart_Data));
 
@@ -50,7 +50,7 @@ void Usart_Task(void const * argument)
       if (Time_Out_Flag == 0)
       {
         Time_Out_Flag = 1;
-        osTimerStart(Uart_TimerHandle, 10);
+        HAL_TIM_Base_Start_IT(&htim13);
       }
       //定时器超时
       if (osOK == osSemaphoreWait(Uart_Time_Out_Binary_SemHandle, 0))
@@ -66,11 +66,12 @@ void Usart_Task(void const * argument)
       if (Time_Out_Flag == 1)
       {
         Time_Out_Flag = 0;
-        osTimerStop(Uart_TimerHandle);
+      
+        HAL_TIM_Base_Stop(&htim13);
       }
     }
 
-    xTaskResumeAll(); //恢复调度
+   // xTaskResumeAll(); //恢复调度
 
     osDelay(1);
   }
@@ -80,20 +81,3 @@ void Usart_Task(void const * argument)
 
 
 
-/**
- * @brief 定时器回调函数
- * @param {TIM_HandleTypeDef} *htim
- * @return {*}
- */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-
-  if(htim == &htim13)
-  {
-    HAL_TIM_Base_Stop(&htim13);
-    
-  }
-    
- 
-
-}
