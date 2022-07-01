@@ -65,6 +65,7 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+uint32_t g_JumpInit __attribute__((at(0x20000000), zero_init)); 
 
 /* USER CODE END 0 */
 
@@ -75,7 +76,10 @@ void MX_FREERTOS_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  /*设置中断偏移*/
+  SCB->VTOR = FLASH_BASE | 0x100000;  
+  
+  g_JumpInit = 2;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -214,8 +218,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM17) {
-    HAL_IncTick();
+  if (htim->Instance == TIM14) {
+    ulHighFrequencyTimerTicks++;
   }
   /* USER CODE BEGIN Callback 1 */
   if(htim->Instance == TIM13)
