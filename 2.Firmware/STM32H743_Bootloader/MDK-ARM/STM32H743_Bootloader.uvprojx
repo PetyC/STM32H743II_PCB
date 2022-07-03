@@ -10,7 +10,7 @@
       <TargetName>STM32H743_Bootloader</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
+      <pCCUsed>5060960::V5.06 update 7 (build 960)::.\ARMCC</pCCUsed>
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -185,6 +185,7 @@
             <uocXRam>0</uocXRam>
             <RvdsVP>3</RvdsVP>
             <RvdsMve>0</RvdsMve>
+            <RvdsCdeCp>0</RvdsCdeCp>
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -338,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../User/Drive/LCD;../User/Bootloader;../User/Drive/Dev_Uart</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../User/Drive/LCD;../User/Bootloader;../User/Drive/Bsp_Uart;../User/Drive/Bsp_MCU_Flash</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -351,7 +352,7 @@
             <NoWarn>0</NoWarn>
             <uSurpInc>0</uSurpInc>
             <useXO>0</useXO>
-            <uClangAs>0</uClangAs>
+            <ClangAsOpt>4</ClangAsOpt>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -536,22 +537,32 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>User/Drive/Dev_Uart</GroupName>
+          <GroupName>User/Drive/Bsp_Uart</GroupName>
           <Files>
+            <File>
+              <FileName>Bsp_Uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Drive\Bsp_Uart\Bsp_Uart.c</FilePath>
+            </File>
             <File>
               <FileName>CRC.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\Drive\Dev_Uart\CRC.c</FilePath>
-            </File>
-            <File>
-              <FileName>Dev_Uart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Drive\Dev_Uart\Dev_Uart.c</FilePath>
+              <FilePath>..\User\Drive\Bsp_Uart\CRC.c</FilePath>
             </File>
             <File>
               <FileName>Fifo.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\Drive\Dev_Uart\Fifo.c</FilePath>
+              <FilePath>..\User\Drive\Bsp_Uart\Fifo.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>User/Drive/Bsp_MCU_FLASH</GroupName>
+          <Files>
+            <File>
+              <FileName>Bsp_MCU_Flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Drive\Bsp_MCU_Flash\Bsp_MCU_Flash.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -851,5 +862,14 @@
     </components>
     <files/>
   </RTE>
+
+  <LayerInfo>
+    <Layers>
+      <Layer>
+        <LayName>STM32H743_Bootloader</LayName>
+        <LayPrjMark>1</LayPrjMark>
+      </Layer>
+    </Layers>
+  </LayerInfo>
 
 </Project>

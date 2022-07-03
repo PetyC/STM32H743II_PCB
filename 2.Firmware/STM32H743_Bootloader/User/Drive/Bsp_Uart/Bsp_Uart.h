@@ -2,7 +2,7 @@
  * @Description: 
  * @Autor: Pi
  * @Date: 2022-07-01 17:44:02
- * @LastEditTime: 2022-07-01 20:10:21
+ * @LastEditTime: 2022-07-03 19:54:47
  */
 
 #ifndef DEV_UART_H
@@ -64,7 +64,11 @@ uint16_t User_UART_Get_TX_Buff_Free(UART_HandleTypeDef *huart);
 /*TX Buff已用空间*/
 uint16_t User_UART_Get_TX_Buff_Occupy(UART_HandleTypeDef *huart);
 
+/*TX Buff空闲空间*/
+uint16_t User_UART_Get_RX_Buff_Free(UART_HandleTypeDef *huart);
 
+/*RX Buff已用空间*/
+uint16_t User_UART_Get_RX_Buff_Occupy(UART_HandleTypeDef *huart);
 
 
 

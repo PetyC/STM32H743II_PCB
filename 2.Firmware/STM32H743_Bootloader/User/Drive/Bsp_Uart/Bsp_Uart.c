@@ -2,9 +2,9 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-04-14 16:11:43
- * @LastEditTime: 2022-07-01 20:12:08
+ * @LastEditTime: 2022-07-03 19:55:46
  */
-#include "Dev_Uart.h"
+#include "Bsp_Uart.h"
 
 /* 串口缓存大小 */
 #define UART1_TX_BUF_SIZE 1024
@@ -314,6 +314,26 @@ uint16_t User_UART_Get_TX_Buff_Occupy(UART_HandleTypeDef *huart)
 }
 
 
+/**
+ * @brief 获得RX已用BUF空间大小
+ * @param {UART_HandleTypeDef} *huart
+ * @return {*}
+ */
+uint16_t User_UART_Get_RX_Buff_Occupy(UART_HandleTypeDef *huart)
+{
+  if(huart == &huart1)
+  {
+    return fifo_get_occupy_size(&Uart_Dev_0.rx_fifo);
+  }
+
+  return 0;
+
+}
+
+
+
+
+
 
 /**
  * @brief 获取TX空闲BUF空间大小
@@ -331,6 +351,20 @@ uint16_t User_UART_Get_TX_Buff_Free(UART_HandleTypeDef *huart)
 }
 
 
+/**
+ * @brief 获取RX空闲BUF空间大小
+ * @param {UART_HandleTypeDef} *huart
+ * @return {*}
+ */
+uint16_t User_UART_Get_RX_Buff_Free(UART_HandleTypeDef *huart)
+{
+  if(huart == &huart1)
+  {
+    return fifo_get_free_size(&Uart_Dev_0.rx_fifo);
+  }
+  
+  return 0;
+}
 
 
 /**

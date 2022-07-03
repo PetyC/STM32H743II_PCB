@@ -42,7 +42,7 @@ void MX_CRC_Init(void)
   hcrc.Init.DefaultInitValueUse = DEFAULT_INIT_VALUE_DISABLE;
   hcrc.Init.GeneratingPolynomial = 32773;
   hcrc.Init.CRCLength = CRC_POLYLENGTH_16B;
-  hcrc.Init.InitValue = 0XFFFF;
+  hcrc.Init.InitValue = 65535;
   hcrc.Init.InputDataInversionMode = CRC_INPUTDATA_INVERSION_BYTE;
   hcrc.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_ENABLE;
   hcrc.InputDataFormat = CRC_INPUTDATA_FORMAT_BYTES;

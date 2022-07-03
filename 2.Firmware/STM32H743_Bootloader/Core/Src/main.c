@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2022 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2022 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -32,11 +32,12 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "bootloader.h"
+#include "Bsp_MCU_Flash.h"
+
 #include "st7735s.h"
 #include "fonts.h"
 #include "gfx.h"
-
-#include "Dev_Uart.h"
+#include "Bsp_Uart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -59,8 +60,6 @@
 
 /* MDK AC5 */
 
-
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -75,24 +74,17 @@ void SystemClock_Config(void);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  /*在APP中设置*/
- // SCB->VTOR = FLASH_BASE | 0x4000;//设置中断偏移
 
-	if (g_JumpInit == Jump_APP)	        /* 软件复位后再进入APP，提供一个干净的CPU环境给APP */
-	{	
-		Jump_To_App();	                    /* 去执行APP程序 */
-	}
-	else if (g_JumpInit == Update_APP)	    
-	{
-		
-		/* 用户可以自己加处理，比如APP请求升级固件, 直接进入固件升级状态 */
-	}
+  // SCB->VTOR = FLASH_BASE | 0x4000;//设置中断偏移
+
+  /*判断是否需要直接跳转APP*/
+  Judge_Jump_APP();
 
   /* USER CODE END 1 */
 
@@ -123,11 +115,11 @@ int main(void)
   MX_FMC_Init();
   MX_TIM14_Init();
   MX_TIM1_Init();
-  MX_TIM13_Init();
   MX_CRC_Init();
+  MX_TIM13_Init();
   /* USER CODE BEGIN 2 */
 
-  //LCD初始化
+  // LCD初始化
   ST7735S_Init();
 
   setOrientation(R0);
@@ -141,7 +133,9 @@ int main(void)
   drawText(0, 0, "BootLoader");
   flushBuffer();
 
-   static uint32_t Data_CRC = 0;
+
+  /*默认需要升级APP*/
+  System_State = Update_APP;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -149,20 +143,11 @@ int main(void)
   while (1)
   {
 
-    uint8_t Data_Buffer[] = {0x36, 0x01 , 0xff , 0xff};
-  
-    Data_CRC = HAL_CRC_Calculate(&hcrc , (uint32_t *)Data_Buffer , 4);
+    //    uint8_t Data_Buffer[] = {0x36, 0x01 , 0xff , 0xff};
+    //    Data_CRC = HAL_CRC_Calculate(&hcrc , (uint32_t *)Data_Buffer , 4);
 
-    User_UART_Write(&huart1, "BootLoader is Run!\r\n", 21);
-    User_UART_Write(&huart1, "Jump APP !\r\n", 13);
-    User_UART_Poll_DMA_TX(&huart1);
-    HAL_Delay(100);
+   Bootloader_Loop();
 
-
-    /* 软件复位后再进入APP，提供一个干净的CPU环境给APP */
-    g_JumpInit = Jump_APP;
-
-    NVIC_SystemReset();	    //复位CPU
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -171,31 +156,33 @@ int main(void)
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Supply configuration update enable
-  */
+   */
   HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
 
   /** Configure the main internal regulator output voltage
-  */
+   */
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
 
-  while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
+  while (!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY))
+  {
+  }
 
   /** Macro to configure the PLL clock source
-  */
+   */
   __HAL_RCC_PLL_PLLSOURCE_CONFIG(RCC_PLLSOURCE_HSE);
 
   /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+   * in the RCC_OscInitTypeDef structure.
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
@@ -214,10 +201,8 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2
-                              |RCC_CLOCKTYPE_D3PCLK1|RCC_CLOCKTYPE_D1PCLK1;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_D3PCLK1 | RCC_CLOCKTYPE_D1PCLK1;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
@@ -237,9 +222,9 @@ void SystemClock_Config(void)
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -251,14 +236,14 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */

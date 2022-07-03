@@ -21,7 +21,7 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
-#include "Dev_Uart.h"
+#include "Bsp_Uart.h"
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart1;
