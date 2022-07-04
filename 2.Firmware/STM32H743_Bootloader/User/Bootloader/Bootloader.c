@@ -2,7 +2,7 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:36
- * @LastEditTime: 2022-07-04 19:16:57
+ * @LastEditTime: 2022-07-05 01:21:13
  */
 #include "Bootloader.h"
 #include "Bsp_MCU_Flash.h"
@@ -154,7 +154,7 @@ void Bootloader_Loop(void)
   static uint8_t Flash_Erase_Error = 0;
 
   /*APP Bin文件大小*/
-  uint32_t APP_Bin_Size = 70628;
+  //uint32_t APP_Bin_Size = 70628;
 
   switch (System_State)
   {

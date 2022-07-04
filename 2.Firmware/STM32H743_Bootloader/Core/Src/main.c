@@ -128,7 +128,7 @@ int main(void)
     //    uint8_t Data_Buffer[] = {0x36, 0x01 , 0xff , 0xff};
     //    Data_CRC = HAL_CRC_Calculate(&hcrc , (uint32_t *)Data_Buffer , 4);
 
-    Demo2();
+
 
     /* USER CODE END WHILE */
 
