@@ -3,10 +3,11 @@
         {
             "name": "STM32",
             "includePath": [
-                "D:/Software/IDE/Keil5/ARM/ARMCC/**",
+                "E:/software/IDE/Keil_v5/ARM/ARMCC/**",
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/User/**",
-                "${workspaceFolder}/User/Drive/**"
+                "${workspaceFolder}/User/Drive/**",
+                "${workspaceFolder}/User/App/**"
             ],
             "defines": [
                 "_DEBUG",
@@ -18,7 +19,7 @@
             "intelliSenseMode": "gcc-x64",
             "cStandard": "c99",
             "cppStandard": "c++11",
-            "compilerPath": "D:\\Software\\CodeTool\\mingw64\\bin\\gcc.exe"
+            "compilerPath": "E:/software/Code_Tool/mingw64/bin/gcc.exe"
         }
     ],
     "version": 4

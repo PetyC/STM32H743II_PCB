@@ -23,11 +23,12 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Bsp_Uart.h"
+#include "app.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
-uint32_t Tick = 0;
+
 /* USER CODE END TD */
 
 /* Private define ------------------------------------------------------------*/
@@ -197,13 +198,8 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-  Tick++;
+  app_time_core_Tick();
 
-  if(Tick >= 800)
-  {
-    HAL_GPIO_TogglePin(LED2_GPIO_Port , LED2_Pin);
-    Tick = 0;
-  }
   /* USER CODE END SysTick_IRQn 1 */
 }
 

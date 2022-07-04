@@ -31,13 +31,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "bootloader.h"
-#include "Bsp_MCU_Flash.h"
-
-#include "st7735s.h"
-#include "fonts.h"
-#include "gfx.h"
-#include "Bsp_Uart.h"
+#include "app.h"
+#include "Bootloader.h"
+#include "app_uart_process.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -83,8 +79,7 @@ int main(void)
 
   // SCB->VTOR = FLASH_BASE | 0x4000;//设置中断偏移
 
-  /*判断是否需要直接跳转APP*/
-  Judge_Jump_APP();
+
 
   /* USER CODE END 1 */
 
@@ -119,34 +114,21 @@ int main(void)
   MX_TIM13_Init();
   /* USER CODE BEGIN 2 */
 
-  // LCD初始化
-  ST7735S_Init();
 
-  setOrientation(R0);
-  setColor(0, 0, 0);
-  fillScreen();
+  app_init();
+ 
 
-  /*LCD显示*/
-  setColor(0, 0xff, 00);
-  setbgColor(0, 0, 0);
-  setFont(ter_u12b);
-  drawText(0, 0, "BootLoader");
-  flushBuffer();
-
-
-  /*默认需要升级APP*/
-  System_State = Update_APP;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
+    //app_loop();
     //    uint8_t Data_Buffer[] = {0x36, 0x01 , 0xff , 0xff};
     //    Data_CRC = HAL_CRC_Calculate(&hcrc , (uint32_t *)Data_Buffer , 4);
 
-   Bootloader_Loop();
+    Demo2();
 
     /* USER CODE END WHILE */
 
@@ -218,7 +200,19 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+/**
+ * @brief 定时器中断回调
+ * @param {TIM_HandleTypeDef} *htim
+ * @return {*}
+ */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim->Instance == TIM13)
+  {
+    HAL_TIM_Base_Stop(&htim13);
+    UART_RX_Time_Out_Flag = 1;
+  }
+}
 /* USER CODE END 4 */
 
 /**

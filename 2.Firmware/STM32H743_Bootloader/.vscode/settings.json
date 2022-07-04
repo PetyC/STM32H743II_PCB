@@ -27,7 +27,8 @@
       "deque": "c",
       "queue": "c",
       "vector": "c",
-      "bsp_mcu_flash.h": "c"
+      "bsp_mcu_flash.h": "c",
+      "st7735s.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

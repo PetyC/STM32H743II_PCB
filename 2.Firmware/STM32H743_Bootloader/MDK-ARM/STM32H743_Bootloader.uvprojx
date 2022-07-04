@@ -10,7 +10,7 @@
       <TargetName>STM32H743_Bootloader</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060960::V5.06 update 7 (build 960)::.\ARMCC</pCCUsed>
+      <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -185,7 +185,6 @@
             <uocXRam>0</uocXRam>
             <RvdsVP>3</RvdsVP>
             <RvdsMve>0</RvdsMve>
-            <RvdsCdeCp>0</RvdsCdeCp>
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -339,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../User/Drive/LCD;../User/Bootloader;../User/Drive/Bsp_Uart;../User/Drive/Bsp_MCU_Flash</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../User/Bootloader;../User/Drive/Bsp_Uart;../User/Drive/Bsp_MCU_Flash;..\User\APP\core;..\User\Drive\Bsp_LCD;..\User\App\Lcd;..\User\App\Uart_process</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -352,7 +351,7 @@
             <NoWarn>0</NoWarn>
             <uSurpInc>0</uSurpInc>
             <useXO>0</useXO>
-            <ClangAsOpt>4</ClangAsOpt>
+            <uClangAs>0</uClangAs>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -512,27 +511,67 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>User/Drive/LCD</GroupName>
+          <GroupName>User/App/Uart_Process</GroupName>
+          <Files>
+            <File>
+              <FileName>app_uart_process.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\App\Uart_process\app_uart_process.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>User/App/LCD</GroupName>
+          <Files>
+            <File>
+              <FileName>app_lcd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\APP\Lcd\app_lcd.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>User/App/Core</GroupName>
+          <Files>
+            <File>
+              <FileName>app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\APP\core\app.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_core_timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\APP\core\app_core_timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_execute.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\APP\core\app_execute.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>User/Drive/Bsp_LCD</GroupName>
           <Files>
             <File>
               <FileName>bsp_st7735s.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\Drive\LCD\bsp_st7735s.c</FilePath>
+              <FilePath>..\User\Drive\Bsp_LCD\bsp_st7735s.c</FilePath>
             </File>
             <File>
               <FileName>fonts.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\Drive\LCD\fonts.c</FilePath>
+              <FilePath>..\User\Drive\Bsp_LCD\fonts.c</FilePath>
             </File>
             <File>
               <FileName>gfx.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\Drive\LCD\gfx.c</FilePath>
+              <FilePath>..\User\Drive\Bsp_LCD\gfx.c</FilePath>
             </File>
             <File>
               <FileName>st7735s.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\Drive\LCD\st7735s.c</FilePath>
+              <FilePath>..\User\Drive\Bsp_LCD\st7735s.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -862,14 +901,5 @@
     </components>
     <files/>
   </RTE>
-
-  <LayerInfo>
-    <Layers>
-      <Layer>
-        <LayName>STM32H743_Bootloader</LayName>
-        <LayPrjMark>1</LayPrjMark>
-      </Layer>
-    </Layers>
-  </LayerInfo>
 
 </Project>

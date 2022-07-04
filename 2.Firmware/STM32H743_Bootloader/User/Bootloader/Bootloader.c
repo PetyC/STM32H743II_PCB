@@ -2,7 +2,7 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:36
- * @LastEditTime: 2022-07-03 23:21:17
+ * @LastEditTime: 2022-07-04 19:16:57
  */
 #include "Bootloader.h"
 #include "Bsp_MCU_Flash.h"
@@ -11,10 +11,12 @@
 #include "st7735s.h"
 #include "fonts.h"
 #include "gfx.h"
+
 #include <stdio.h>
 
 /*系统状态存储*/
 uint32_t System_State __attribute__((at(0x20000000), zero_init));
+uint8_t UART_RX_Time_Out_Flag = 0; //串口超时标志
 
 /*内部调用*/
 static void Jump_To_App(void);
@@ -46,22 +48,6 @@ static void Jump_To_App(void)
   }
 }
 
-/**
- * @brief  判断是否软件复位后再进入APP，提供一个干净的CPU环境给APP
- * @return {*}
- */
-void Judge_Jump_APP(void)
-{
-  if ((SYS_State_Enum)System_State == Jump_APP)
-  {
-    /*跳入APP*/
-    Jump_To_App();
-  }
-  else
-  {
-    return;
-  }
-}
 
 /**
  * @brief 擦除APP占用扇区
@@ -92,7 +78,7 @@ uint8_t User_MCU_Flash_APP_Erase(uint32_t APP_File_Size)
   }
 }
 
-bool UART_RX_Time_Out_Flag = 0; //串口超时标志
+
 
 /**
  * @brief 从串口接收APP数据 并写入FALSH中
@@ -152,19 +138,10 @@ uint8_t User_Update_Flash_APP(uint8_t *Updata_Finish)
   return Flash_Error;
 }
 
-/**
- * @brief 定时器中断回调
- * @param {TIM_HandleTypeDef} *htim
- * @return {*}
- */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  if (htim->Instance == TIM13)
-  {
-    HAL_TIM_Base_Stop(&htim13);
-    UART_RX_Time_Out_Flag = 1;
-  }
-}
+
+
+
+
 
 /**
  * @brief
@@ -175,10 +152,10 @@ void Bootloader_Loop(void)
   static uint8_t Updata_Error_Flag = 0;
   static uint8_t Updata_Finish_Flag = 0;
   static uint8_t Flash_Erase_Error = 0;
-	
-	/*APP Bin文件大小*/
-	uint32_t APP_Bin_Size = 70628;
-	
+
+  /*APP Bin文件大小*/
+  uint32_t APP_Bin_Size = 70628;
+
   switch (System_State)
   {
   case Jump_APP:        //跳入APP
@@ -187,30 +164,6 @@ void Bootloader_Loop(void)
 
   case Update_APP: //需要升级APP
 
-    setColor(0, 0xff, 00);
-    setbgColor(0, 0, 0);
-    setFont(ter_u12b);
-    drawText(0, 12 + 2, "System:Update_APP");
-
-    drawText(0, (12 ) * 2, "APP Addr:");
-    drawText(0, (12 ) * 3, "APP Size:");
-    flushBuffer();
-    drawText(0, (12) * 4, "Flash Erase:");
-    drawText(0, (12) * 5, "Flash Write:");
-    drawText(0, (12) * 6, "Jump APP:");
-    flushBuffer();
-    /*获取APP文件大小和起始地址*/
-    char Temp[30];
-    sprintf(Temp , "0X%x" , MCU_FLASH_APP_ADDR);
-    drawText(10 * 6, (12) * 2, Temp);
-
-    memset(Temp , 0 , sizeof(Temp));
-
-    sprintf(Temp , "%d" , APP_Bin_Size);
-    drawText(10 * 6, (12) * 3, Temp);
-
-
-    flushBuffer();
 
     System_State = Erase_Flash_APP;
     break;
@@ -225,13 +178,9 @@ void Bootloader_Loop(void)
     {
       System_State = Update_Error_APP;
       Updata_Error_Flag = 1;
-      drawText(13 * 6, 12 * 4, "Error");
-      flushBuffer();
+
       break;
     }
-
-    drawText(13 * 6, 12 * 4, "OK");
-    flushBuffer();
 
     System_State = Write_Flash_APP;
 
@@ -245,31 +194,27 @@ void Bootloader_Loop(void)
     if (Updata_Error_Flag == 1)
     {
       System_State = Update_Error_APP;
-      drawText(13 * 6, 12 * 5, "Error");
-      flushBuffer();
       break;
     }
 
     /*升级APP完成*/
     if (Updata_Finish_Flag == 1)
     {
-      /*UI 跳转倒计时*/
-      drawText(13 * 6, 12 * 5, "OK");
-      for(uint8_t i = 5 ; i > 0 ; i--)
-      {
-        char Number;
-        sprintf(&Number , "%d" , i);
-        drawText(10 * 6, 12 * 6, &Number);
-        flushBuffer();
-        HAL_Delay(1000);
-      }
-
-      System_State = Jump_APP;
-      NVIC_SystemReset(); //复位CPU
+      System_State = Updata_Finish;
     }
-    
-    break;
 
+    break;
+  case Updata_Finish:
+
+    /*UI 跳转倒计时*/
+    drawText(13 * 6, 12 * 5, "OK     ");
+
+
+    System_State = Jump_APP;
+    
+    NVIC_SystemReset(); //复位CPU
+
+    break;
   case Update_Error_APP: //升级APP出错
 
     break;
@@ -277,4 +222,55 @@ void Bootloader_Loop(void)
   default:
     break;
   }
+}
+
+
+
+
+
+void Demo()
+{
+
+  switch (System_State)
+  {
+    case Update_APP://需要升级APP
+
+    System_State = Erase_Flash_APP;
+    break;
+
+    case Erase_Flash_APP://擦除APP Flash
+
+    System_State = Write_Flash_APP;
+    break;
+
+    case Write_Flash_APP://APP写入Flash
+
+    System_State = Updata_Finish;
+    break;
+  
+    
+    case Updata_Finish://APP升级完成
+
+
+    System_State = Jump_APP;
+    break;
+
+    case Update_Error_APP://APP错误
+
+        
+    break;
+
+    case Jump_APP://跳入APP
+
+
+    break;
+    
+
+    default:
+    break;
+
+  }
+
+
+
 }

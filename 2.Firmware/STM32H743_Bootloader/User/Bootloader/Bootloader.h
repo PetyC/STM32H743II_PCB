@@ -2,7 +2,7 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:43
- * @LastEditTime: 2022-07-03 22:53:37
+ * @LastEditTime: 2022-07-04 16:05:01
  */
 #ifndef BOOTLOADER_H
 #define BOOTLOADER_H
@@ -38,6 +38,7 @@
 
 /*系统状态存储*/
 extern uint32_t System_State;
+extern uint8_t UART_RX_Time_Out_Flag; //串口超时标志
 
 
 /*系统状态*/
@@ -46,12 +47,12 @@ typedef enum
   Update_APP,               //需要升级APP
   Erase_Flash_APP,          //擦除原APP Flash
   Write_Flash_APP,          //APP写入FLASH
+  Updata_Finish,            //APP升级完成
   Update_Error_APP,         //升级APP出错
   Jump_APP,                 //跳入APP
 }SYS_State_Enum;
 
-/*放在main函数内最前面*/
-void Judge_Jump_APP(void);
+
 
 
 void Bootloader_Loop(void);
