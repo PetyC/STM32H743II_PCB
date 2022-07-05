@@ -4,12 +4,12 @@
  * @Author: Pi
  * @Date: 2021-07-05 15:34:21
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2022-07-05 02:04:08
+ * @LastEditTime: 2022-07-05 15:31:22
  */
 #include "app_execute.h"
 #include "app_lcd.h"
 #include "app_uart_process.h"
-
+#include "Bootloader.h"
 
 Timer SYS_LED_Timer; //系统LED灯定时器
 
@@ -44,8 +44,9 @@ void app_execute_time_init(void)
  */
 void app_execute_loop(void)
 {
+
   User_UART_Process();
-  
+ 
 }
 
 /**

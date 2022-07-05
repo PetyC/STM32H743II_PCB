@@ -10,7 +10,8 @@
 #include "st7735s.h"
 #include "fonts.h"
 #include "gfx.h"
-
+#include "stdio.h"
+#include "string.h"
 
 #define STATE_DISPLAY_LINE    12
 #define ADD_DISPLAY_LINE      12 * 2

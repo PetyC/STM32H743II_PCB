@@ -65,7 +65,7 @@ void HAL_QSPI_MspInit(QSPI_HandleTypeDef* qspiHandle)
   if(qspiHandle->Instance==QUADSPI)
   {
   /* USER CODE BEGIN QUADSPI_MspInit 0 */
-
+   __HAL_RCC_MDMA_CLK_ENABLE();		// 开启MDMA化时钟
   /* USER CODE END QUADSPI_MspInit 0 */
 
   /** Initializes the peripherals clock
@@ -132,7 +132,7 @@ void HAL_QSPI_MspInit(QSPI_HandleTypeDef* qspiHandle)
     hmdma_quadspi_fifo_th.Instance = MDMA_Channel1;
     hmdma_quadspi_fifo_th.Init.Request = MDMA_REQUEST_QUADSPI_FIFO_TH;
     hmdma_quadspi_fifo_th.Init.TransferTriggerMode = MDMA_BUFFER_TRANSFER;
-    hmdma_quadspi_fifo_th.Init.Priority = MDMA_PRIORITY_LOW;
+    hmdma_quadspi_fifo_th.Init.Priority = MDMA_PRIORITY_VERY_HIGH;
     hmdma_quadspi_fifo_th.Init.Endianness = MDMA_LITTLE_ENDIANNESS_PRESERVE;
     hmdma_quadspi_fifo_th.Init.SourceInc = MDMA_SRC_INC_BYTE;
     hmdma_quadspi_fifo_th.Init.DestinationInc = MDMA_DEST_INC_DISABLE;

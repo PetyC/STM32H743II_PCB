@@ -28,7 +28,9 @@
       "queue": "c",
       "vector": "c",
       "bsp_mcu_flash.h": "c",
-      "st7735s.h": "c"
+      "st7735s.h": "c",
+      "app_w25q128.h": "c",
+      "bsp_w25qxx.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

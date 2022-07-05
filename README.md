@@ -2,7 +2,7 @@
  * @Description: 2022-1-14
  * @Autor: Pi
  * @Date: 2021-12-28 15:04:41
- * @LastEditTime: 2022-04-14 15:57:24
+ * @LastEditTime: 2022-07-05 19:18:56
 -->
 应用与水曰等一系列交互装置的核心板
 主控使用STM32H743   
@@ -92,3 +92,7 @@ QSPI注意：初始化QSPI相关引脚时，需要将GPIO速度手动调整至�
 (3 滑动按钮选中串口功能正常
 
 2、工程添加ESP8266测试代码
+
+
+2022年7月5日
+1、使用QSPI BDMA功能时HAL自带的初始化函数 无法正常使用 需要在HAL_QSPI_MspInit()函数中重新使能RCC时钟 即__HAL_RCC_MDMA_CLK_ENABLE()！！ 此时BDMA才能正常使用

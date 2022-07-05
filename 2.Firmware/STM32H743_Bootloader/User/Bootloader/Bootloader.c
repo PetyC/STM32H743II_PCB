@@ -2,21 +2,18 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:36
- * @LastEditTime: 2022-07-05 01:21:13
+ * @LastEditTime: 2022-07-05 19:57:20
  */
 #include "Bootloader.h"
-#include "Bsp_MCU_Flash.h"
-#include "Bsp_Uart.h"
 
-#include "st7735s.h"
-#include "fonts.h"
-#include "gfx.h"
 
 #include <stdio.h>
 
 /*系统状态存储*/
-uint32_t System_State __attribute__((at(0x20000000), zero_init));
+uint32_t APP_Updata_Flag __attribute__((at(0x20000000), zero_init));
+SYS_State_Enum System_State;        //系统状态
 uint8_t UART_RX_Time_Out_Flag = 0; //串口超时标志
+uint32_t APP_Bin_Size = 0;         // APP Bin文件大小
 
 /*内部调用*/
 static void Jump_To_App(void);
@@ -48,7 +45,6 @@ static void Jump_To_App(void)
   }
 }
 
-
 /**
  * @brief 擦除APP占用扇区
  * @param {uint32_t} APP_File_Size    APP Bin文件大小(单位 字节)
@@ -77,8 +73,6 @@ uint8_t User_MCU_Flash_APP_Erase(uint32_t APP_File_Size)
     return 1;
   }
 }
-
-
 
 /**
  * @brief 从串口接收APP数据 并写入FALSH中
@@ -139,138 +133,27 @@ uint8_t User_Update_Flash_APP(uint8_t *Updata_Finish)
 }
 
 
-
-
-
-
-/**
- * @brief
- * @return {*}
- */
-void Bootloader_Loop(void)
-{
-  static uint8_t Updata_Error_Flag = 0;
-  static uint8_t Updata_Finish_Flag = 0;
-  static uint8_t Flash_Erase_Error = 0;
-
-  /*APP Bin文件大小*/
-  //uint32_t APP_Bin_Size = 70628;
-
-  switch (System_State)
-  {
-  case Jump_APP:        //跳入APP
-    NVIC_SystemReset(); //复位CPU
-    break;
-
-  case Update_APP: //需要升级APP
-
-
-    System_State = Erase_Flash_APP;
-    break;
-
-  case Erase_Flash_APP:
-
-    /*擦除APP FLASH*/
-    Flash_Erase_Error = User_MCU_Flash_APP_Erase(70628);
-
-    /*擦除Flash出错*/
-    if (Flash_Erase_Error == 1)
-    {
-      System_State = Update_Error_APP;
-      Updata_Error_Flag = 1;
-
-      break;
-    }
-
-    System_State = Write_Flash_APP;
-
-    break;
-
-  case Write_Flash_APP:
-
-    Updata_Error_Flag = User_Update_Flash_APP(&Updata_Finish_Flag);
-
-    /*升级APP出错*/
-    if (Updata_Error_Flag == 1)
-    {
-      System_State = Update_Error_APP;
-      break;
-    }
-
-    /*升级APP完成*/
-    if (Updata_Finish_Flag == 1)
-    {
-      System_State = Updata_Finish;
-    }
-
-    break;
-  case Updata_Finish:
-
-    /*UI 跳转倒计时*/
-    drawText(13 * 6, 12 * 5, "OK     ");
-
-
-    System_State = Jump_APP;
-    
-    NVIC_SystemReset(); //复位CPU
-
-    break;
-  case Update_Error_APP: //升级APP出错
-
-    break;
-
-  default:
-    break;
-  }
-}
-
-
-
-
-
+#define APP_SIZE (uint32_t)(128 * 7 * 1024)     //单位：字节
+/*内部程序复制到W25Q*/
 void Demo()
 {
+  uint8_t Data[256];
 
-  switch (System_State)
+  for(uint32_t i = 0 ; i < APP_SIZE/256 ; i++)
   {
-    case Update_APP://需要升级APP
+    User_MCU_FLASH_Read(MCU_FLASH_APP_ADDR + (i * 256), Data , sizeof(Data));      //读取一页256字节
 
-    System_State = Erase_Flash_APP;
-    break;
-
-    case Erase_Flash_APP://擦除APP Flash
-
-    System_State = Write_Flash_APP;
-    break;
-
-    case Write_Flash_APP://APP写入Flash
-
-    System_State = Updata_Finish;
-    break;
-  
-    
-    case Updata_Finish://APP升级完成
-
-
-    System_State = Jump_APP;
-    break;
-
-    case Update_Error_APP://APP错误
-
-        
-    break;
-
-    case Jump_APP://跳入APP
-
-
-    break;
-    
-
-    default:
-    break;
-
+    QSPI_W25Qx_Write_Buffer(FLASH_BEGIN_ADDRESS + (i * 256) , Data , sizeof(Data)); //写入外置Flash
   }
 
 
+  if(APP_SIZE%256 != 0)
+  {
+    memset(Data , 0 , 256);
+    User_MCU_FLASH_Read(MCU_FLASH_APP_ADDR + ((APP_SIZE/256 + 1)  * 256) , Data , sizeof(Data));      //读取一页256字节
+    QSPI_W25Qx_Write_Buffer(FLASH_BEGIN_ADDRESS + ((APP_SIZE/256 + 1)  * 256)  , Data , sizeof(Data)); //写入外置Flash
 
+  }
+  
 }
+

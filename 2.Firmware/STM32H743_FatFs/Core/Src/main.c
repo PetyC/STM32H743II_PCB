@@ -114,8 +114,8 @@ int main(void)
   MX_FMC_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-  //  User_FatFs_Init();
-
+   // User_FatFs_Init();
+    QSPI_W25Qx_Init();
   //	User_Nand_Flash_Init();
   // ST7735S_Init();
 
