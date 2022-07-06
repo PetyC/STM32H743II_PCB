@@ -2,7 +2,7 @@
  * @Description: 用于W25Q128JVSSIQ的驱动文件  
  * @Autor: Pi
  * @Date: 2022-04-12 21:18:45
- * @LastEditTime: 2022-07-05 19:30:56
+ * @LastEditTime: 2022-07-06 20:49:40
  */
 #ifndef BSP_W25QXX_H
 #define BSP_W25QXX_H
@@ -10,9 +10,12 @@
 #include "quadspi.h"
 #include "stdio.h"
 
-/* 宏定义 --------------------------------------------------------------------*/
-#define FLASH_BEGIN_ADDRESS 0x00000
+/*用户自定义数据*/
+#define FLASH_BEGIN_ADDR 0x00000                    //FLASH起始地址
 
+
+
+/*W25Q128 芯片相关参数*/
 #define W25Q128JV_FLASH_SIZE                  0x1000000 /* 128 MBits => 16MBytes */
 #define W25Q128JV_BLOCK_SIZE                  0x10000   /* 256 Blocks of 64KBytes */
 #define W25Q128JV_HALF_BLOCK_SIZE             0x8000    /* 128 Blocks  of 32KBytes */

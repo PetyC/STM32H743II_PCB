@@ -340,7 +340,7 @@ void QSPI_W25Qx_Read_Buffer(uint32_t _read_Addr , uint8_t *_pBuf, uint32_t _read
  * @param {uint8_t} *_pBuf 需要存入数据的指针
  * @param {uint32_t} _write_Addr 目标区域首地址，即页首地址，比如0，256，512等。
  * @param {uint16_t} _write_Size 数据个数，不能超过页的大小，可以填入（1 ~ 256）
- * @return {*}
+ * @return {uint8_t}
  */
 uint8_t QSPI_W25Qx_Write_Buffer(uint32_t _write_Addr ,uint8_t *_pBuf, uint16_t _write_Size)
 {

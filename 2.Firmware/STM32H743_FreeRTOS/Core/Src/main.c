@@ -79,7 +79,7 @@ int main(void)
   /*设置中断偏移*/
   SCB->VTOR = FLASH_BASE | 0x100000;  
   
-  g_JumpInit = 2;
+ // g_JumpInit = 2;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/

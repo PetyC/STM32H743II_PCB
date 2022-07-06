@@ -2,7 +2,7 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:43
- * @LastEditTime: 2022-07-05 19:51:56
+ * @LastEditTime: 2022-07-06 21:18:42
  */
 #ifndef BOOTLOADER_H
 #define BOOTLOADER_H
@@ -17,35 +17,39 @@
 #include "gfx.h"
 
 
-/*用户根据自己的需要设置*/
-#define MCU_FLASH_IAP_SIZE (uint32_t)(1024 * 1024) // bootloader所用容量大小(KB)
+/*内部Flash*/
+/*bootloader所用容量大小(KB)*/
+#define MCU_FLASH_IAP_SIZE (uint32_t)(1024 * 1024) 
 
-/*用户程序运行地址:FLASH的起始地址 + bootloader所用程序大小*/
-#define MCU_FLASH_APP_ADDR (MCU_FLASH_BASE_ADDR + MCU_FLASH_IAP_SIZE)
+/*app 用户程序运行地址:FLASH的起始地址 + bootloader所用程序大小*/
+#define MCU_FLASH_APP_ADDR (MCU_FLASH_BASE_ADDR + MCU_FLASH_IAP_SIZE) 
 
-/*STM32H743xx 内部一个扇区128KB 不适合单独一个扇区存放数据 */
-#if defined(STM32H743xx)
-/*用户程序大小(KB) = (总FLASH容量 - bootloader所用容量大小(KB))*/
-//#define MCU_FLASH_USER_SIZE (MCU_FLASH_SIZE - MCU_FLASH_IAP_SIZE) 
+/*app 用户程序大小(KB) = (总FLASH容量 - bootloader所用容量大小(KB))*/
+#define MCU_FLASH_USER_SIZE (MCU_FLASH_SIZE - MCU_FLASH_IAP_SIZE) 
 
-#define MCU_FLASH_USER_SIZE (uint32_t)(1024 * 128)    //单位:kb
+/*外部Flash*/
+/*用户数据区大小 4096 单位:字节*/
+#define FLASH_DATA_SIZE  0X1000                
 
-#else
-/*存储用户数据所用容量大小(KB)*/
-#define MCU_FLASH_DATA_SIZE (uint32_t)(1024 * 2)
-/*存储用户数据地址 */
-#define MCU_FLASH_DATA_ADDR (MCU_FLASH_BASE_ADDR + (MCU_FLASH_SIZE - MCU_FLASH_DATA_SIZE))
-/*用户程序大小(KB) = (总FLASH容量 - 存储用户数据所用容量大小(KB) - bootloader所用容量大小(KB))*/
-#define MCU_FLASH_USER_SIZE (MCU_FLASH_SIZE - MCU_FLASH_DATA_SIZE - MCU_FLASH_IAP_SIZE)
+/*数据区地址*/      
+#define FLASH_DATA_ADDR (FLASH_BEGIN_ADDR)          
 
-#endif
+/*app存储区大小 单位:字节*/
+#define FLASH_BIN_SIZE   MCU_FLASH_USER_SIZE                   
+
+/*app区起始地址*/
+#define FLASH_BIN_ADDR  (FLASH_DATA_ADDR + FLASH_DATA_SIZE)       
+
+/*需要跳转APP的值*/
+#define APP_JUMP_VALUE  0X11223344
+
 
 
 
 /*系统状态存储*/
-extern uint32_t APP_Updata_Flag;          //是否升级标志
-extern uint32_t APP_Bin_Size;             //APP Bin文件大小
-extern uint8_t UART_RX_Time_Out_Flag;     //串口超时标志
+extern uint32_t APP_Jump_Flag;         //是否升级标志
+ 
+extern uint8_t UART_RX_Time_Out_Flag; 
 
 
 /*系统状态*/
@@ -63,12 +67,39 @@ typedef enum
 }SYS_State_Enum;
 
 
+typedef struct
+{
+  uint8_t Init;     //是否已初始化
+  uint8_t Version;  //目前版本号
+  uint8_t Updata;   //是否需要升级
+  uint32_t Size;    //固件大小
+  uint8_t Url[200]; // url下载地址
+} App_information_Str;
 
 
+/*跳转到APP应用*/
+void User_App_Jump(void);
 
+/*备份MCU数据至外部Flash*/
+uint8_t User_App_MCU_Flash_Copy(void);
 
-uint8_t User_MCU_Flash_APP_Erase(uint32_t APP_File_Size);
-uint8_t User_Update_Flash_APP(uint8_t *Updata_Finish);
+/*外部Flash备份数据写入MCU Flash*/
+uint8_t User_App_Flash_Copy(void); 
+
+/*擦除APP占用扇区*/
+uint8_t User_App_MCU_Flash_Erase(uint32_t APP_File_Size);
+
+/* 从串口接收APP数据 并写入内部FALSH中*/
+uint8_t User_App_MCU_Flash_Updata(uint8_t *Updata_Finish);
+
+/*CRC校验写入MUC Flash数据*/
+uint8_t User_App_MCU_Flash_CRC(uint32_t APP_File_Size);
+
+/*启动跳转到APP*/
+void User_App_Jump_Start(void);
+
+/*初始化Boot*/
+void User_Boot_Init(void);
 
 
 

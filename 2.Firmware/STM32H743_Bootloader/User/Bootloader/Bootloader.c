@@ -2,31 +2,39 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:36
- * @LastEditTime: 2022-07-05 19:57:20
+ * @LastEditTime: 2022-07-06 21:15:42
  */
 #include "Bootloader.h"
 
-
 #include <stdio.h>
 
-/*系统状态存储*/
-uint32_t APP_Updata_Flag __attribute__((at(0x20000000), zero_init));
-SYS_State_Enum System_State;        //系统状态
-uint8_t UART_RX_Time_Out_Flag = 0; //串口超时标志
-uint32_t APP_Bin_Size = 0;         // APP Bin文件大小
+/*APP跳转标志*/
+uint32_t APP_Jump_Flag __attribute__((at(0x20000000), zero_init));
+
+/*APP文件大小*/
+uint32_t App_Updata_Size;
+
+/*串口超时标志*/
+uint8_t UART_RX_Time_Out_Flag = 0;
 
 /*内部调用*/
-static void Jump_To_App(void);
 
 /*相关句柄*/
 extern TIM_HandleTypeDef htim13;
+extern CRC_HandleTypeDef hcrc;
 
 /**
  * @brief 跳转到APP应用
  * @return {*}
  */
-static void Jump_To_App(void)
+void User_App_Jump(void)
 {
+  /*判断是否跳转*/
+  if (APP_Jump_Flag != APP_JUMP_VALUE)
+  {
+    return;
+  }
+
   /* 声明一个函数指针 */
   void (*AppJump)(void);
 
@@ -50,7 +58,7 @@ static void Jump_To_App(void)
  * @param {uint32_t} APP_File_Size    APP Bin文件大小(单位 字节)
  * @return {uint8_t} 0:成功  1:失败
  */
-uint8_t User_MCU_Flash_APP_Erase(uint32_t APP_File_Size)
+uint8_t User_App_MCU_Flash_Erase(uint32_t APP_File_Size)
 {
   /*APP Bin文件占用几个整数扇区*/
   uint32_t APP_File_Sector_Count = APP_File_Size / (128 * 1024);
@@ -75,11 +83,11 @@ uint8_t User_MCU_Flash_APP_Erase(uint32_t APP_File_Size)
 }
 
 /**
- * @brief 从串口接收APP数据 并写入FALSH中
+ * @brief 从串口接收APP数据 并写入内部FALSH中
  * @param {uint8_t} *Updata_Finish     APP更新完成标志 0:未完成  1:完成
  * @return {uint8_t}0:成功   1:失败
  */
-uint8_t User_Update_Flash_APP(uint8_t *Updata_Finish)
+uint8_t User_App_MCU_Flash_Updata(uint8_t *Updata_Finish)
 {
   /*APP更新完成标志*/
   *Updata_Finish = 0;
@@ -132,28 +140,129 @@ uint8_t User_Update_Flash_APP(uint8_t *Updata_Finish)
   return Flash_Error;
 }
 
-
-#define APP_SIZE (uint32_t)(128 * 7 * 1024)     //单位：字节
-/*内部程序复制到W25Q*/
-void Demo()
+/**
+ * @brief 将APP备份至外部Flash中
+ * @return {uint8_t}0:成功    1:失败
+ */
+uint8_t User_App_MCU_Flash_Copy(void)
 {
   uint8_t Data[256];
 
-  for(uint32_t i = 0 ; i < APP_SIZE/256 ; i++)
+  /*擦除外置FLASH APP备份区 2MB*/
+  for (uint32_t i = 0; i < (FLASH_BIN_SIZE / 4096); i++)
   {
-    User_MCU_FLASH_Read(MCU_FLASH_APP_ADDR + (i * 256), Data , sizeof(Data));      //读取一页256字节
-
-    QSPI_W25Qx_Write_Buffer(FLASH_BEGIN_ADDRESS + (i * 256) , Data , sizeof(Data)); //写入外置Flash
+    QSPI_W25Qx_EraseSector(FLASH_BIN_ADDR + (i * 4096));
   }
 
-
-  if(APP_SIZE%256 != 0)
+  /*将MCU内部APP备份到外置FLASH上*/
+  for (uint32_t i = 0; i < MCU_FLASH_USER_SIZE / 256; i++)
   {
-    memset(Data , 0 , 256);
-    User_MCU_FLASH_Read(MCU_FLASH_APP_ADDR + ((APP_SIZE/256 + 1)  * 256) , Data , sizeof(Data));      //读取一页256字节
-    QSPI_W25Qx_Write_Buffer(FLASH_BEGIN_ADDRESS + ((APP_SIZE/256 + 1)  * 256)  , Data , sizeof(Data)); //写入外置Flash
-
+    if (User_MCU_FLASH_Read(MCU_FLASH_APP_ADDR + (i * 256), Data, sizeof(Data)) == 0) //读取一页256字节
+    {
+      QSPI_W25Qx_Write_Buffer(FLASH_BIN_ADDR + (i * 256), Data, sizeof(Data)); //写入外置Flash
+    }
+    else
+    {
+      return 1;
+    }
   }
-  
+  return 0;
 }
 
+/**
+ * @brief 将外部Flash备份数据写入内部Flash
+ * @return {*}
+ */
+uint8_t User_App_Flash_Copy(void)
+{
+  uint8_t Data[512];
+  uint8_t Flash_Error = 0;
+
+  /*将外部Flash数据写入内部FLASH*/
+  for (uint32_t i = 0; i < FLASH_BIN_SIZE / 512; i++)
+  {
+    QSPI_W25Qx_Read_Buffer(FLASH_BIN_ADDR + (i * 512), Data, sizeof(Data));
+
+    Flash_Error = User_MCU_Flash_Write(MCU_FLASH_APP_ADDR + (i * 512), Data, sizeof(Data));
+
+    if (Flash_Error == 1)
+    {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * @brief CRC校验写入FLASH数据
+ * @param {uint32_t} APP_File_Size: app bin文件的大小 单位:字节
+ * @return {uint8_t} 0:正确  1:错误
+ */
+uint8_t User_App_MCU_Flash_CRC(uint32_t APP_File_Size)
+{
+  __IO uint32_t Bin_CRC_Value;
+  __IO uint32_t Ret_CRC_Value;
+
+  /* 读取bin文件的CRC */
+  Bin_CRC_Value = *(__IO uint32_t *)(MCU_FLASH_APP_ADDR + APP_File_Size - 4);
+
+  /* 计算是否与硬件CRC一致 */
+  Ret_CRC_Value = HAL_CRC_Calculate(&hcrc, (uint32_t *)MCU_FLASH_APP_ADDR, APP_File_Size / 4 - 1);
+
+  if (Ret_CRC_Value != Bin_CRC_Value)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
+
+/**
+ * @brief 启动跳转到APP
+ * @return {*}
+ */
+void User_App_Jump_Start(void)
+{
+  /*设置全局标志*/
+  APP_Jump_Flag = APP_JUMP_VALUE;
+
+  /* 复位CPU */
+  NVIC_SystemReset();
+}
+
+
+
+
+/**
+ * @brief Boot初始化，读取外置FLASH判断是否需要升级，若不需要升级则跳入APP
+ * @return {*}
+ */
+void User_Boot_Init(void)
+{
+  App_information_Str message;
+
+  QSPI_W25Qx_Read_Buffer(FLASH_DATA_ADDR, (uint8_t *)&message, sizeof(App_information_Str));
+
+  /*信息未初始化则进行初始化*/
+  if (message.Init != 1)
+  {
+    QSPI_W25Qx_EraseSector(FLASH_DATA_ADDR);
+
+    message.Init = 1;
+    message.Version = 0;
+    message.Size = 0;
+    message.Updata = 0;
+    memcpy(message.Url, "www.qiandpi.com\0", 17);
+
+    QSPI_W25Qx_Write_Buffer(FLASH_DATA_ADDR, (uint8_t *)&message, sizeof(App_information_Str));
+  }
+
+  /*无须升级*/
+  if (message.Updata == 0)
+  {
+    User_App_Jump_Start();
+  }
+}
