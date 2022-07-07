@@ -70,7 +70,8 @@ uint16_t User_UART_Get_RX_Buff_Free(UART_HandleTypeDef *huart);
 /*RX Buff已用空间*/
 uint16_t User_UART_Get_RX_Buff_Occupy(UART_HandleTypeDef *huart);
 
-
+/*设置串口波特率*/
+void User_UART_Set_BaudRate(UART_HandleTypeDef *huart,  uint32_t BaudRate);
 
 
 

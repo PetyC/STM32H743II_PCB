@@ -2,15 +2,15 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-04-14 16:11:43
- * @LastEditTime: 2022-07-03 19:55:46
+ * @LastEditTime: 2022-07-07 16:37:45
  */
 #include "Bsp_Uart.h"
 
 /* 串口缓存大小 */
 #define UART1_TX_BUF_SIZE 1024
-#define UART1_RX_BUF_SIZE 1024
+#define UART1_RX_BUF_SIZE 2048
 #define UART1_DMA_TX_BUF_SIZE 1024
-#define UART1_DMA_RX_BUF_SIZE 1024
+#define UART1_DMA_RX_BUF_SIZE 2048
 
 
 
@@ -118,6 +118,26 @@ void Uart_UART_MspDeInit(UART_HandleTypeDef *huart)
   }
 
 }
+
+
+/**
+ * @brief 设置串口波特率
+ * @param {UART_HandleTypeDef} *huart
+ * @param {uint32_t} BaudRate
+ * @return {*}
+ */
+void User_UART_Set_BaudRate(UART_HandleTypeDef *huart,  uint32_t BaudRate)
+{
+  
+	huart->Init.BaudRate = BaudRate;
+
+	if (HAL_UART_Init(huart) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+}
+
 
 
 /**

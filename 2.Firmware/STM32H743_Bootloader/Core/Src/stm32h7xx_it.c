@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "Bsp_Uart.h"
 #include "app.h"
+#include "Bsp_Esp8266.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -198,7 +199,7 @@ void SysTick_Handler(void)
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
   //app_time_core_Tick();
-
+  Bsp_ESP8266_Tick();
   /* USER CODE END SysTick_IRQn 1 */
 }
 

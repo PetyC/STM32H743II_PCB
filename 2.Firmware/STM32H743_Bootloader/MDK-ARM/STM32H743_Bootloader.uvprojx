@@ -137,7 +137,7 @@
             <DriverSelection>4101</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
-          <Flash2>BIN\UL2V8M.DLL</Flash2>
+          <Flash2>BIN\UL2CM3.DLL</Flash2>
           <Flash3></Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../User/Bootloader;../User/Drive/Bsp_Uart;../User/Drive/Bsp_MCU_Flash;../User/APP/core;../User/Drive/Bsp_LCD;../User/App/Lcd;../User/App/Uart_process;../User/Drive/Bsp_W25QXX</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../User/Bootloader;../User/Drive/Bsp_Uart;../User/Drive/Bsp_MCU_Flash;../User/APP/core;../User/Drive/Bsp_LCD;../User/App/Lcd;../User/App/Uart_process;../User/Drive/Bsp_W25QXX;..\User\Drive\Bsp_Esp8266</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -546,6 +546,26 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>User/Drive/Bsp</GroupName>
+          <Files>
+            <File>
+              <FileName>Bsp_w25qxx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Drive\Bsp_W25QXX\Bsp_w25qxx.c</FilePath>
+            </File>
+            <File>
+              <FileName>Bsp_Esp8266.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Drive\Bsp_Esp8266\Bsp_Esp8266.c</FilePath>
+            </File>
+            <File>
+              <FileName>Bsp_MCU_Flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Drive\Bsp_MCU_Flash\Bsp_MCU_Flash.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>User/Drive/Bsp_LCD</GroupName>
           <Files>
             <File>
@@ -587,26 +607,6 @@
               <FileName>Fifo.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Drive\Bsp_Uart\Fifo.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>User/Drive/Bsp_W25qxx</GroupName>
-          <Files>
-            <File>
-              <FileName>Bsp_w25qxx.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Drive\Bsp_W25QXX\Bsp_w25qxx.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>User/Drive/Bsp_MCU_FLASH</GroupName>
-          <Files>
-            <File>
-              <FileName>Bsp_MCU_Flash.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Drive\Bsp_MCU_Flash\Bsp_MCU_Flash.c</FilePath>
             </File>
           </Files>
         </Group>

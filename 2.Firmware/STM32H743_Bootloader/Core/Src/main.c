@@ -34,7 +34,7 @@
 #include "Bootloader.h"
 #include "app_uart_process.h"
 #include "Bsp_w25qxx.h"
-
+#include "Bsp_ESP8266.H"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -116,7 +116,24 @@ int main(void)
   // app_init();
 
   QSPI_W25Qx_Init();
+  
+  Bsp_ESP8266_Power(1 , 3000);
+/*
+  uint8_t data[100];
+  uint8_t len = 0;
+
+  Bsp_ESP8266_Config_Block("AT\r\n" , 5 , "OK" , NULL ,3 , 5000);   //测试是否正常
+  Bsp_ESP8266_Config_Block("ATE1\r\n" , 7 , "OK" , NULL , 3 , 5000); //关闭回显
+  Bsp_ESP8266_Config_Block("AT+CWMODE_DEF=3\r\n", 18 , "OK" , NULL , 3 , 5000); //WIFI模式3
+
+  len = sprintf((char *)data , "AT+CWSAP_DEF=\"Wifi_Core_Bind\",\"12345678\",11,4,4\r\n" );
+  Bsp_ESP8266_Config_Block(data , len , "OK" , NULL , 3 , 5000); //配置发出的无线
+*/  
  
+
+  Bsp_ESP8266_Connect_Ap("Moujiti", "moujiti7222");
+
+ // Bsp_ESP8266_Config_Block("ATE0\r\n" , 7 , "OK" , NULL , 3 , 5000);
 
   /* USER CODE END 2 */
 
@@ -124,7 +141,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
- 
+    HAL_GPIO_TogglePin(LED2_GPIO_Port , LED2_Pin);
+    HAL_Delay(800);
     // app_loop();
 
     /* USER CODE END WHILE */
