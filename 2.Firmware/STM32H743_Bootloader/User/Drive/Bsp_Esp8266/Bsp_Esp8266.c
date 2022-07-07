@@ -2,13 +2,15 @@
  * @Description: esp8266板级支持包 阻塞版 不适用FreeRTOS
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:14
- * @LastEditTime: 2022-07-07 21:20:30
+ * @LastEditTime: 2022-07-07 22:01:46
  */
 #include "Bsp_Esp8266.h"
 
 /*内部使用变量*/
 static __IO uint32_t ESP8266_Tick = 0;
 static __IO uint8_t ESP8266_Tick_Enable = 0;
+static uint8_t ESP8266_Buffer[1024] = {0};
+
 
 /*内部使用函数*/
 static void Bsp_ESP8266_TX(uint8_t *data, uint8_t len);
@@ -221,16 +223,14 @@ void Bsp_ESP8266_Connect_Ap(uint8_t *AP_Name , uint8_t *AP_PAW)
   Bsp_ESP8266_Delay(500);
   Bsp_ESP8266_Power(1 , 3000);
 
-
   
-  Bsp_ESP8266_Recover();            //恢复出厂设置
-  Bsp_ESP8266_Config_Block("+++" , 3 , "+++" , NULL , 3 , 3000);    //退出透传
+ // Bsp_ESP8266_Recover();            //恢复出厂设置
+  Bsp_ESP8266_Config_Block("+++" , 4 , "+++" , NULL , 3 , 3000);    //退出透传
   Bsp_ESP8266_Config_Block("ATE0\r\n" , 6 , "OK" , NULL , 3 , 3000); //关闭回显
-  Bsp_ESP8266_Config_Block("AT+CWMODE_DEF=1\r\n", 17 , "OK" , NULL , 3 , 3000); //WIFI模式1
-  Bsp_ESP8266_Config_Block("AT+CWAUTOCONN=1\r\n", 17 , "OK" , NULL , 3 , 3000); //自动连接路由器
+  Bsp_ESP8266_Config_Block("AT+CWMODE_DEF=1\r\n", 18 , "OK" , NULL , 3 , 3000); //WIFI模式1
+  Bsp_ESP8266_Config_Block("AT+CWAUTOCONN=1\r\n", 18 , "OK" , NULL , 3 , 3000); //自动连接路由器
 
   Len = sprintf((char *)Data, "AT+CWJAP_DEF=\"%s\",\"%s\"\r\n", AP_Name , AP_PAW);
-
   Bsp_ESP8266_Config_Block(Data, Len , "OK" , NULL , 3 , 3000); //设置连接的路由器
 
   /*复位模组*/
@@ -239,4 +239,45 @@ void Bsp_ESP8266_Connect_Ap(uint8_t *AP_Name , uint8_t *AP_PAW)
   Bsp_ESP8266_Power(1 , 3000);
 
 }
+
+
+/**
+ * @brief 连接TCP服务器
+ * @param {uint8_t} *IP
+ * @param {uint8_t} Port
+ * @param {uint8_t} Https_Enable
+ * @return {*}
+ */
+void Bsp_ESP8266_Connect_Tcp(uint8_t *IP , uint8_t Port , uint8_t Https_Enable)
+{
+  
+  if(Bsp_ESP8266_Config_Block("AT\r\n" , 5 , "OK" , NULL ,3 , 5000) != 0)  //测试是否正常
+  {
+    return;
+  }
+
+  uint8_t Data[100] = {0};
+  uint8_t Len = 0;
+
+  Bsp_ESP8266_Config_Block("ATE0\r\n" , 6 , "OK" , NULL , 3 , 3000); //关闭回显
+  Bsp_ESP8266_Config_Block("AT+CIPMODE=0\r\n" , 15 , "OK" , NULL , 3 , 3000); //非透传模式
+
+  if(Https_Enable == 1)
+  {
+    Bsp_ESP8266_Config_Block("AT+CIPSSLSIZE=4096\r\n" , 21 , "OK" , NULL , 3 , 3000); //设置SSL缓存
+    Len = sprintf((char*)Data,"AT+CIPSTART=\"SSL\",\"%s\",%d\r\n",IP,Port);
+		Data[Len]=0;
+  }
+  else
+  {
+    Bsp_ESP8266_Config_Block("AT+CIPMUX=1\r\n" , 14 , "OK" , NULL , 3 , 3000); //设置多连接
+    Len = sprintf((char*)Data,"AT+CIPSTART=%d,\"TCP\",\"%s\",%d\r\n",0, IP, Port);
+		Data[Len]=0;
+  }
+
+  uint8_t flag = ConfigModuleBlock(Data, Len, "CONNECT", NULL, 3, 3000);
+
+}
+
+
 
