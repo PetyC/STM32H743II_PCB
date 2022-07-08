@@ -2,7 +2,7 @@
  * @Description: esp8266板级支持包 不适用FreeRTOS
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:17
- * @LastEditTime: 2022-07-07 20:44:26
+ * @LastEditTime: 2022-07-08 19:14:14
  */
 #ifndef BSP_ESP8266_H
 #define BSP_ESP8266_H
@@ -15,7 +15,7 @@
 
 #include "Bsp_Uart.h"
 
-
+#include "cString.h"
 
 
 /* ESP8266上电控制*/
@@ -33,10 +33,14 @@ void Bsp_ESP8266_Recover(void);
 /*连接路由器*/
 void Bsp_ESP8266_Connect_Ap(uint8_t *AP_Name , uint8_t *AP_PAW);
 
+/*连接TCP服务器*/
+uint8_t Bsp_ESP8266_Connect_Tcp(uint8_t *IP , uint8_t Port , uint8_t Https_Enable);
+
+/*发送Get请求获取版本信息*/
+uint8_t Bsp_ESP8266_Get_Info(uint8_t *IP, uint8_t *Bin_Path, uint8_t SSLEN);
 
 
+uint8_t Bsp_Esp8266_Info_Handle(uint8_t *data, uint8_t len);
 
-
-
-
+int Bsp_ESP8266_Resolve_Url(uint8_t *ch);
 #endif

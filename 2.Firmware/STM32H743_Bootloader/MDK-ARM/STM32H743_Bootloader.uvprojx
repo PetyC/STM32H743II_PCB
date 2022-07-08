@@ -563,6 +563,11 @@
               <FileType>1</FileType>
               <FilePath>..\User\Drive\Bsp_MCU_Flash\Bsp_MCU_Flash.c</FilePath>
             </File>
+            <File>
+              <FileName>cString.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Drive\Bsp_Esp8266\cString.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

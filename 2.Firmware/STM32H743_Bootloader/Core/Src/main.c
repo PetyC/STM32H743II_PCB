@@ -117,23 +117,45 @@ int main(void)
 
   QSPI_W25Qx_Init();
   
+  User_Boot_Init();
+  
   Bsp_ESP8266_Power(1 , 3000);
-/*
-  uint8_t data[100];
-  uint8_t len = 0;
-
-  Bsp_ESP8266_Config_Block("AT\r\n" , 5 , "OK" , NULL ,3 , 5000);   //测试是否正常
-  Bsp_ESP8266_Config_Block("ATE1\r\n" , 7 , "OK" , NULL , 3 , 5000); //关闭回显
-  Bsp_ESP8266_Config_Block("AT+CWMODE_DEF=3\r\n", 18 , "OK" , NULL , 3 , 5000); //WIFI模式3
-
-  len = sprintf((char *)data , "AT+CWSAP_DEF=\"Wifi_Core_Bind\",\"12345678\",11,4,4\r\n" );
-  Bsp_ESP8266_Config_Block(data , len , "OK" , NULL , 3 , 5000); //配置发出的无线
-*/  
- 
 
   Bsp_ESP8266_Connect_Ap("Moujiti", "moujiti7222");
 
- // Bsp_ESP8266_Config_Block("ATE0\r\n" , 7 , "OK" , NULL , 3 , 5000);
+
+  if(Bsp_ESP8266_Config_Block("AT+CIPSTATUS\r\n" , 15 , "2" , NULL , 5 , 3000) == 1)
+  {
+    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , 0);
+    while (1);
+  }
+
+  if(Bsp_ESP8266_Connect_Tcp(System_infor.IP , System_infor.Port , System_infor.SSLEN) == 1)
+  {
+    HAL_GPIO_WritePin(LED1_GPIO_Port , LED1_Pin , 0);
+    while (1);
+
+  }
+
+  Bsp_ESP8266_Get_Info(System_infor.IP , System_infor.Info_Path ,  System_infor.SSLEN);
+
+  uint8_t data[1024];
+  while (1)
+  {
+    if(User_UART_Get_RX_Buff_Occupy(&huart1) != 0)
+    {
+      uint16_t len = User_UART_Read(&huart1 , data , sizeof(data));
+
+      if(strstr((char *)data , "Accept-Ranges: bytes" ) != NULL)
+      {
+        Bsp_Esp8266_Info_Handle(data , len);
+      }
+
+    }
+  }
+  
+
+ 
 
   /* USER CODE END 2 */
 

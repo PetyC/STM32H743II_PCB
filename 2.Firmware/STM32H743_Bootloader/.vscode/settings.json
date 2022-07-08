@@ -31,7 +31,8 @@
       "st7735s.h": "c",
       "app_w25q128.h": "c",
       "bsp_w25qxx.h": "c",
-      "stdio.h": "c"
+      "stdio.h": "c",
+      "system_error": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

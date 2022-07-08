@@ -2,7 +2,7 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:43
- * @LastEditTime: 2022-07-06 21:18:42
+ * @LastEditTime: 2022-07-08 18:23:20
  */
 #ifndef BOOTLOADER_H
 #define BOOTLOADER_H
@@ -52,6 +52,7 @@ extern uint32_t APP_Jump_Flag;         //是否升级标志
 extern uint8_t UART_RX_Time_Out_Flag; 
 
 
+
 /*系统状态*/
 typedef enum 
 {
@@ -69,13 +70,19 @@ typedef enum
 
 typedef struct
 {
-  uint8_t Init;     //是否已初始化
-  uint8_t Version;  //目前版本号
-  uint8_t Updata;   //是否需要升级
-  uint32_t Size;    //固件大小
-  uint8_t Url[200]; // url下载地址
+  uint8_t Init;           //是否已初始化
+  uint8_t Version;        //目前版本号
+  uint8_t Updata;         //是否需要升级
+  uint32_t Size;          //固件大小
+  uint8_t IP[256];        // 服务器地址or域名
+  uint16_t Port;           //端口号
+  uint8_t SSLEN;          //1:ssl   0:非SSL
+  uint8_t Bin_Path[255];  //Bin文件地址
+  uint8_t Info_Path[255];  //配置信息文件地址
+
 } App_information_Str;
 
+extern App_information_Str System_infor;
 
 /*跳转到APP应用*/
 void User_App_Jump(void);
