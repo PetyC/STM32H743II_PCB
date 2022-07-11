@@ -2,7 +2,7 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-04-14 16:11:43
- * @LastEditTime: 2022-07-11 17:35:05
+ * @LastEditTime: 2022-07-12 03:02:32
  */
 #include "Bsp_Uart.h"
 
@@ -103,22 +103,7 @@ void Uart_UART_MspDeInit(UART_HandleTypeDef *huart)
   }
 }
 
-/**
- * @brief 设置串口波特率
- * @param {UART_HandleTypeDef} *huart
- * @param {uint32_t} BaudRate
- * @return {*}
- */
-void Bsp_UART_Set_BaudRate(UART_HandleTypeDef *huart, uint32_t BaudRate)
-{
 
-  huart->Init.BaudRate = BaudRate;
-
-  if (HAL_UART_Init(huart) != HAL_OK)
-  {
-    Error_Handler();
-  }
-}
 
 /**
  *

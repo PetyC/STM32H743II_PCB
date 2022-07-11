@@ -2,7 +2,7 @@
  * @Description: 
  * @Autor: Pi
  * @Date: 2022-07-01 17:44:02
- * @LastEditTime: 2022-07-11 17:31:40
+ * @LastEditTime: 2022-07-12 03:02:59
  */
 
 #ifndef DEV_UART_H
@@ -69,9 +69,6 @@ uint16_t Bsp_UART_Get_RX_Buff_Free(UART_HandleTypeDef *huart);
 
 /*RX Buff已用空间*/
 uint16_t Bsp_UART_Get_RX_Buff_Occupy(UART_HandleTypeDef *huart);
-
-/*设置串口波特率*/
-void Bsp_UART_Set_BaudRate(UART_HandleTypeDef *huart,  uint32_t BaudRate);
 
 /*串口接收使能*/
 void Bsp_UART_RX_Enable(UART_HandleTypeDef *huart , uint8_t Enable);

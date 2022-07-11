@@ -10,7 +10,7 @@
     <aExt>*.s*; *.src; *.a*</aExt>
     <oExt>*.obj; *.o</oExt>
     <lExt>*.lib</lExt>
-    <tExt>*.txt; *.h; *.inc</tExt>
+    <tExt>*.txt; *.h; *.inc; *.md</tExt>
     <pExt>*.plm</pExt>
     <CppX>*.cpp</CppX>
     <nMigrate>0</nMigrate>
@@ -152,40 +152,35 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>77</LineNumber>
+          <LineNumber>203</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134253244</Address>
+          <Address>134219000</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\User\App\Uart_process\app_uart.c</Filename>
+          <Filename>C:\Users\39810\Desktop\STM32H743II_PCB\2.Firmware\STM32H743_Bootloader\User\Drive\Bsp_Esp8266\esp8266_process.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\STM32H743_Bootloader\../User/App/Uart_process/app_uart.c\77</Expression>
+          <Expression>\\STM32H743_Bootloader\../User/Drive/Bsp_Esp8266/esp8266_process.c\203</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Temp</ItemText>
+          <ItemText>Reply_Target</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>buff</ItemText>
+          <ItemText>ESP8266_Time</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>System_infor</ItemText>
-        </Ww>
-        <Ww>
-          <count>3</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>APP_File_Size</ItemText>
+          <ItemText>Uart_Buffer</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -203,6 +198,11 @@
           <count>2</count>
           <WinNumber>2</WinNumber>
           <ItemText>Ret_CRC_Value</ItemText>
+        </Ww>
+        <Ww>
+          <count>3</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>Flash_Finished</ItemText>
         </Ww>
       </WatchWindow2>
       <Tracepoint>
@@ -247,12 +247,6 @@
       <pszMrulep></pszMrulep>
       <pSingCmdsp></pSingCmdsp>
       <pMultCmdsp></pMultCmdsp>
-      <SystemViewers>
-        <Entry>
-          <Name>System Viewer\USART1</Name>
-          <WinId>35905</WinId>
-        </Entry>
-      </SystemViewers>
       <DebugDescription>
         <Enable>1</Enable>
         <EnableFlashSeq>1</EnableFlashSeq>
@@ -521,7 +515,7 @@
 
   <Group>
     <GroupName>User/Drive/Bsp</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -544,8 +538,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\User\Drive\Bsp_Esp8266\Bsp_Esp8266.c</PathWithFileName>
-      <FilenameWithoutPath>Bsp_Esp8266.c</FilenameWithoutPath>
+      <PathWithFileName>..\User\Drive\Bsp_MCU_Flash\Bsp_MCU_Flash.c</PathWithFileName>
+      <FilenameWithoutPath>Bsp_MCU_Flash.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -556,8 +550,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\User\Drive\Bsp_MCU_Flash\Bsp_MCU_Flash.c</PathWithFileName>
-      <FilenameWithoutPath>Bsp_MCU_Flash.c</FilenameWithoutPath>
+      <PathWithFileName>..\User\Drive\Bsp_Esp8266\cString.c</PathWithFileName>
+      <FilenameWithoutPath>cString.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -568,8 +562,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\User\Drive\Bsp_Esp8266\cString.c</PathWithFileName>
-      <FilenameWithoutPath>cString.c</FilenameWithoutPath>
+      <PathWithFileName>..\User\Drive\Bsp_Esp8266\Bsp_ESP8266.c</PathWithFileName>
+      <FilenameWithoutPath>Bsp_ESP8266.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

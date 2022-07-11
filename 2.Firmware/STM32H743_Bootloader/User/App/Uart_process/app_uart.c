@@ -59,7 +59,7 @@ void User_UART_RX_Loop(void)
     if (UART_RX_Time_Out_Flag == 1)
     {
       UART_RX_Time_Out_Flag = 0;
-      HAL_TIM_Base_Stop(&htim13);
+      HAL_TIM_Base_Stop_IT(&htim13);
     }
   }
 }

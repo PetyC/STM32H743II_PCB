@@ -2,7 +2,7 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:36
- * @LastEditTime: 2022-07-11 19:22:05
+ * @LastEditTime: 2022-07-11 23:05:00
  */
 #include "Bootloader.h"
 
@@ -115,12 +115,17 @@ void User_App_MCU_Flash_Updata(uint8_t *data , uint16_t len)
   /*写入地址自增*/
   Offset_ADDR += len;
 
-  /*写入地址大于解析地址，则固件下载完成*/
-  if(Offset_ADDR >= System_infor.Size)
+  /*写入地址大于解析地址，则也说明固件下载完成*/
+//  if(Offset_ADDR >= System_infor.Size)
+//  {
+//    Flash_Finished = 1;
+//  }
+  if(Offset_ADDR >= 70624)
   {
     Flash_Finished = 1;
-  }
-
+  }	
+	
+	
   /*FLASH写入出错*/
   if(Error == 1)
   {
@@ -130,7 +135,7 @@ void User_App_MCU_Flash_Updata(uint8_t *data , uint16_t len)
 }
 
 /**
- * @brief 串口超过一定时间未接收到新数据 则说明接收完成
+ * @brief 串口超过一定时间未接收到新数据 则也说明接收完成
  * @return {*}
  */
 void User_APP_MCU_Flash_Finished(void)

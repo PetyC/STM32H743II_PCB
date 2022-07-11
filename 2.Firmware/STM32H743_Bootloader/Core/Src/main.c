@@ -35,6 +35,7 @@
 #include "app_uart.h"
 #include "Bsp_w25qxx.h"
 #include "Bsp_ESP8266.H"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -111,6 +112,7 @@ int main(void)
   MX_TIM1_Init();
   MX_CRC_Init();
   MX_TIM13_Init();
+  MX_TIM12_Init();
   /* USER CODE BEGIN 2 */
   // app_init();
 /*
@@ -153,6 +155,27 @@ int main(void)
     }
   }
   */
+  if(Bsp_ESP8266_Power2(1) == 0)
+  {
+    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_RESET);
+  }
+  else
+  {
+     HAL_GPIO_WritePin(LED1_GPIO_Port , LED1_Pin , GPIO_PIN_SET);
+  }
+  
+//  Bsp_UART_RX_Enable(&huart1 , 0);
+//	HAL_GPIO_WritePin(ESP_POW_GPIO_Port , ESP_POW_Pin , GPIO_PIN_SET);
+//  HAL_Delay(5000);
+//  Bsp_UART_RX_Enable(&huart1 , 1);
+ 
+  if(Bsp_ESP8266_Config((uint8_t *)"AT\r\n", 5, (uint8_t *)"OK", NULL, 30 , 3) == 0)
+  {
+    HAL_GPIO_WritePin(LED1_GPIO_Port , LED1_Pin , GPIO_PIN_RESET);
+  }
+	
+
+  
 //  Bsp_UART_Write(&huart1 , "MCU Flash Erase Start!\r\n" , 25);
 //  Bsp_UART_Poll_DMA_TX(&huart1);
 
@@ -164,7 +187,7 @@ int main(void)
 
 //  User_UART_RX_Fun = User_App_MCU_Flash_Updata;
   
-
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -174,7 +197,7 @@ int main(void)
 //    HAL_GPIO_TogglePin(LED2_GPIO_Port , LED2_Pin);
 //    HAL_Delay(800);
      
-    User_UART_RX_Loop();
+   User_UART_RX_Loop();
     
 //    /*写入完成 且无错误*/
 //    if(Flash_Finished == 1 && Flash_Error == 0)
@@ -274,7 +297,7 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 /**
- * @brief 定时器中断回调
+ * @brief 定时器中断回调函数
  * @param {TIM_HandleTypeDef} *htim
  * @return {*}
  */
@@ -282,9 +305,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if (htim->Instance == TIM13)
   {
-    HAL_TIM_Base_Stop(&htim13);
+    HAL_TIM_Base_Stop_IT(&htim13);
     UART_RX_Time_Out_Flag = 1;
   }
+	else if(htim->Instance == TIM12)
+	{
+		Bsp_ESP8266_Timer();
+	}
+	
 }
 /* USER CODE END 4 */
 
