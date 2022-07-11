@@ -3,14 +3,14 @@
 
 
 /*内部调用的函数*/
-static uint16_t User_MCU_FLASH_Get_Sector(uint32_t addr);
+static uint16_t Bsp_MCU_FLASH_Get_Sector(uint32_t addr);
 
 /**
  * @brief 获取某个地址所在的flash扇区
  * @param {uint32_t} addr	flash地址
  * @return {uint16_t}	扇区值
  */
-static uint16_t User_MCU_FLASH_Get_Sector(uint32_t addr)
+static uint16_t Bsp_MCU_FLASH_Get_Sector(uint32_t addr)
 {
   if (addr < ADDR_FLASH_SECTOR_1_BANK1)
     return FLASH_SECTOR_0;
@@ -58,7 +58,7 @@ static uint16_t User_MCU_FLASH_Get_Sector(uint32_t addr)
  *		                MCU_FLASH_REQ_ERASE		2	Flash需要先擦除,再写
  *		               	MCU_FLASH_PARAM_ERR		3	函数参数错误
  */
-static uint8_t User_MCU_Flash_Compare(uint32_t ReadAddr, uint8_t *pBuffer, uint32_t pBuffer_Len)
+static uint8_t Bsp_MCU_Flash_Compare(uint32_t ReadAddr, uint8_t *pBuffer, uint32_t pBuffer_Len)
 {
   /*判断地址是否超出*/
   if (ReadAddr + pBuffer_Len > MCU_FLASH_BASE_ADDR + MCU_FLASH_SIZE)
@@ -121,7 +121,7 @@ static uint8_t User_MCU_Flash_Compare(uint32_t ReadAddr, uint8_t *pBuffer, uint3
  * @param {uint32_t} pBuffer_Len  数据大小（单位是字节）
  * @return {uint8_t}0:成功 1:失败
  */
-uint8_t User_MCU_FLASH_Read(uint32_t ReadAddr, uint8_t *pBuffer, uint32_t pBuffer_Len)
+uint8_t Bsp_MCU_FLASH_Read(uint32_t ReadAddr, uint8_t *pBuffer, uint32_t pBuffer_Len)
 {
   /*判断地址是否超出*/
   if (ReadAddr + pBuffer_Len > MCU_FLASH_BASE_ADDR + MCU_FLASH_SIZE)
@@ -155,7 +155,7 @@ uint8_t User_MCU_FLASH_Read(uint32_t ReadAddr, uint8_t *pBuffer, uint32_t pBuffe
  * @param {uint32_t} Sectors_Number	擦除扇区数(1扇区128KB)
  * @return {uint8_t} 0:成功   1:失败
  */
-uint8_t User_MCU_Flash_Erase(uint32_t Addr, uint32_t Sectors_Number)
+uint8_t Bsp_MCU_Flash_Erase(uint32_t Addr, uint32_t Sectors_Number)
 {
 
   if (Addr < MCU_FLASH_BASE_ADDR || Addr % 4)
@@ -182,7 +182,7 @@ uint8_t User_MCU_Flash_Erase(uint32_t Addr, uint32_t Sectors_Number)
 
   FlashEraseInit.Banks = BANK_Number;                       //操作BANK
   FlashEraseInit.TypeErase = FLASH_TYPEERASE_SECTORS;       //擦除类型，扇区擦除
-  FlashEraseInit.Sector = User_MCU_FLASH_Get_Sector(Addr);      //要擦除的扇区
+  FlashEraseInit.Sector = Bsp_MCU_FLASH_Get_Sector(Addr);      //要擦除的扇区
   FlashEraseInit.NbSectors = Sectors_Number;                //擦除页数
   FlashEraseInit.VoltageRange = FLASH_VOLTAGE_RANGE_3;      //电压范围，VCC=2.7~3.6V之间!!
   FLASH_WaitForLastOperation(FLASH_WAITETIME, BANK_Number); //等待上次操作完成
@@ -212,7 +212,7 @@ uint8_t User_MCU_Flash_Erase(uint32_t Addr, uint32_t Sectors_Number)
  * @param {uint32_t} pBuffer_Len	数据长度(单位字节，必须32字节整数倍)
  * @return {uint8_t} 0:成功			1:失败
  */
-uint8_t User_MCU_Flash_Write(uint32_t Write_Addr, uint8_t *pBuffer, uint32_t pBuffer_Len)
+uint8_t Bsp_MCU_Flash_Write(uint32_t Write_Addr, uint8_t *pBuffer, uint32_t pBuffer_Len)
 {
   /*地址小于芯片起始地址*/
   if (Write_Addr < MCU_FLASH_BASE_ADDR || Write_Addr % 4)
@@ -232,7 +232,7 @@ uint8_t User_MCU_Flash_Write(uint32_t Write_Addr, uint8_t *pBuffer, uint32_t pBu
 
 
   /*判断FLash状态*/
-  uint8_t MCU_FLASH_State = User_MCU_Flash_Compare(Write_Addr , pBuffer , pBuffer_Len);
+  uint8_t MCU_FLASH_State = Bsp_MCU_Flash_Compare(Write_Addr , pBuffer , pBuffer_Len);
 
   if (MCU_FLASH_State == MCU_FLASH_IS_EQU)
 	{

@@ -2,7 +2,7 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-04-14 16:11:43
- * @LastEditTime: 2022-07-07 16:37:45
+ * @LastEditTime: 2022-07-11 17:35:05
  */
 #include "Bsp_Uart.h"
 
@@ -12,33 +12,22 @@
 #define UART1_DMA_TX_BUF_SIZE 1024
 #define UART1_DMA_RX_BUF_SIZE 2048
 
-
-
 /* 串口缓存 */
 static uint8_t s_uart1_tx_buf[UART1_TX_BUF_SIZE];
 static uint8_t s_uart1_rx_buf[UART1_RX_BUF_SIZE];
 static uint8_t s_uart1_dmarx_buf[UART1_DMA_RX_BUF_SIZE];
 static uint8_t s_uart1_dmatx_buf[UART1_DMA_TX_BUF_SIZE];
 
-
-
 /* 串口设备实例 */
 static Uart_Device_Str Uart_Dev_0 = {0};
-
- 
-
-
 
 /*内部使用函数*/
 static void fifo_lock(void);
 static void fifo_unlock(void);
-static void User_UART_RxHalfCplt_Callback(UART_HandleTypeDef *huart);
-static void User_UART_RxCplt_Callback(UART_HandleTypeDef *huart);
-static void User_UART_IDLE_Callback(UART_HandleTypeDef *huart);
-static void User_UART_TX_Cplt_Callback(UART_HandleTypeDef *huart);
-
-
-
+static void Bsp_UART_RxHalfCplt_Callback(UART_HandleTypeDef *huart);
+static void Bsp_UART_RxCplt_Callback(UART_HandleTypeDef *huart);
+static void Bsp_UART_IDLE_Callback(UART_HandleTypeDef *huart);
+static void Bsp_UART_TX_Cplt_Callback(UART_HandleTypeDef *huart);
 
 #if USE_FreeRTOS == 1
 #include "FreeRTOS.h"
@@ -68,9 +57,6 @@ static void fifo_unlock(void)
 #endif
 }
 
-
-
-
 /**
  * @brief 串口设备实例化
  * @param {*}
@@ -78,7 +64,7 @@ static void fifo_unlock(void)
  */
 void Uart_Device_init(UART_HandleTypeDef *huart)
 {
-  if(huart == &huart1)
+  if (huart == &huart1)
   {
     /* 配置串口1收发fifo */
     fifo_register(&Uart_Dev_0.tx_fifo, &s_uart1_tx_buf[0], sizeof(s_uart1_tx_buf), fifo_lock, fifo_unlock);
@@ -97,7 +83,6 @@ void Uart_Device_init(UART_HandleTypeDef *huart)
     /* 只需配置接收模式DMA，发送模式需发送数据时才配置 */
     HAL_UART_Receive_DMA(&huart1, Uart_Dev_0.dmarx_buf, sizeof(s_uart1_dmarx_buf));
   }
-  
 }
 
 /**
@@ -106,19 +91,17 @@ void Uart_Device_init(UART_HandleTypeDef *huart)
  */
 void Uart_UART_MspDeInit(UART_HandleTypeDef *huart)
 {
-  if(huart == &huart1)
+  if (huart == &huart1)
   {
-    __HAL_UART_CLEAR_IDLEFLAG(huart);          //清除空闲中断标志 否者上电会进入中断
-    __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);   //关闭空闲中断
-    HAL_UART_MspDeInit(huart);      //调用HAL库清除中断
+    __HAL_UART_CLEAR_IDLEFLAG(huart);           //清除空闲中断标志 否者上电会进入中断
+    __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE); //关闭空闲中断
+    HAL_UART_MspDeInit(huart);                  //调用HAL库清除中断
 
     /*释放FIFO*/
     fifo_release(&Uart_Dev_0.tx_fifo);
     fifo_release(&Uart_Dev_0.rx_fifo);
   }
-
 }
-
 
 /**
  * @brief 设置串口波特率
@@ -126,19 +109,16 @@ void Uart_UART_MspDeInit(UART_HandleTypeDef *huart)
  * @param {uint32_t} BaudRate
  * @return {*}
  */
-void User_UART_Set_BaudRate(UART_HandleTypeDef *huart,  uint32_t BaudRate)
+void Bsp_UART_Set_BaudRate(UART_HandleTypeDef *huart, uint32_t BaudRate)
 {
-  
-	huart->Init.BaudRate = BaudRate;
 
-	if (HAL_UART_Init(huart) != HAL_OK)
+  huart->Init.BaudRate = BaudRate;
+
+  if (HAL_UART_Init(huart) != HAL_OK)
   {
     Error_Handler();
   }
-
 }
-
-
 
 /**
  *
@@ -148,16 +128,16 @@ void User_UART_Set_BaudRate(UART_HandleTypeDef *huart,  uint32_t BaudRate)
  * @param {uint16_t} size
  * @return {*}
  */
-uint16_t User_UART_Write(UART_HandleTypeDef *huart, const uint8_t *buf, uint16_t size)
+uint16_t Bsp_UART_Write(UART_HandleTypeDef *huart, const uint8_t *buf, uint16_t size)
 {
-  if(huart == &huart1)
+  if (huart == &huart1)
   {
     return fifo_write(&Uart_Dev_0.tx_fifo, buf, size);
   }
-	else
-	{
-		return 0;
-	}
+  else
+  {
+    return 0;
+  }
 }
 
 /**
@@ -167,35 +147,33 @@ uint16_t User_UART_Write(UART_HandleTypeDef *huart, const uint8_t *buf, uint16_t
  * @param {uint16_t} size 长度
  * @return {uint16_t} 实际读大小
  */
-uint16_t User_UART_Read(UART_HandleTypeDef *huart, uint8_t *buf, uint16_t size)
+uint16_t Bsp_UART_Read(UART_HandleTypeDef *huart, uint8_t *buf, uint16_t size)
 {
-  if(huart == &huart1)
+  if (huart == &huart1)
   {
     return fifo_read(&Uart_Dev_0.rx_fifo, buf, size);
   }
-	else
-	{
-		return 0;
-	}
+  else
+  {
+    return 0;
+  }
 }
-
 
 /**
  * @brief 用户自定义 串口DMA接收一半的回调函数.
  * @param {UART_HandleTypeDef} *huart
  * @return {*}
  */
-static void User_UART_RxHalfCplt_Callback(UART_HandleTypeDef *huart)
+static void Bsp_UART_RxHalfCplt_Callback(UART_HandleTypeDef *huart)
 {
 
-  if(huart == &huart1)
+  if (huart == &huart1)
   {
     uint16_t recv_total_size;
     uint16_t recv_size;
 
     /*DMA通道接收总数据大小*/
     recv_total_size = Uart_Dev_0.dmarx_buf_size - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);
-
 
     /*获取接收数据量*/
     recv_size = recv_total_size - Uart_Dev_0.last_dmarx_size;
@@ -204,9 +182,7 @@ static void User_UART_RxHalfCplt_Callback(UART_HandleTypeDef *huart)
 
     /*更新本次接收的数据长度*/
     Uart_Dev_0.last_dmarx_size = recv_total_size;
-  
   }
-
 }
 
 /**
@@ -214,10 +190,10 @@ static void User_UART_RxHalfCplt_Callback(UART_HandleTypeDef *huart)
  * @param {UART_HandleTypeDef} *huart
  * @return {*}
  */
-static void User_UART_RxCplt_Callback(UART_HandleTypeDef *huart)
+static void Bsp_UART_RxCplt_Callback(UART_HandleTypeDef *huart)
 {
-  
-  if(huart == &huart1)
+
+  if (huart == &huart1)
   {
     uint16_t recv_size;
 
@@ -229,26 +205,23 @@ static void User_UART_RxCplt_Callback(UART_HandleTypeDef *huart)
 
     Uart_Dev_0.last_dmarx_size = 0;
   }
-
 }
-
-
 
 /**
  * @brief 用户自定义串口空闲中断服务函数
  * @param {UART_HandleTypeDef} *huart
  * @return {*}
  */
-static void User_UART_IDLE_Callback(UART_HandleTypeDef *huart)
+static void Bsp_UART_IDLE_Callback(UART_HandleTypeDef *huart)
 {
 
-  if(huart == &huart1)
+  if (huart == &huart1)
   {
     uint16_t recv_total_size;
     uint16_t recv_size;
 
     /*DMA通道接收总数据大小*/
-    recv_total_size = Uart_Dev_0.dmarx_buf_size -  __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);
+    recv_total_size = Uart_Dev_0.dmarx_buf_size - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);
 
     recv_size = recv_total_size - Uart_Dev_0.last_dmarx_size;
 
@@ -259,140 +232,120 @@ static void User_UART_IDLE_Callback(UART_HandleTypeDef *huart)
     /*接收到一条消息*/
     Uart_Dev_0.RX_Status = 1;
   }
-
 }
-
 
 /**
  * @brief 用户定义的串口DMA发送完成的回调函数.
  * @param {UART_HandleTypeDef} *huart
  * @return {*}
  */
-static void User_UART_TX_Cplt_Callback(UART_HandleTypeDef *huart)
+static void Bsp_UART_TX_Cplt_Callback(UART_HandleTypeDef *huart)
 {
-  if(huart == &huart1)
+  if (huart == &huart1)
   {
     Uart_Dev_0.TX_Status = 0; /* DMA发送空闲 */
   }
-
 }
-
 
 /**
  * @brief 用户串口函数初始化
  * @param {*}
  * @return {*}
  */
-void User_UART_Init(UART_HandleTypeDef *huart)
+void Bsp_UART_Init(UART_HandleTypeDef *huart)
 {
 
   Uart_Device_init(huart);
   __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE); //开启空闲中断
   __HAL_UART_CLEAR_IDLEFLAG(huart);          //清除空闲中断标志 否者上电会进入中断
-  
- 
 }
-
 
 /**
  * @brief 用户自定义串口中断函数
  * @param {UART_HandleTypeDef} *huart
  * @return {*}
  */
-void User_UART_IRQHandler(UART_HandleTypeDef *huart)
+void Bsp_UART_IRQHandler(UART_HandleTypeDef *huart)
 {
 
-  if(huart == &huart1)
+  if (huart == &huart1)
   {
 
     if (__HAL_UART_GET_FLAG(huart, UART_FLAG_IDLE) == SET) //判断是否是空闲中断
     {
       __HAL_UART_CLEAR_IDLEFLAG(huart); //清除空闲中断标志（否则会一直不断进入中断）
 
-      User_UART_IDLE_Callback(huart);
+      Bsp_UART_IDLE_Callback(huart);
     }
-
   }
 }
-
-
 
 /**
  * @brief 获得TX已用BUF空间大小
  * @param {UART_HandleTypeDef} *huart
  * @return {*}
  */
-uint16_t User_UART_Get_TX_Buff_Occupy(UART_HandleTypeDef *huart)
+uint16_t Bsp_UART_Get_TX_Buff_Occupy(UART_HandleTypeDef *huart)
 {
-  if(huart == &huart1)
+  if (huart == &huart1)
   {
     return fifo_get_occupy_size(&Uart_Dev_0.tx_fifo);
   }
 
   return 0;
-
 }
-
 
 /**
  * @brief 获得RX已用BUF空间大小
  * @param {UART_HandleTypeDef} *huart
  * @return {*}
  */
-uint16_t User_UART_Get_RX_Buff_Occupy(UART_HandleTypeDef *huart)
+uint16_t Bsp_UART_Get_RX_Buff_Occupy(UART_HandleTypeDef *huart)
 {
-  if(huart == &huart1)
+  if (huart == &huart1)
   {
     return fifo_get_occupy_size(&Uart_Dev_0.rx_fifo);
   }
 
   return 0;
-
 }
-
-
-
-
-
 
 /**
  * @brief 获取TX空闲BUF空间大小
  * @param {UART_HandleTypeDef} *huart
  * @return {*}
  */
-uint16_t User_UART_Get_TX_Buff_Free(UART_HandleTypeDef *huart)
+uint16_t Bsp_UART_Get_TX_Buff_Free(UART_HandleTypeDef *huart)
 {
-  if(huart == &huart1)
+  if (huart == &huart1)
   {
     return fifo_get_free_size(&Uart_Dev_0.tx_fifo);
   }
-  
+
   return 0;
 }
-
 
 /**
  * @brief 获取RX空闲BUF空间大小
  * @param {UART_HandleTypeDef} *huart
  * @return {*}
  */
-uint16_t User_UART_Get_RX_Buff_Free(UART_HandleTypeDef *huart)
+uint16_t Bsp_UART_Get_RX_Buff_Free(UART_HandleTypeDef *huart)
 {
-  if(huart == &huart1)
+  if (huart == &huart1)
   {
     return fifo_get_free_size(&Uart_Dev_0.rx_fifo);
   }
-  
+
   return 0;
 }
-
 
 /**
  * @brief  循环从串口发送fifo读出数据，放置于dma发送缓存，并启动dma传输
  * @param
  * @retval
  */
-void User_UART_Poll_DMA_TX(UART_HandleTypeDef *huart)
+void Bsp_UART_Poll_DMA_TX(UART_HandleTypeDef *huart)
 {
 
   uint16_t size = 0;
@@ -401,32 +354,29 @@ void User_UART_Poll_DMA_TX(UART_HandleTypeDef *huart)
   {
     return;
   }
-  
+
   size = fifo_read(&Uart_Dev_0.tx_fifo, Uart_Dev_0.dmatx_buf, Uart_Dev_0.dmatx_buf_size);
 
   if (size != 0)
   {
     Uart_Dev_0.TX_Status = 0x01; /* DMA发送状态 */
 
-    if(huart == &huart1)
+    if (huart == &huart1)
     {
       HAL_UART_Transmit_DMA(&huart1, Uart_Dev_0.dmatx_buf, size);
     }
-    
   }
 }
-
-
 
 /**
  * @brief 获取串口接收消息标志
  * @param {UART_HandleTypeDef} *huart
  * @return {uint8_t}0:接收到一条消息  1:没有消息
  */
-uint8_t User_UART_Get_RX_Flag(UART_HandleTypeDef *huart)
+uint8_t Bsp_UART_Get_RX_Flag(UART_HandleTypeDef *huart)
 {
-  
-  if( Uart_Dev_0.RX_Status == 1)
+
+  if (Uart_Dev_0.RX_Status == 1)
   {
     Uart_Dev_0.RX_Status = 0;
     return 0;
@@ -435,9 +385,7 @@ uint8_t User_UART_Get_RX_Flag(UART_HandleTypeDef *huart)
   {
     return 1;
   }
-  
 }
-
 
 /**
  * @brief 串口DMA接收一半的回调函数.
@@ -446,9 +394,8 @@ uint8_t User_UART_Get_RX_Flag(UART_HandleTypeDef *huart)
  */
 void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
 {
-  User_UART_RxHalfCplt_Callback(huart);
+  Bsp_UART_RxHalfCplt_Callback(huart);
 }
-
 
 /**
  * @brief 串口DMA接收完成的回调函数.
@@ -457,9 +404,8 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
  */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-  User_UART_RxCplt_Callback(huart);
+  Bsp_UART_RxCplt_Callback(huart);
 }
-
 
 /**
  * @brief 串口DMA发送完成的回调函数.
@@ -468,10 +414,65 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
  */
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-  User_UART_TX_Cplt_Callback(huart);
+  Bsp_UART_TX_Cplt_Callback(huart);
 }
 
+/**
+ * @brief 串口波特率设置
+ * @param {uint8_t} Sw    0:115200    1:74880
+ * @return {*}
+ */
+void Bsp_UART_Set_BRR(UART_HandleTypeDef *huart, uint8_t Sw)
+{
+  if (huart != &huart1)
+  {
+    return;
+  }
 
+  /*等待发送完成*/
+  while ((USART1->ISR & (USART_ISR_TC)) != (USART_ISR_TC))
+    ;
 
+  /*串口失能*/
+  USART1->CR1 &= ~(uint32_t)(1 << 0);
 
+  if (Sw == 1)
+  {
+    /*74880*/
+    USART1->BRR = 0X0643;
+  }
+  else
+  {
+    /*115200*/
+    USART1->BRR = 0X0411;
+  }
 
+  /*串口使能*/
+  USART1->CR1 |= (uint32_t)(1 << 0);
+  ;
+}
+
+/**
+ * @brief 串口接收使能
+ * @param {uint8_t} Enable 0:失能   1:使能
+ * @return {*}
+ */
+void Bsp_UART_RX_Enable(UART_HandleTypeDef *huart, uint8_t Enable)
+{
+
+  if (huart != &huart1)
+  {
+    return;
+  }
+
+  if (Enable == 1)
+  {
+    /*接收使能*/
+    USART1->CR1 |= (uint32_t)(1 << 2);
+  }
+  else
+  {
+    /*接收失能*/
+    USART1->CR1 &= ~(uint32_t)(1 << 2);
+  }
+}

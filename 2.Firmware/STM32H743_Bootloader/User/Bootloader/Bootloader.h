@@ -2,7 +2,7 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:43
- * @LastEditTime: 2022-07-08 18:23:20
+ * @LastEditTime: 2022-07-11 19:50:21
  */
 #ifndef BOOTLOADER_H
 #define BOOTLOADER_H
@@ -45,12 +45,10 @@
 
 
 
-
 /*系统状态存储*/
 extern uint32_t APP_Jump_Flag;         //是否升级标志
  
-extern uint8_t UART_RX_Time_Out_Flag; 
-
+ 
 
 
 /*系统状态*/
@@ -85,7 +83,10 @@ typedef struct
 extern App_information_Str System_infor;
 
 /*跳转到APP应用*/
-void User_App_Jump(void);
+void User_App_Jump_Init(void);
+
+/*启动跳转到APP*/
+void User_App_Jump_Start(void);
 
 /*备份MCU数据至外部Flash*/
 uint8_t User_App_MCU_Flash_Copy(void);
@@ -97,17 +98,24 @@ uint8_t User_App_Flash_Copy(void);
 uint8_t User_App_MCU_Flash_Erase(uint32_t APP_File_Size);
 
 /* 从串口接收APP数据 并写入内部FALSH中*/
-uint8_t User_App_MCU_Flash_Updata(uint8_t *Updata_Finish);
+void User_App_MCU_Flash_Updata(uint8_t *data , uint16_t len);
+
+/* 从串口接收APP数据 并写入内部FALSH完成*/
+void User_APP_MCU_Flash_Finished(void);
 
 /*CRC校验写入MUC Flash数据*/
 uint8_t User_App_MCU_Flash_CRC(uint32_t APP_File_Size);
 
-/*启动跳转到APP*/
-void User_App_Jump_Start(void);
+
 
 /*初始化Boot*/
 void User_Boot_Init(void);
 
 
+/*Flash写入是否出错*/
+extern uint8_t Flash_Error;
+
+/*Flash写入是否完成*/
+extern uint8_t Flash_Finished;
 
 #endif

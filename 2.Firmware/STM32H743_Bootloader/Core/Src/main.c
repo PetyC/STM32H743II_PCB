@@ -32,7 +32,7 @@
 /* USER CODE BEGIN Includes */
 #include "app.h"
 #include "Bootloader.h"
-#include "app_uart_process.h"
+#include "app_uart.h"
 #include "Bsp_w25qxx.h"
 #include "Bsp_ESP8266.H"
 /* USER CODE END Includes */
@@ -71,22 +71,21 @@ void SystemClock_Config(void);
 /* USER CODE END 0 */
 
 /**
- * @brief  The application entry point.
- * @retval int
- */
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void)
 {
   /* USER CODE BEGIN 1 */
 
   // SCB->VTOR = FLASH_BASE | 0x4000;//设置中断偏移
-  User_App_Jump();
+  User_App_Jump_Init();
 
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-
   HAL_Init();
 
   /* USER CODE BEGIN Init */
@@ -114,7 +113,7 @@ int main(void)
   MX_TIM13_Init();
   /* USER CODE BEGIN 2 */
   // app_init();
-
+/*
   QSPI_W25Qx_Init();
   
   User_Boot_Init();
@@ -153,9 +152,18 @@ int main(void)
 
     }
   }
-  
+  */
+//  Bsp_UART_Write(&huart1 , "MCU Flash Erase Start!\r\n" , 25);
+//  Bsp_UART_Poll_DMA_TX(&huart1);
 
- 
+//  if(User_App_MCU_Flash_Erase(70624) == 0)
+//  {
+//    Bsp_UART_Write(&huart1 , "MCU Flash Erase is ok!\r\n" , 25);
+//    Bsp_UART_Poll_DMA_TX(&huart1);
+//  }
+
+//  User_UART_RX_Fun = User_App_MCU_Flash_Updata;
+  
 
   /* USER CODE END 2 */
 
@@ -163,10 +171,38 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    HAL_GPIO_TogglePin(LED2_GPIO_Port , LED2_Pin);
-    HAL_Delay(800);
-    // app_loop();
+//    HAL_GPIO_TogglePin(LED2_GPIO_Port , LED2_Pin);
+//    HAL_Delay(800);
+     
+    User_UART_RX_Loop();
+    
+//    /*写入完成 且无错误*/
+//    if(Flash_Finished == 1 && Flash_Error == 0)
+//    {
+//      Bsp_UART_Write(&huart1 , "MCU Flash Write OK!\r\n" , 25);
+//      Bsp_UART_Poll_DMA_TX(&huart1);
+//      
 
+//      /*CRC校验*/
+//      if(User_App_MCU_Flash_CRC(70624) == 0)
+//      {
+//        Bsp_UART_Write(&huart1 , "MCU Flash CRC OK!\r\n" , 25);
+//        Bsp_UART_Poll_DMA_TX(&huart1);
+//        HAL_Delay(500);
+//        /*准备跳入APP*/
+//        User_App_Jump_Start();
+//      }
+//    }
+
+//    if(Flash_Error == 1)
+//    {
+//      Bsp_UART_Write(&huart1 , "MCU Flash Write Error!\r\n" , 25);
+//      Bsp_UART_Poll_DMA_TX(&huart1);
+//    }
+
+
+    // app_loop();
+    
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -175,33 +211,31 @@ int main(void)
 }
 
 /**
- * @brief System Clock Configuration
- * @retval None
- */
+  * @brief System Clock Configuration
+  * @retval None
+  */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Supply configuration update enable
-   */
+  */
   HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
 
   /** Configure the main internal regulator output voltage
-   */
+  */
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
 
-  while (!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY))
-  {
-  }
+  while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
 
   /** Macro to configure the PLL clock source
-   */
+  */
   __HAL_RCC_PLL_PLLSOURCE_CONFIG(RCC_PLLSOURCE_HSE);
 
   /** Initializes the RCC Oscillators according to the specified parameters
-   * in the RCC_OscInitTypeDef structure.
-   */
+  * in the RCC_OscInitTypeDef structure.
+  */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
@@ -220,8 +254,10 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_D3PCLK1 | RCC_CLOCKTYPE_D1PCLK1;
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2
+                              |RCC_CLOCKTYPE_D3PCLK1|RCC_CLOCKTYPE_D1PCLK1;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
@@ -253,9 +289,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 /* USER CODE END 4 */
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -267,14 +303,14 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef USE_FULL_ASSERT
+#ifdef  USE_FULL_ASSERT
 /**
- * @brief  Reports the name of the source file and the source line number
- *         where the assert_param error has occurred.
- * @param  file: pointer to the source file name
- * @param  line: assert_param error line source number
- * @retval None
- */
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */

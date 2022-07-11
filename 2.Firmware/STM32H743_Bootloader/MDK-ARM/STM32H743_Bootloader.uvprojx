@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../User/Bootloader;../User/Drive/Bsp_Uart;../User/Drive/Bsp_MCU_Flash;../User/APP/core;../User/Drive/Bsp_LCD;../User/App/Lcd;../User/App/Uart_process;../User/Drive/Bsp_W25QXX;..\User\Drive\Bsp_Esp8266</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../User/Bootloader;../User/Drive/Bsp_Uart;../User/Drive/Bsp_MCU_Flash;../User/APP/core;../User/Drive/Bsp_LCD;../User/App/Lcd;../User/App/Uart_process;../User/Drive/Bsp_W25QXX;../User/Drive/Bsp_Esp8266</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -509,9 +509,9 @@
           <GroupName>User/App/Uart_Process</GroupName>
           <Files>
             <File>
-              <FileName>app_uart_process.c</FileName>
+              <FileName>app_uart.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\App\Uart_process\app_uart_process.c</FilePath>
+              <FilePath>..\User\App\Uart_process\app_uart.c</FilePath>
             </File>
           </Files>
         </Group>

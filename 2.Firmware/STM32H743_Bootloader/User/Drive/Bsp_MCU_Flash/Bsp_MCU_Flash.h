@@ -2,7 +2,7 @@
  * @Description: 
  * @Autor: Pi
  * @Date: 2022-04-20 00:11:15
- * @LastEditTime: 2022-07-03 12:38:58
+ * @LastEditTime: 2022-07-11 17:28:58
  */
 #ifndef MCU_FLASH_H
 #define MCU_FLASH_H
@@ -54,8 +54,8 @@
 #define MCU_FLASH_PARAM_ERR		3	
 
 
-uint8_t User_MCU_FLASH_Read(uint32_t ReadAddr, uint8_t *pBuffer, uint32_t pBuffer_Len);   //从指定地址开始读出指定长度的数据
-uint8_t User_MCU_Flash_Erase(uint32_t Addr, uint32_t Sectors_Number);                     //擦除某页数据
-uint8_t User_MCU_Flash_Write(uint32_t Write_Addr, uint8_t *pBuffer, uint32_t pBuffer_Len);   	//从指定地址开始写入指定长度的数据
+uint8_t Bsp_MCU_FLASH_Read(uint32_t ReadAddr, uint8_t *pBuffer, uint32_t pBuffer_Len);   //从指定地址开始读出指定长度的数据
+uint8_t Bsp_MCU_Flash_Erase(uint32_t Addr, uint32_t Sectors_Number);                     //擦除某页数据
+uint8_t Bsp_MCU_Flash_Write(uint32_t Write_Addr, uint8_t *pBuffer, uint32_t pBuffer_Len);   	//从指定地址开始写入指定长度的数据
 
 #endif

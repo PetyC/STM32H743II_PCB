@@ -2,7 +2,7 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:36
- * @LastEditTime: 2022-07-08 18:31:30
+ * @LastEditTime: 2022-07-11 19:22:05
  */
 #include "Bootloader.h"
 
@@ -11,26 +11,38 @@
 /*APP跳转标志*/
 uint32_t APP_Jump_Flag __attribute__((at(0x20000000), zero_init));
 
-/*APP文件大小*/
-uint32_t App_Updata_Size;
-
-/*串口超时标志*/
-uint8_t UART_RX_Time_Out_Flag = 0;
-
-/*信息存储*/
+/*系统信息存储*/
 App_information_Str System_infor;
 
-/*内部调用*/
+/*Flash写入是否出错*/
+uint8_t Flash_Error = 0;
+
+/*Flash写入是否完成*/
+uint8_t Flash_Finished = 0;
 
 /*相关句柄*/
-extern TIM_HandleTypeDef htim13;
 extern CRC_HandleTypeDef hcrc;
+
+
+/**
+ * @brief 启动跳转到APP
+ * @return {*}
+ */
+void User_App_Jump_Start(void)
+{
+  /*设置全局标志*/
+  APP_Jump_Flag = APP_JUMP_VALUE;
+
+  /* 复位CPU */
+  NVIC_SystemReset();
+}
+
 
 /**
  * @brief 跳转到APP应用
  * @return {*}
  */
-void User_App_Jump(void)
+void User_App_Jump_Init(void)
 {
   /*判断是否跳转*/
   if (APP_Jump_Flag != APP_JUMP_VALUE)
@@ -75,7 +87,7 @@ uint8_t User_App_MCU_Flash_Erase(uint32_t APP_File_Size)
   }
 
   /*擦除APP占有扇区*/
-  if (User_MCU_Flash_Erase(MCU_FLASH_APP_ADDR, APP_File_Sector_Count) == 0)
+  if (Bsp_MCU_Flash_Erase(MCU_FLASH_APP_ADDR, APP_File_Sector_Count) == 0)
   {
     return 0;
   }
@@ -85,63 +97,48 @@ uint8_t User_App_MCU_Flash_Erase(uint32_t APP_File_Size)
   }
 }
 
+
 /**
  * @brief 从串口接收APP数据 并写入内部FALSH中
- * @param {uint8_t} *Updata_Finish     APP更新完成标志 0:未完成  1:完成
- * @return {uint8_t}0:成功   1:失败
+ * @param {uint8_t} *data
+ * @param {uint16_t} len
+ * @return {*}
  */
-uint8_t User_App_MCU_Flash_Updata(uint8_t *Updata_Finish)
+void User_App_MCU_Flash_Updata(uint8_t *data , uint16_t len)
 {
-  /*APP更新完成标志*/
-  *Updata_Finish = 0;
-
-  /*Flash写入是否出错*/
-  static bool Flash_Error = 0;
-
-  /*最少写入Flash数据量*/
-  uint16_t RX_Buff_MAX = 512;
-
   /*APP写入偏移地址*/
-  static uint32_t APP_Temp_ADDR = 0;
+  static uint32_t Offset_ADDR = 0;
 
-  /*获得当前RX 缓存数*/
-  uint16_t Buff_Occupy = User_UART_Get_RX_Buff_Occupy(&huart1);
+  /*写入MCU Flash*/
+  uint8_t Error = Bsp_MCU_Flash_Write(MCU_FLASH_APP_ADDR + Offset_ADDR, data, len);
 
-  if (Buff_Occupy < RX_Buff_MAX && Buff_Occupy > 0)
+  /*写入地址自增*/
+  Offset_ADDR += len;
+
+  /*写入地址大于解析地址，则固件下载完成*/
+  if(Offset_ADDR >= System_infor.Size)
   {
-    //串口超时定时器开启
-    if (UART_RX_Time_Out_Flag == 0)
-    {
-      HAL_TIM_Base_Start_IT(&htim13);
-    }
-    //定时器超时,则数据接收结束
-    if (UART_RX_Time_Out_Flag == 1)
-    {
-      UART_RX_Time_Out_Flag = 0;
-
-      uint8_t Uart_Data[512];
-      uint16_t size = User_UART_Read(&huart1, Uart_Data, sizeof(Uart_Data));
-      Flash_Error = User_MCU_Flash_Write(MCU_FLASH_APP_ADDR + APP_Temp_ADDR, Uart_Data, size);
-      *Updata_Finish = 1;
-    }
-  }
-  else if (Buff_Occupy >= RX_Buff_MAX)
-  {
-    uint8_t Uart_Data[512];
-    User_UART_Read(&huart1, Uart_Data, sizeof(Uart_Data));
-    Flash_Error = User_MCU_Flash_Write(MCU_FLASH_APP_ADDR + APP_Temp_ADDR, Uart_Data, sizeof(Uart_Data));
-
-    APP_Temp_ADDR += sizeof(Uart_Data);
-
-    if (UART_RX_Time_Out_Flag == 1)
-    {
-      UART_RX_Time_Out_Flag = 0;
-      HAL_TIM_Base_Stop(&htim13);
-    }
+    Flash_Finished = 1;
   }
 
-  return Flash_Error;
+  /*FLASH写入出错*/
+  if(Error == 1)
+  {
+    Flash_Error = 1;
+  }
+
 }
+
+/**
+ * @brief 串口超过一定时间未接收到新数据 则说明接收完成
+ * @return {*}
+ */
+void User_APP_MCU_Flash_Finished(void)
+{
+  Flash_Finished = 1;
+}
+
+
 
 /**
  * @brief 将APP备份至外部Flash中
@@ -160,7 +157,7 @@ uint8_t User_App_MCU_Flash_Copy(void)
   /*将MCU内部APP备份到外置FLASH上*/
   for (uint32_t i = 0; i < MCU_FLASH_USER_SIZE / 256; i++)
   {
-    if (User_MCU_FLASH_Read(MCU_FLASH_APP_ADDR + (i * 256), Data, sizeof(Data)) == 0) //读取一页256字节
+    if (Bsp_MCU_FLASH_Read(MCU_FLASH_APP_ADDR + (i * 256), Data, sizeof(Data)) == 0) //读取一页256字节
     {
       QSPI_W25Qx_Write_Buffer(FLASH_BIN_ADDR + (i * 256), Data, sizeof(Data)); //写入外置Flash
     }
@@ -186,7 +183,7 @@ uint8_t User_App_Flash_Copy(void)
   {
     QSPI_W25Qx_Read_Buffer(FLASH_BIN_ADDR + (i * 512), Data, sizeof(Data));
 
-    Flash_Error = User_MCU_Flash_Write(MCU_FLASH_APP_ADDR + (i * 512), Data, sizeof(Data));
+    Flash_Error = Bsp_MCU_Flash_Write(MCU_FLASH_APP_ADDR + (i * 512), Data, sizeof(Data));
 
     if (Flash_Error == 1)
     {
@@ -211,7 +208,7 @@ uint8_t User_App_MCU_Flash_CRC(uint32_t APP_File_Size)
   Bin_CRC_Value = *(__IO uint32_t *)(MCU_FLASH_APP_ADDR + APP_File_Size - 4);
 
   /* 计算是否与硬件CRC一致 */
-  Ret_CRC_Value = HAL_CRC_Calculate(&hcrc, (uint32_t *)MCU_FLASH_APP_ADDR, APP_File_Size / 4 - 1);
+  Ret_CRC_Value = HAL_CRC_Calculate(&hcrc, ( uint32_t *)MCU_FLASH_APP_ADDR, APP_File_Size/4 - 1);
 
   if (Ret_CRC_Value != Bin_CRC_Value)
   {
@@ -223,18 +220,6 @@ uint8_t User_App_MCU_Flash_CRC(uint32_t APP_File_Size)
   }
 }
 
-/**
- * @brief 启动跳转到APP
- * @return {*}
- */
-void User_App_Jump_Start(void)
-{
-  /*设置全局标志*/
-  APP_Jump_Flag = APP_JUMP_VALUE;
-
-  /* 复位CPU */
-  NVIC_SystemReset();
-}
 
 
 

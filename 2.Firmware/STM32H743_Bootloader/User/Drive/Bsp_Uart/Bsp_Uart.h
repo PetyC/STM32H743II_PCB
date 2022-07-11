@@ -2,7 +2,7 @@
  * @Description: 
  * @Autor: Pi
  * @Date: 2022-07-01 17:44:02
- * @LastEditTime: 2022-07-03 19:54:47
+ * @LastEditTime: 2022-07-11 17:31:40
  */
 
 #ifndef DEV_UART_H
@@ -39,44 +39,44 @@ typedef struct
 
 
 /*放入相应串口初始化处*/
-void User_UART_Init(UART_HandleTypeDef *huart);
+void Bsp_UART_Init(UART_HandleTypeDef *huart);
 
 /*串口设备复位*/
 void Uart_UART_MspDeInit(UART_HandleTypeDef *huart);
 
 /*放入相应中断函数里*/
-void User_UART_IRQHandler(UART_HandleTypeDef *huart);
+void Bsp_UART_IRQHandler(UART_HandleTypeDef *huart);
 
 
 /*串口读写函数*/
-uint16_t User_UART_Write(UART_HandleTypeDef *huart, const uint8_t *buf, uint16_t size);
-uint16_t User_UART_Read(UART_HandleTypeDef *huart, uint8_t *buf, uint16_t size);
+uint16_t Bsp_UART_Write(UART_HandleTypeDef *huart, const uint8_t *buf, uint16_t size);
+uint16_t Bsp_UART_Read(UART_HandleTypeDef *huart, uint8_t *buf, uint16_t size);
 
 /*判断是否接收到消息*/
-uint8_t User_UART_Get_RX_Flag(UART_HandleTypeDef *huart);
+uint8_t Bsp_UART_Get_RX_Flag(UART_HandleTypeDef *huart);
 
 /*发送Fifo中的消息*/
-void User_UART_Poll_DMA_TX(UART_HandleTypeDef *huart);
+void Bsp_UART_Poll_DMA_TX(UART_HandleTypeDef *huart);
 
 /*TX Buff空闲空间*/
-uint16_t User_UART_Get_TX_Buff_Free(UART_HandleTypeDef *huart);
+uint16_t Bsp_UART_Get_TX_Buff_Free(UART_HandleTypeDef *huart);
 
 /*TX Buff已用空间*/
-uint16_t User_UART_Get_TX_Buff_Occupy(UART_HandleTypeDef *huart);
+uint16_t Bsp_UART_Get_TX_Buff_Occupy(UART_HandleTypeDef *huart);
 
 /*TX Buff空闲空间*/
-uint16_t User_UART_Get_RX_Buff_Free(UART_HandleTypeDef *huart);
+uint16_t Bsp_UART_Get_RX_Buff_Free(UART_HandleTypeDef *huart);
 
 /*RX Buff已用空间*/
-uint16_t User_UART_Get_RX_Buff_Occupy(UART_HandleTypeDef *huart);
+uint16_t Bsp_UART_Get_RX_Buff_Occupy(UART_HandleTypeDef *huart);
 
 /*设置串口波特率*/
-void User_UART_Set_BaudRate(UART_HandleTypeDef *huart,  uint32_t BaudRate);
+void Bsp_UART_Set_BaudRate(UART_HandleTypeDef *huart,  uint32_t BaudRate);
 
+/*串口接收使能*/
+void Bsp_UART_RX_Enable(UART_HandleTypeDef *huart , uint8_t Enable);
 
-
-
-
-
+/*串口波特率设置*/
+void Bsp_UART_Set_BRR(UART_HandleTypeDef *huart , uint8_t Sw);
 
 #endif

@@ -167,14 +167,14 @@ float Atan2(int16_t y, int16_t x)
     if (x>=0) {
         if (abs_y + x == 0)
             return 0;
-        angle = PI4  - ( PI4 * (1.0 * (x - abs_y) / (1.0 * (abs_y + x))) );
+        angle = PI4  - ( PI4 * (1.0f * (x - abs_y) / (1.0f * (abs_y + x))) );
     } else {
         if (abs_y - x == 0)
             return 0;
-        angle = PI34 - ( PI4 * (1.0 * (x + abs_y) / (1.0 * (abs_y - x))) );
+        angle = PI34 - ( PI4 * (1.0f * (x + abs_y) / (1.0f * (abs_y - x))) );
     }
 
-    angle = 180.0 * angle / PI;
+    angle = 180.0f * angle / PI;
     return (y<0) ? -angle:angle;
 }
 
@@ -192,7 +192,7 @@ void CheckAngle(uint16_t x, uint16_t y) {
     float angle = Atan2(dy,dx);
 
     if (angle < 0.0)
-        angle += 360.0;
+        angle += 360.0f;
 
     if (angle_from <= angle_to) {
         if (angle >= angle_from && angle <= angle_to)

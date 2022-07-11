@@ -28,8 +28,8 @@ static void Bsp_ESP8266_TX(uint8_t *data, uint8_t len)
     return;
   }
 
-  User_UART_Write(&huart1, data, len);
-  User_UART_Poll_DMA_TX(&huart1);
+  Bsp_UART_Write(&huart1, data, len);
+  Bsp_UART_Poll_DMA_TX(&huart1);
 }
 
 /**
@@ -55,7 +55,7 @@ uint8_t Bsp_ESP8266_Power(uint8_t enable, uint32_t Time_Out)
     uint8_t Braud_Flag = 0;
 
     /*修改波特率*/
-    User_UART_Set_BaudRate(&huart1, 74880);
+    Bsp_UART_Set_BaudRate(&huart1, 74880);
 
     /*使能ESP8266 芯片*/
     HAL_GPIO_WritePin(ESP_POW_GPIO_Port, ESP_POW_Pin, GPIO_PIN_SET);
@@ -66,12 +66,12 @@ uint8_t Bsp_ESP8266_Power(uint8_t enable, uint32_t Time_Out)
     /*堵塞 */
     while (Time_Out > ESP8266_Tick)
     {
-      if (User_UART_Get_RX_Buff_Occupy(&huart1) == 0)
+      if (Bsp_UART_Get_RX_Buff_Occupy(&huart1) == 0)
       {
         continue;
       }
 
-      User_UART_Read(&huart1, Data, 255);
+      Bsp_UART_Read(&huart1, Data, 255);
 
       if (Braud_Flag == 0)
       {
@@ -79,7 +79,7 @@ uint8_t Bsp_ESP8266_Power(uint8_t enable, uint32_t Time_Out)
         if (strstr((char *)Data, "phy ver: 1145_0, pp ver: 10.2") != NULL)
         {
           Braud_Flag = 1;
-          User_UART_Set_BaudRate(&huart1, 115200);
+          Bsp_UART_Set_BaudRate(&huart1, 115200);
         }
       }
       else
@@ -132,9 +132,9 @@ uint8_t Bsp_ESP8266_Config_Block(uint8_t *Send_Data, uint8_t Send_Len, uint8_t *
       ESP8266_Tick_Enable = 1;
     }
 
-    if (User_UART_Get_RX_Buff_Occupy(&huart1) > 0)
+    if (Bsp_UART_Get_RX_Buff_Occupy(&huart1) > 0)
     {
-      Data_Len = User_UART_Read(&huart1, Data, sizeof(Data));
+      Data_Len = Bsp_UART_Read(&huart1, Data, sizeof(Data));
 
       if (strstr((char *)Data, (char *)Returnc) && Returnc != NULL)
       {
@@ -189,10 +189,10 @@ void Bsp_ESP8266_Recover(void)
 
   Bsp_ESP8266_Delay(5000);
   /*清空FIFO*/
-  while (User_UART_Get_RX_Buff_Occupy(&huart1) != 0)
+  while (Bsp_UART_Get_RX_Buff_Occupy(&huart1) != 0)
   {
     uint8_t data[10];
-    User_UART_Read(&huart1, data, 10);
+    Bsp_UART_Read(&huart1, data, 10);
   }
 }
 
@@ -380,7 +380,7 @@ uint8_t Bsp_Esp8266_Info_Handle(uint8_t *data, uint8_t len)
 int Bsp_ESP8266_Resolve_Url(uint8_t *ch)
 {
 
-  if (ch == NULL || (strlen(ch) < 5))
+  if (ch == NULL || (strlen((char *)ch) < 5))
   {
     return -1;
   }
@@ -404,7 +404,7 @@ int Bsp_ESP8266_Resolve_Url(uint8_t *ch)
   }
 
   /*IP*/
-  uint8_t *Buffer = StrBetwString((char *)ch + Len, "://", ":");
+  uint8_t *Buffer = (uint8_t *)StrBetwString((char *)ch + Len, "://", ":");
 
   if (Buffer != NULL)
   {
@@ -417,7 +417,7 @@ int Bsp_ESP8266_Resolve_Url(uint8_t *ch)
     cStringRestore();
 
     // Port
-    Buffer = StrBetwString((char *)ch + Len, ":", "/");
+    Buffer = (uint8_t *)StrBetwString((char *)ch + Len, ":", "/");
 
     if (Buffer != NULL)
     {
@@ -455,7 +455,7 @@ int Bsp_ESP8266_Resolve_Url(uint8_t *ch)
     }
 
     // IP
-    Buffer = StrBetwString((char *)ch + Len, "://", "/");
+    Buffer = (uint8_t *)StrBetwString((char *)ch + Len, "://", "/");
     if (Buffer != NULL)
     {
       memset(System_infor.IP, 0, sizeof(System_infor.IP));
