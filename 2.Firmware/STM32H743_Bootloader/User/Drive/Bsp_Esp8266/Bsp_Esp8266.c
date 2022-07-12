@@ -1,8 +1,8 @@
 /*
- * @Description:
+ * @Description:esp8266板级支持包 不适用FreeRTOS
  * @Autor: Pi
  * @Date: 2022-07-08 23:39:12
- * @LastEditTime: 2022-07-12 03:16:29
+ * @LastEditTime: 2022-07-12 18:44:49
  */
 #include "Bsp_ESP8266.h"
 
@@ -27,11 +27,10 @@ typedef struct
   uint8_t *Target1;
 } Reply_Target_Str;
 
-Reply_Target_Str Reply_Target;
+static Reply_Target_Str Reply_Target;
 
 /*内部使用函数*/
 static void Bsp_ESP8266_Config_Process(uint8_t *Data, uint16_t Len);
-static void Bsp_ESP8266_TX(uint8_t *Data, uint8_t Len);
 static uint8_t Bsp_ESP8266_Query_Loop(void);
 
 /**
@@ -40,7 +39,7 @@ static uint8_t Bsp_ESP8266_Query_Loop(void);
  * @param {uint8_t} Len
  * @return {*}
  */
-static void Bsp_ESP8266_TX(uint8_t *Data, uint8_t Len)
+void Bsp_ESP8266_TX(uint8_t *Data, uint8_t Len)
 {
   if (Len > 255 || Data == NULL)
   {
@@ -83,7 +82,6 @@ static void Bsp_ESP8266_Config_Process(uint8_t *Data, uint16_t Len)
  */
 static uint8_t Bsp_ESP8266_Query_Loop(void)
 {
-
   do
   {
     User_UART_RX_Loop();
@@ -116,11 +114,8 @@ static uint8_t Bsp_ESP8266_Query_Loop(void)
  * @param {uint8_t} Retry       最大重试次数
  * @return {uint8_t} 0:成功   1:失败
  */
-uint8_t Bsp_ESP8266_Config(uint8_t *Data, uint8_t Len, uint8_t *Reply0, uint8_t *Reply1, uint16_t Time_Out , uint8_t Retry)
+uint8_t Bsp_ESP8266_Config(uint8_t *Data, uint8_t Len, uint8_t *Reply0, uint8_t *Reply1, uint16_t Time_Out, uint8_t Retry)
 {
-  /*设置串口功能*/
-  User_UART_RX_Fun = Bsp_ESP8266_Config_Process;
-
   /*设置等待回复目标语句*/
   Reply_Target.Target0 = Reply0;
   Reply_Target.Target1 = Reply1;
@@ -131,16 +126,20 @@ uint8_t Bsp_ESP8266_Config(uint8_t *Data, uint8_t Len, uint8_t *Reply0, uint8_t 
   /*设置超时标志*/
   ESP8266_Time.Time_Out_Flag = 0;
 
-  for(uint8_t i = 0 ; i < Retry; i++)
+  for (uint8_t i = 0; i < Retry; i++)
   {
+    /*设置串口功能*/
+    User_UART_RX_Fun = Bsp_ESP8266_Config_Process;
+
     Bsp_ESP8266_TX(Data, Len);
 
     HAL_TIM_Base_Start_IT(&htim12);
     /*成功直接返回0*/
-    if(Bsp_ESP8266_Query_Loop() == 0)
+    if (Bsp_ESP8266_Query_Loop() == 0)
     {
       return 0;
     }
+
   }
 
   return 1;
@@ -169,8 +168,6 @@ void Bsp_ESP8266_Timer(void)
   }
 }
 
-
-
 /**
  * @brief esp8266电源控制
  * @param {uint8_t} Enabel  1:上电    0:下电
@@ -178,29 +175,45 @@ void Bsp_ESP8266_Timer(void)
  */
 uint8_t Bsp_ESP8266_Power(uint8_t Enabel)
 {
-  if(Enabel == 0)
+  if (Enabel == 0)
   {
     /*失能ESP8266 芯片*/
     HAL_GPIO_WritePin(ESP_POW_GPIO_Port, ESP_POW_Pin, GPIO_PIN_RESET);
     return 0;
   }
 
-
   uint8_t Ret = 1;
 
   /*设置波特兰74880*/
-  Bsp_UART_Set_BRR(&huart1 , 1);
+  Bsp_UART_Set_BRR(&huart1, 1);
 
   /*使能ESP8266 芯片*/
   HAL_GPIO_WritePin(ESP_POW_GPIO_Port, ESP_POW_Pin, GPIO_PIN_SET);
 
   /*等待收到消息*/
-  Ret = Bsp_ESP8266_Config(NULL , NULL , "phy ver: 1145_0, pp ver: 10.2" , NULL , 30 , 1);
+  Ret = Bsp_ESP8266_Config(NULL, NULL, "phy ver: 1145_0, pp ver: 10.2", NULL, 30, 1);
 
   /*设置波特兰115200*/
-  Bsp_UART_Set_BRR(&huart1 , 0);
+  Bsp_UART_Set_BRR(&huart1, 0);
 
-  Ret = Bsp_ESP8266_Config(NULL , NULL , "ready" , NULL , 30 , 1);
+  Ret = Bsp_ESP8266_Config(NULL, NULL, "ready", NULL, 30, 1);
 
   return Ret;
 }
+
+/**
+ * @brief 恢复出厂设置
+ * @return {*}
+ */
+void Bsp_ESP8266_Reset(void)
+{
+
+  /*恢复出厂设置*/
+  Bsp_ESP8266_TX("AT+RESTORE\r\n", 13);
+
+  Bsp_UART_RX_Enable(&huart1 , 0);
+  HAL_Delay(3000);
+  Bsp_UART_RX_Enable(&huart1 , 1);
+}
+
+

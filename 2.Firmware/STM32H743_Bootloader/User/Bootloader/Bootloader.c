@@ -2,7 +2,7 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:36
- * @LastEditTime: 2022-07-11 23:05:00
+ * @LastEditTime: 2022-07-12 19:43:35
  */
 #include "Bootloader.h"
 
@@ -244,11 +244,11 @@ void User_Boot_Init(void)
     QSPI_W25Qx_EraseSector(FLASH_DATA_ADDR);
 
     System_infor.Init = 1;
-    System_infor.Version = 0;
     System_infor.Size = 0;
     System_infor.Updata = 0;
     System_infor.SSLEN = 0;
     System_infor.Port = 80;
+    memcpy(System_infor.Version, "0.0.0", 6);
     memcpy(System_infor.IP, "www.qiandpi.com", 16);
     memcpy(System_infor.Bin_Path , "/ota/hardware/H7-Core/user_crc.bin", 35);
     memcpy(System_infor.Info_Path , "/ota/hardware/H7-Core/info.txt", 31);
@@ -271,4 +271,27 @@ void User_Boot_Init(void)
   {
     //User_App_Jump_Start();
   }
+}
+
+
+/**
+ * @brief 将新的INFO信息写入FALSH
+ * @param {App_information_Str} info
+ * @return {*}
+ */
+void User_Boot_Infor_Set(App_information_Str info)
+{
+  QSPI_W25Qx_EraseSector(FLASH_DATA_ADDR);
+
+  uint16_t Len = sizeof(App_information_Str);
+  /*以256字节 写入FLASH*/
+  for(uint32_t i = 0 ; i < Len/256 ; i++)
+  {
+    QSPI_W25Qx_Write_Buffer(FLASH_DATA_ADDR + (i * 256), (uint8_t *)&info + (i*256), 256);
+  }
+  if(Len % 256 != 0)
+  {
+    QSPI_W25Qx_Write_Buffer(FLASH_DATA_ADDR + ((Len/256  + 1) * 256), (uint8_t *)&info + (Len/256  + 1) * 256, 256);
+  }
+
 }

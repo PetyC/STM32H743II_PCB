@@ -35,7 +35,7 @@
 #include "app_uart.h"
 #include "Bsp_w25qxx.h"
 #include "Bsp_ESP8266.H"
-
+#include "network.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -115,67 +115,50 @@ int main(void)
   MX_TIM12_Init();
   /* USER CODE BEGIN 2 */
   // app_init();
-/*
+
   QSPI_W25Qx_Init();
   
   User_Boot_Init();
   
-  Bsp_ESP8266_Power(1 , 3000);
 
-  Bsp_ESP8266_Connect_Ap("Moujiti", "moujiti7222");
+//  Bsp_ESP8266_Get_Info(System_infor.IP , System_infor.Info_Path ,  System_infor.SSLEN);
 
+//  uint8_t data[1024];
+//  while (1)
+//  {
+//    if(User_UART_Get_RX_Buff_Occupy(&huart1) != 0)
+//    {
+//      uint16_t len = User_UART_Read(&huart1 , data , sizeof(data));
 
-  if(Bsp_ESP8266_Config_Block("AT+CIPSTATUS\r\n" , 15 , "2" , NULL , 5 , 3000) == 1)
-  {
-    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , 0);
-    while (1);
-  }
+//      if(strstr((char *)data , "Accept-Ranges: bytes" ) != NULL)
+//      {
+//        Bsp_Esp8266_Info_Handle(data , len);
+//      }
 
-  if(Bsp_ESP8266_Connect_Tcp(System_infor.IP , System_infor.Port , System_infor.SSLEN) == 1)
-  {
-    HAL_GPIO_WritePin(LED1_GPIO_Port , LED1_Pin , 0);
-    while (1);
-
-  }
-
-  Bsp_ESP8266_Get_Info(System_infor.IP , System_infor.Info_Path ,  System_infor.SSLEN);
-
-  uint8_t data[1024];
-  while (1)
-  {
-    if(User_UART_Get_RX_Buff_Occupy(&huart1) != 0)
-    {
-      uint16_t len = User_UART_Read(&huart1 , data , sizeof(data));
-
-      if(strstr((char *)data , "Accept-Ranges: bytes" ) != NULL)
-      {
-        Bsp_Esp8266_Info_Handle(data , len);
-      }
-
-    }
-  }
-  */
-  if(Bsp_ESP8266_Power2(1) == 0)
+//    }
+//  }
+  
+ 
+  if(Bsp_ESP8266_Power(1) == 0)
   {
     HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_RESET);
   }
-  else
-  {
-     HAL_GPIO_WritePin(LED1_GPIO_Port , LED1_Pin , GPIO_PIN_SET);
-  }
-  
-//  Bsp_UART_RX_Enable(&huart1 , 0);
-//	HAL_GPIO_WritePin(ESP_POW_GPIO_Port , ESP_POW_Pin , GPIO_PIN_SET);
-//  HAL_Delay(5000);
-//  Bsp_UART_RX_Enable(&huart1 , 1);
- 
-  if(Bsp_ESP8266_Config((uint8_t *)"AT\r\n", 5, (uint8_t *)"OK", NULL, 30 , 3) == 0)
-  {
-    HAL_GPIO_WritePin(LED1_GPIO_Port , LED1_Pin , GPIO_PIN_RESET);
-  }
-	
 
-  
+//  if(User_Network_Connect_AP((uint8_t *)"Moujiti" , (uint8_t *)"moujiti7222") == 0)
+//  {
+//    HAL_GPIO_WritePin(LED1_GPIO_Port , LED1_Pin , GPIO_PIN_RESET);
+//  }
+//  
+  if(User_Network_Connect_Tcp(System_infor.IP , System_infor.Port , System_infor.SSLEN) == 1)
+  {
+    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
+  }
+    
+  if(User_Network_Get_Info(System_infor.IP ,  System_infor.Info_Path , System_infor.SSLEN) == 1)
+  {
+    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
+  }
+ 
 //  Bsp_UART_Write(&huart1 , "MCU Flash Erase Start!\r\n" , 25);
 //  Bsp_UART_Poll_DMA_TX(&huart1);
 
@@ -194,10 +177,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//    HAL_GPIO_TogglePin(LED2_GPIO_Port , LED2_Pin);
-//    HAL_Delay(800);
+    HAL_GPIO_TogglePin(LED2_GPIO_Port , LED2_Pin);
+    HAL_Delay(800);
      
-   User_UART_RX_Loop();
+  // User_UART_RX_Loop();
     
 //    /*写入完成 且无错误*/
 //    if(Flash_Finished == 1 && Flash_Error == 0)
