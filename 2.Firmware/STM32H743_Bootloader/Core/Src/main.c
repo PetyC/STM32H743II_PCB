@@ -115,7 +115,7 @@ int main(void)
   MX_TIM12_Init();
   /* USER CODE BEGIN 2 */
   // app_init();
-
+  HAL_GPIO_WritePin(LCD_BLK_GPIO_Port , LCD_BLK_Pin , GPIO_PIN_SET);
   QSPI_W25Qx_Init();
   
   User_Boot_Init();
@@ -137,23 +137,23 @@ int main(void)
 
 //    }
 //  }
-  
- 
+
   if(Bsp_ESP8266_Power(1) == 0)
   {
     HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_RESET);
   }
-
-//  if(User_Network_Connect_AP((uint8_t *)"Moujiti" , (uint8_t *)"moujiti7222") == 0)
-//  {
-//    HAL_GPIO_WritePin(LED1_GPIO_Port , LED1_Pin , GPIO_PIN_RESET);
-//  }
+  
+  Bsp_ESP8266_RST();
+////  if(User_Network_Connect_AP((uint8_t *)"TNY" , (uint8_t *)"23333333") == 0)
+////  {
+////    HAL_GPIO_WritePin(LED1_GPIO_Port , LED1_Pin , GPIO_PIN_RESET);
+////  }
 //  
   if(User_Network_Connect_Tcp(System_infor.IP , System_infor.Port , System_infor.SSLEN) == 1)
   {
     HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
   }
-    
+//    
   if(User_Network_Get_Info(System_infor.IP ,  System_infor.Info_Path , System_infor.SSLEN) == 1)
   {
     HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);

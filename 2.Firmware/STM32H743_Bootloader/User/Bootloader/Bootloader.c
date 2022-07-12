@@ -12,7 +12,7 @@
 uint32_t APP_Jump_Flag __attribute__((at(0x20000000), zero_init));
 
 /*系统信息存储*/
-App_information_Str System_infor;
+System_Info_Str System_infor;
 
 /*Flash写入是否出错*/
 uint8_t Flash_Error = 0;
@@ -236,7 +236,7 @@ uint8_t User_App_MCU_Flash_CRC(uint32_t APP_File_Size)
 void User_Boot_Init(void)
 {
   /*读取存储的系统信息*/
-  QSPI_W25Qx_Read_Buffer(FLASH_DATA_ADDR, (uint8_t *)&System_infor, sizeof(App_information_Str));
+  QSPI_W25Qx_Read_Buffer(FLASH_DATA_ADDR, (uint8_t *)&System_infor, sizeof(System_Info_Str));
 
   /*信息未初始化则进行初始化*/
   if (System_infor.Init != 0)
@@ -253,7 +253,7 @@ void User_Boot_Init(void)
     memcpy(System_infor.Bin_Path , "/ota/hardware/H7-Core/user_crc.bin", 35);
     memcpy(System_infor.Info_Path , "/ota/hardware/H7-Core/info.txt", 31);
 
-    uint16_t Len = sizeof(App_information_Str);
+    uint16_t Len = sizeof(System_Info_Str);
     /*以256字节 写入FLASH*/
     for(uint32_t i = 0 ; i < Len/256 ; i++)
     {
@@ -276,14 +276,14 @@ void User_Boot_Init(void)
 
 /**
  * @brief 将新的INFO信息写入FALSH
- * @param {App_information_Str} info
+ * @param {System_Info_Str} info
  * @return {*}
  */
-void User_Boot_Infor_Set(App_information_Str info)
+void User_Boot_Infor_Set(System_Info_Str info)
 {
   QSPI_W25Qx_EraseSector(FLASH_DATA_ADDR);
 
-  uint16_t Len = sizeof(App_information_Str);
+  uint16_t Len = sizeof(System_Info_Str);
   /*以256字节 写入FLASH*/
   for(uint32_t i = 0 ; i < Len/256 ; i++)
   {

@@ -2,7 +2,7 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:14
- * @LastEditTime: 2022-07-12 20:00:25
+ * @LastEditTime: 2022-07-13 01:28:54
  */
 #include "network.h"
 
@@ -242,84 +242,120 @@ uint8_t User_Network_Get_Info(uint8_t *IP, uint8_t *Info_Path, uint8_t SSLEN)
   if (User_Network_TX(tcp_buff, tcp_buff_Len, "Accept-Ranges: bytes", NULL, 30, 3) == 0)
   {
     /*解析数据*/
-    User_Network_Info_Handle(NetWork_Buff, NETWORK_BUFF_LEN);
+    User_Network_Info_Process(NetWork_Buff, NETWORK_BUFF_LEN);
   }
 
   return 0;
 }
 
 
-/**
- * @brief 版本信息数据处理
- * @param {uint8_t} *data
- * @param {uint8_t} len
- * @return {*}
- */
-uint8_t User_Network_Info_Handle(uint8_t *data, uint16_t len)
-{
-  /*当前版本号*/
-  uint8_t Version[20];
-  uint8_t buff[255];
 
-  char *str;
 
-  //获取版本号
-  str = StrBetwString((char *)data, "\"version\":\"", "\",\"");
 
-  //获取版本号长度
-  len = strlen(str); 
+Info_Str User_Network_Info_Process(uint8_t *data , uint16_t len)
+{ 
 
-  /*版本号错误*/
-  if (str == NULL || len > 20)
+  Info_Str Info = {0};
+  char *pStr;
+
+  /*获取版本号*/
+  pStr = StrBetwString((char *)data, "\"version\":\"", "\",\"");
+
+  /*获取版本号长度*/
+  uint8_t pStr_len = strlen(pStr); 
+
+  /*判断版本号是否合法*/
+  if(pStr_len > 20 || pStr == NULL)
   {
-    return 1;
+    return Info;
   }
+
+  /*缓存版本号到结构体*/
+  sprintf((char *)Info.Version , "%s", pStr);
   
- 
-  //版本号不一样
-  if (memcmp(str, Version, len) != 0)
+  cStringRestore();
+  
+  /*服务器文件存放路径 */
+  pStr = StrBetwString((char *)data, "\"url\":\"", "\",\"");
+  
+  uint8_t buffer[255];
+  sprintf((char *)buffer , "%s", pStr);
+  /*缓存服务器文件存放路径到结构体*/
+ // sprintf((char *)Info.IP , "%s", pStr);
+
+  User_Network_Url_Process((uint8_t *)pStr , &Info);
+  
+  return Info;
+}
+
+//http://mnif.cn/ota/hardware/STM32ESP8266PP/
+//https://mnif.cn/ota/hardware/STM32ESP8266PP/
+//http://mnif.cn:80/ota/hardware/STM32ESP8266PP/
+//https://mnif.cn:443/ota/hardware/STM32ESP8266PP/
+
+void User_Network_Url_Process(uint8_t *pStr , Info_Str *Info)
+{
+  if(pStr == NULL || ((strlen((char *)pStr) < 5)) )
   {
-    cStringRestore();
+    return;
+  }
 
-    //获取下载地址 URL
-    str = StrBetwString((char *)data, "url\":\"", "\",\"");
+  uint8_t pStr_Pos = 0;
+  
+  /*判断是http or https */
+  if (memcmp(pStr, "https", 5) == 0)
+  {
+    Info->SSLEN = 1;
+    pStr_Pos = 5;
+  }
+  else if (memcmp(pStr, "http", 4) == 0)
+  {
+    Info->SSLEN = 0;
+    pStr_Pos = 4;
+  }
 
-    // URL 缓存到数组
-    memset(buff, 0, sizeof(buff));
-    sprintf((char *)buff, "%s", str);
+  /*IP地址*/
+  uint8_t *pIP; 
+  /*Bin文件地址*/
+  uint8_t *pBin; 
 
-    if (User_Network_Resolve_Url(buff , &System_infor) == 0)
-    {
-      //User_Boot_Infor_Set(System_infor);
-      return 0;
-    }
+  /*假设带端口号*/
+  pIP = (uint8_t *)StrBetwString((char *)pStr + pStr_Pos, "://", ":");
 
-    //解析 URL
-    /*
-    if (IAPResolveUrl(buff) == 0)
-    {
-      //存储 url 到 flash
-
-      iap_interface_set_update_url(IAPStructValue.buff, strlen(IAPStructValue.buff));
-      cStringRestore();
-      iap_interface_set_update_flage(); //设置更新标志
-      iap_interface_reset_mcu();        //重启
-
-    }
-    */
+  /*若为空则不带端口号*/
+  if(pIP != NULL)
+  {
+   
   }
   else
   {
-    /*版本已是最新,无需更新!*/
+    cStringRestore();
+
+    pIP = (uint8_t *)StrBetwString((char *)pStr + pStr_Pos, "://", "/");
+
+    if (pIP != NULL)
+    {
+      sprintf((char *)Info->IP , "%s", pIP);
+      /*处理位置更新*/
+      pStr_Pos = pStr_Pos + 3 + strlen((char *)pIP);
+    }
+
+    cStringRestore();
+
+    /*Bin文件路径*/
+    //memcpy( buffer , pStr + pStr_Pos, sizeof(buffer) - Len);
+    pBin = (uint8_t *)StrBetwString((char *)pStr + pStr_Pos, "/", ".bin");
+
+    sprintf((char *)Info->Bin_Path , "/%s.bin", pBin);
+
   }
 
-  return 0;
+
+
+  
+
+
 }
-
-
-
-
-
 
 
 /**
@@ -328,7 +364,7 @@ uint8_t User_Network_Info_Handle(uint8_t *data, uint16_t len)
  * @param {App_information_Str} *Infor    
  * @return {uint8_t} 0:成功     其他:错误
  */
-uint8_t User_Network_Resolve_Url(uint8_t *ch , App_information_Str *Infor)
+uint8_t User_Network_Resolve_Url(uint8_t *ch , Info_Str *Infor)
 {
 
   if (ch == NULL || (strlen((char *)ch) < 5))
@@ -378,7 +414,7 @@ uint8_t User_Network_Resolve_Url(uint8_t *ch , App_information_Str *Infor)
 
         cStringRestore();
         // Path
-        memcpy(Infor->Bin_Path, ch + Len, sizeof(Infor->Bin_Path) - Len);
+        memcpy((char *)Infor->Bin_Path, ch + Len, sizeof(Infor->Bin_Path) - Len);
       }
       else
       {
@@ -420,8 +456,87 @@ uint8_t User_Network_Resolve_Url(uint8_t *ch , App_information_Str *Infor)
   }
   cStringRestore();
   // Path
-  memcpy(Infor->Bin_Path, ch + Len, sizeof(Infor->Bin_Path) - Len);
+  memcpy((char *)Infor->Bin_Path, ch + Len, sizeof(Infor->Bin_Path) - Len);
 
 
   return 0;
 }
+
+
+
+
+
+
+
+///**
+// * @brief 版本信息数据处理
+// * @param {uint8_t} *data
+// * @param {uint8_t} len
+// * @return {*}
+// */
+//uint8_t User_Network_Info_Handle(uint8_t *data, uint16_t len , Info_Str *Info)
+//{
+//  /*当前版本号*/
+//  uint8_t Version[20];
+//  uint8_t buff[255];
+
+//  char *str;
+
+//  //获取版本号
+//  str = StrBetwString((char *)data, "\"version\":\"", "\",\"");
+
+//  //获取版本号长度
+//  len = strlen(str); 
+
+//  /*版本号错误*/
+//  if (str == NULL || len > 20)
+//  {
+//    return 1;
+//  }
+//  
+// 
+//  //版本号不一样
+//  if (memcmp(str, Version, len) != 0)
+//  {
+//    cStringRestore();
+
+//    //获取下载地址 URL
+//    str = StrBetwString((char *)data, "url\":\"", "\",\"");
+
+//    // URL 缓存到数组
+//    memset(buff, 0, sizeof(buff));
+//    sprintf((char *)buff, "%s", str);
+
+//    if (User_Network_Resolve_Url(buff , &System_infor) == 0)
+//    {
+//      //User_Boot_Infor_Set(System_infor);
+//      return 0;
+//    }
+
+//    //解析 URL
+//    /*
+//    if (IAPResolveUrl(buff) == 0)
+//    {
+//      //存储 url 到 flash
+
+//      iap_interface_set_update_url(IAPStructValue.buff, strlen(IAPStructValue.buff));
+//      cStringRestore();
+//      iap_interface_set_update_flage(); //设置更新标志
+//      iap_interface_reset_mcu();        //重启
+
+//    }
+//    */
+//  }
+//  else
+//  {
+//    /*版本已是最新,无需更新!*/
+//  }
+
+//  return 0;
+//}
+
+
+
+
+
+

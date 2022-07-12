@@ -2,7 +2,7 @@
  * @Description: esp8266板级支持包 不适用FreeRTOS
  * @Autor: Pi
  * @Date: 2022-07-08 23:39:19
- * @LastEditTime: 2022-07-12 18:22:11
+ * @LastEditTime: 2022-07-13 02:59:07
  */
 #ifndef BSP_ESP8266_H
 #define BSP_ESP8266_H
@@ -25,6 +25,9 @@ uint8_t Bsp_ESP8266_Power(uint8_t Enabel);
 
 /*恢复出厂设置*/
 void Bsp_ESP8266_Reset(void);
+
+/*重启ESP8266*/
+void Bsp_ESP8266_RST(void);
 
 /*设置默认连接WIFI*/
 uint8_t Bsp_ESP8266_Connect_AP(uint8_t *SSID, uint8_t *PAW);

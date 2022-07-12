@@ -34,7 +34,8 @@
       "stdio.h": "c",
       "system_error": "c",
       "esp8266_process.h": "c",
-      "string.h": "c"
+      "string.h": "c",
+      "sstream": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

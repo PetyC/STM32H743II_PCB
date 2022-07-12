@@ -152,25 +152,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>157</LineNumber>
+          <LineNumber>298</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134262248</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>../Core/Src/main.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\STM32H743_Bootloader\../Core/Src/main.c\157</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>243</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134259398</Address>
+          <Address>134259648</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -179,34 +163,45 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>..\User\App\network\network.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\STM32H743_Bootloader\../User/App/network/network.c\243</Expression>
+          <Expression>\\STM32H743_Bootloader\../User/App/network/network.c\298</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>349</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134259780</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\User\App\network\network.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\STM32H743_Bootloader\../User/App/network/network.c\349</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ESP8266_Time</ItemText>
+          <ItemText>Info</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Uart_Buffer</ItemText>
+          <ItemText>buffer</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>System_infor</ItemText>
+          <ItemText>pStr</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Uart_Buffer</ItemText>
-        </Ww>
-        <Ww>
-          <count>4</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>NetWork_Buff</ItemText>
+          <ItemText>pIP</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -658,7 +653,7 @@
 
   <Group>
     <GroupName>User/Drive/Bsp_Uart</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

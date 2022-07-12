@@ -2,7 +2,7 @@
  * @Description: 
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:17
- * @LastEditTime: 2022-07-12 19:30:15
+ * @LastEditTime: 2022-07-13 01:28:20
  */
 #ifndef NETWORK_H
 #define NETWORK_H
@@ -18,6 +18,17 @@
 #include "Bootloader.h"
 
 
+typedef struct 
+{
+  uint8_t  Version[10];        //版本号
+  uint32_t Bin_Size;           //固件大小
+  uint8_t  Bin_Path[255];           //Bin文件路径        eg:ota/hardware/H7-Core/Demo.bin
+  uint8_t  IP[255];            //服务器地址  eg:http://www.qiandpi.com/
+  uint16_t Port;               //端口号
+  uint8_t  SSLEN;              //1:ssl   0:非SSL
+}Info_Str;
+
+
 /*设置默认连接路由器*/
 uint8_t User_Network_Connect_AP(uint8_t *SSID, uint8_t *PAW);
 
@@ -28,9 +39,8 @@ uint8_t User_Network_Connect_Tcp(uint8_t *IP , uint8_t Port , uint8_t Https_Enab
 uint8_t User_Network_Get_Info(uint8_t *IP, uint8_t *Info_Path, uint8_t SSLEN);
 
 
-uint8_t User_Network_Info_Handle(uint8_t *data, uint16_t len);
 
+Info_Str User_Network_Info_Process(uint8_t *data , uint16_t len);
 
-uint8_t User_Network_Resolve_Url(uint8_t *ch , App_information_Str *Infor);
-
+void User_Network_Url_Process(uint8_t *pStr , Info_Str *Info);
 #endif

@@ -2,7 +2,7 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:43
- * @LastEditTime: 2022-07-12 19:42:57
+ * @LastEditTime: 2022-07-13 00:00:07
  */
 #ifndef BOOTLOADER_H
 #define BOOTLOADER_H
@@ -69,7 +69,7 @@ typedef enum
 typedef struct
 {
   uint8_t Init;           //是否已初始化
-  uint8_t Version[10];        //目前版本号
+  uint8_t Version[10];    //目前版本号
   uint8_t Updata;         //是否需要升级
   uint32_t Size;          //固件大小
   uint8_t IP[256];        // 服务器地址or域名
@@ -78,9 +78,9 @@ typedef struct
   uint8_t Bin_Path[255];  //Bin文件地址
   uint8_t Info_Path[255];  //配置信息文件地址
 
-} App_information_Str;
+}System_Info_Str;
 
-extern App_information_Str System_infor;
+extern System_Info_Str System_infor;
 
 /*跳转到APP应用*/
 void User_App_Jump_Init(void);
@@ -112,7 +112,7 @@ void User_Boot_Init(void);
 
 
 /*重新写入info到FLASH*/
-void User_Boot_Infor_Set(App_information_Str info);
+void User_Boot_Infor_Set(System_Info_Str info);
 
 
 
