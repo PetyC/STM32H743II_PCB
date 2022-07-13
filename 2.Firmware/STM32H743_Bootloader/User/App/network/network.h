@@ -2,7 +2,7 @@
  * @Description: 
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:17
- * @LastEditTime: 2022-07-13 01:28:20
+ * @LastEditTime: 2022-07-13 21:42:01
  */
 #ifndef NETWORK_H
 #define NETWORK_H
@@ -22,7 +22,7 @@ typedef struct
 {
   uint8_t  Version[10];        //版本号
   uint32_t Bin_Size;           //固件大小
-  uint8_t  Bin_Path[255];           //Bin文件路径        eg:ota/hardware/H7-Core/Demo.bin
+  uint8_t  Bin_Path[255];      //Bin文件路径        eg:ota/hardware/H7-Core/Demo.bin
   uint8_t  IP[255];            //服务器地址  eg:http://www.qiandpi.com/
   uint16_t Port;               //端口号
   uint8_t  SSLEN;              //1:ssl   0:非SSL

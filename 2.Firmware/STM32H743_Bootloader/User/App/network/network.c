@@ -2,7 +2,7 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:14
- * @LastEditTime: 2022-07-13 01:28:54
+ * @LastEditTime: 2022-07-13 21:56:43
  */
 #include "network.h"
 
@@ -251,7 +251,12 @@ uint8_t User_Network_Get_Info(uint8_t *IP, uint8_t *Info_Path, uint8_t SSLEN)
 
 
 
-
+/**
+ * @brief Inof文本数据解析
+ * @param {uint8_t} *data   Info数据
+ * @param {uint16_t} len    数据长度
+ * @return {*}
+ */
 Info_Str User_Network_Info_Process(uint8_t *data , uint16_t len)
 { 
 
@@ -259,7 +264,7 @@ Info_Str User_Network_Info_Process(uint8_t *data , uint16_t len)
   char *pStr;
 
   /*获取版本号*/
-  pStr = StrBetwString((char *)data, "\"version\":\"", "\",\"");
+  pStr = StrBetwString((char *)data, "\"Version\":\"", "\",\"");
 
   /*获取版本号长度*/
   uint8_t pStr_len = strlen(pStr); 
@@ -275,13 +280,17 @@ Info_Str User_Network_Info_Process(uint8_t *data , uint16_t len)
   
   cStringRestore();
   
-  /*服务器文件存放路径 */
-  pStr = StrBetwString((char *)data, "\"url\":\"", "\",\"");
+  /*获取Bin文件大小*/
+  pStr = StrBetwString((char *)data, "\"Size\":\"", "\",\"");
   
-  uint8_t buffer[255];
-  sprintf((char *)buffer , "%s", pStr);
-  /*缓存服务器文件存放路径到结构体*/
- // sprintf((char *)Info.IP , "%s", pStr);
+  /*缓存Bin文件大小到结构体*/
+  sprintf((char *)Info.Bin_Size , "%d", pStr);
+
+  cStringRestore();
+
+  /*服务器文件存放路径 */
+  pStr = StrBetwString((char *)data, "\"Url\":\"", "\",\"");
+  
 
   User_Network_Url_Process((uint8_t *)pStr , &Info);
   
@@ -293,6 +302,12 @@ Info_Str User_Network_Info_Process(uint8_t *data , uint16_t len)
 //http://mnif.cn:80/ota/hardware/STM32ESP8266PP/
 //https://mnif.cn:443/ota/hardware/STM32ESP8266PP/
 
+/**
+ * @brief Url数据处理
+ * @param {uint8_t} *pStr   Url字符串
+ * @param {Info_Str} *Info  返回数据结构体
+ * @return {*}
+ */
 void User_Network_Url_Process(uint8_t *pStr , Info_Str *Info)
 {
   if(pStr == NULL || ((strlen((char *)pStr) < 5)) )
@@ -302,12 +317,13 @@ void User_Network_Url_Process(uint8_t *pStr , Info_Str *Info)
 
   uint8_t pStr_Pos = 0;
   
-  /*判断是http or https */
+  /*https */
   if (memcmp(pStr, "https", 5) == 0)
   {
     Info->SSLEN = 1;
     pStr_Pos = 5;
   }
+  /*http*/
   else if (memcmp(pStr, "http", 4) == 0)
   {
     Info->SSLEN = 0;
@@ -316,18 +332,35 @@ void User_Network_Url_Process(uint8_t *pStr , Info_Str *Info)
 
   /*IP地址*/
   uint8_t *pIP; 
+  /*端口号*/
+  uint8_t *pPort;
   /*Bin文件地址*/
   uint8_t *pBin; 
 
   /*假设带端口号*/
   pIP = (uint8_t *)StrBetwString((char *)pStr + pStr_Pos, "://", ":");
 
-  /*若为空则不带端口号*/
   if(pIP != NULL)
   {
-   
+    //   ://mnif.cn:80/ota/hardware/STM32ESP8266PP/
+    //   mnif.cn
+    /*缓存IP*/
+    sprintf((char *)Info->IP , "%s", pIP);
+    
+    cStringRestore();
+
+    /*截取出端口号*/
+    pPort = (uint8_t *)StrBetwString((char *)pStr + pStr_Pos, ":", "/");
+
+
+    /*缓存端口号*/
+    sprintf((char *)Info->Port , "%d", pPort);
+
+    /*处理位置更新*/
+    pStr_Pos += strlen(pPort) + 2;
+
   }
-  else
+  else           //若为空则不带端口号
   {
     cStringRestore();
 
@@ -340,19 +373,18 @@ void User_Network_Url_Process(uint8_t *pStr , Info_Str *Info)
       pStr_Pos = pStr_Pos + 3 + strlen((char *)pIP);
     }
 
-    cStringRestore();
 
-    /*Bin文件路径*/
-    //memcpy( buffer , pStr + pStr_Pos, sizeof(buffer) - Len);
-    pBin = (uint8_t *)StrBetwString((char *)pStr + pStr_Pos, "/", ".bin");
-
-    sprintf((char *)Info->Bin_Path , "/%s.bin", pBin);
 
   }
 
 
+  cStringRestore();
 
-  
+  /*Bin文件路径*/
+  pBin = (uint8_t *)StrBetwString((char *)pStr + pStr_Pos, "/", ".bin");
+
+  /*存入结构体*/
+  sprintf((char *)Info->Bin_Path , "/%s.bin", pBin);
 
 
 }
