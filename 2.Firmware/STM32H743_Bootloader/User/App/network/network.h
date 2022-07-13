@@ -2,7 +2,7 @@
  * @Description: 
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:17
- * @LastEditTime: 2022-07-13 21:42:01
+ * @LastEditTime: 2022-07-14 03:50:12
  */
 #ifndef NETWORK_H
 #define NETWORK_H
@@ -28,6 +28,14 @@ typedef struct
   uint8_t  SSLEN;              //1:ssl   0:非SSL
 }Info_Str;
 
+/*
+typedef struct
+{
+  uint8_t Init;           //是否已初始化
+  uint8_t Updata;         //是否需要升级
+  Info_Str Info;          //Info数据
+}System_Info_Str;
+*/
 
 /*设置默认连接路由器*/
 uint8_t User_Network_Connect_AP(uint8_t *SSID, uint8_t *PAW);

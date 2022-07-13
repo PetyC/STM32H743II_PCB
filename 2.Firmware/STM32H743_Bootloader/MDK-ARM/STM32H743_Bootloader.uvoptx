@@ -152,9 +152,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>298</LineNumber>
+          <LineNumber>344</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134259648</Address>
+          <Address>134260080</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -163,23 +163,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>..\User\App\network\network.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\STM32H743_Bootloader\../User/App/network/network.c\298</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>349</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134259780</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\User\App\network\network.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\STM32H743_Bootloader\../User/App/network/network.c\349</Expression>
+          <Expression>\\STM32H743_Bootloader\../User/App/network/network.c\344</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -191,17 +175,17 @@
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>buffer</ItemText>
+          <ItemText>pStr</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>pStr</ItemText>
+          <ItemText>pStr_Pos,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>pIP</ItemText>
+          <ItemText>pBin</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>

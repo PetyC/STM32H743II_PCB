@@ -2,7 +2,7 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:14
- * @LastEditTime: 2022-07-13 21:56:43
+ * @LastEditTime: 2022-07-14 03:48:34
  */
 #include "network.h"
 
@@ -21,7 +21,6 @@ typedef struct
 } Reply_Target_Str;
 
 static Reply_Target_Str Reply_Target;
-
 
 /*数据缓存*/
 #define NETWORK_BUFF_LEN 1024
@@ -147,7 +146,7 @@ uint8_t User_Network_Connect_AP(uint8_t *SSID, uint8_t *PAW)
   HAL_Delay(300);
   Bsp_ESP8266_Power(1);
 
-  Bsp_ESP8266_Reset(); //恢复出厂设置
+  Bsp_ESP8266_Reset();                                              //恢复出厂设置
   Bsp_ESP8266_Config("ATE0\r\n", 7, "OK", NULL, 30, 3);             //关闭回显
   Bsp_ESP8266_Config("AT+CWMODE_DEF=1\r\n", 18, "OK", NULL, 30, 3); // WIFI模式1 单station模式
   Bsp_ESP8266_Config("AT+CWAUTOCONN=1\r\n", 18, "OK", NULL, 30, 3); //自动连接路由器
@@ -204,7 +203,6 @@ uint8_t User_Network_Connect_Tcp(uint8_t *IP, uint8_t Port, uint8_t Https_Enable
   return flag;
 }
 
-
 /**
  * @brief 发送Get请求获取版本信息
  * @param {uint8_t} *IP
@@ -248,17 +246,14 @@ uint8_t User_Network_Get_Info(uint8_t *IP, uint8_t *Info_Path, uint8_t SSLEN)
   return 0;
 }
 
-
-
-
 /**
  * @brief Inof文本数据解析
  * @param {uint8_t} *data   Info数据
  * @param {uint16_t} len    数据长度
  * @return {*}
  */
-Info_Str User_Network_Info_Process(uint8_t *data , uint16_t len)
-{ 
+Info_Str User_Network_Info_Process(uint8_t *data, uint16_t len)
+{
 
   Info_Str Info = {0};
   char *pStr;
@@ -267,40 +262,36 @@ Info_Str User_Network_Info_Process(uint8_t *data , uint16_t len)
   pStr = StrBetwString((char *)data, "\"Version\":\"", "\",\"");
 
   /*获取版本号长度*/
-  uint8_t pStr_len = strlen(pStr); 
+  uint8_t pStr_len = strlen(pStr);
 
   /*判断版本号是否合法*/
-  if(pStr_len > 20 || pStr == NULL)
+  if (pStr_len > 20 || pStr == NULL)
   {
     return Info;
   }
 
   /*缓存版本号到结构体*/
-  sprintf((char *)Info.Version , "%s", pStr);
-  
+  sprintf((char *)Info.Version, "%s", pStr);
+
   cStringRestore();
-  
+
   /*获取Bin文件大小*/
   pStr = StrBetwString((char *)data, "\"Size\":\"", "\",\"");
-  
+
   /*缓存Bin文件大小到结构体*/
-  sprintf((char *)Info.Bin_Size , "%d", pStr);
+  // sprintf((char *)Info.Bin_Size , "%d", pStr);
+  Info.Bin_Size = atoi(pStr);
 
   cStringRestore();
 
   /*服务器文件存放路径 */
   pStr = StrBetwString((char *)data, "\"Url\":\"", "\",\"");
-  
 
-  User_Network_Url_Process((uint8_t *)pStr , &Info);
-  
+  /*Url数据处理*/
+  User_Network_Url_Process((uint8_t *)pStr, &Info);
+
   return Info;
 }
-
-//http://mnif.cn/ota/hardware/STM32ESP8266PP/
-//https://mnif.cn/ota/hardware/STM32ESP8266PP/
-//http://mnif.cn:80/ota/hardware/STM32ESP8266PP/
-//https://mnif.cn:443/ota/hardware/STM32ESP8266PP/
 
 /**
  * @brief Url数据处理
@@ -308,15 +299,15 @@ Info_Str User_Network_Info_Process(uint8_t *data , uint16_t len)
  * @param {Info_Str} *Info  返回数据结构体
  * @return {*}
  */
-void User_Network_Url_Process(uint8_t *pStr , Info_Str *Info)
+void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info)
 {
-  if(pStr == NULL || ((strlen((char *)pStr) < 5)) )
+  if (pStr == NULL || ((strlen((char *)pStr) < 5)))
   {
     return;
   }
 
   uint8_t pStr_Pos = 0;
-  
+
   /*https */
   if (memcmp(pStr, "https", 5) == 0)
   {
@@ -331,36 +322,35 @@ void User_Network_Url_Process(uint8_t *pStr , Info_Str *Info)
   }
 
   /*IP地址*/
-  uint8_t *pIP; 
+  uint8_t *pIP;
   /*端口号*/
   uint8_t *pPort;
   /*Bin文件地址*/
-  uint8_t *pBin; 
+  uint8_t *pBin;
 
   /*假设带端口号*/
   pIP = (uint8_t *)StrBetwString((char *)pStr + pStr_Pos, "://", ":");
 
-  if(pIP != NULL)
+  if (pIP != NULL)
   {
-    //   ://mnif.cn:80/ota/hardware/STM32ESP8266PP/
-    //   mnif.cn
     /*缓存IP*/
-    sprintf((char *)Info->IP , "%s", pIP);
-    
+    sprintf((char *)Info->IP, "%s", pIP);
+
     cStringRestore();
+    /*处理位置更新*/
+    pStr_Pos = pStr_Pos + 3 + strlen((char *)Info->IP);
 
     /*截取出端口号*/
     pPort = (uint8_t *)StrBetwString((char *)pStr + pStr_Pos, ":", "/");
 
-
     /*缓存端口号*/
-    sprintf((char *)Info->Port , "%d", pPort);
+    // sprintf((char *)Info->Port , "%d", pPort);
+    Info->Port = atoi((char *)pPort);
 
     /*处理位置更新*/
-    pStr_Pos += strlen(pPort) + 2;
-
+    pStr_Pos = pStr_Pos + 1 + strlen((char *)pPort);
   }
-  else           //若为空则不带端口号
+  else //若为空则不带端口号
   {
     cStringRestore();
 
@@ -368,15 +358,14 @@ void User_Network_Url_Process(uint8_t *pStr , Info_Str *Info)
 
     if (pIP != NULL)
     {
-      sprintf((char *)Info->IP , "%s", pIP);
+      sprintf((char *)Info->IP, "%s", pIP);
       /*处理位置更新*/
       pStr_Pos = pStr_Pos + 3 + strlen((char *)pIP);
     }
 
-
-
+    /*默认端口80*/
+    Info->Port = 80;
   }
-
 
   cStringRestore();
 
@@ -384,19 +373,16 @@ void User_Network_Url_Process(uint8_t *pStr , Info_Str *Info)
   pBin = (uint8_t *)StrBetwString((char *)pStr + pStr_Pos, "/", ".bin");
 
   /*存入结构体*/
-  sprintf((char *)Info->Bin_Path , "/%s.bin", pBin);
-
-
+  sprintf((char *)Info->Bin_Path, "/%s.bin", pBin);
 }
-
 
 /**
  * @brief URL解析
  * @param {uint8_t} *ch   数据
- * @param {App_information_Str} *Infor    
+ * @param {App_information_Str} *Infor
  * @return {uint8_t} 0:成功     其他:错误
  */
-uint8_t User_Network_Resolve_Url(uint8_t *ch , Info_Str *Infor)
+uint8_t User_Network_Resolve_Url(uint8_t *ch, Info_Str *Infor)
 {
 
   if (ch == NULL || (strlen((char *)ch) < 5))
@@ -435,7 +421,7 @@ uint8_t User_Network_Resolve_Url(uint8_t *ch , Info_Str *Infor)
 
     cStringRestore();
 
-    Buffer = (uint8_t *)StrBetwString((char *)ch + Len, ":", "/");   // Port
+    Buffer = (uint8_t *)StrBetwString((char *)ch + Len, ":", "/"); // Port
 
     if (Buffer != NULL)
     {
@@ -490,85 +476,5 @@ uint8_t User_Network_Resolve_Url(uint8_t *ch , Info_Str *Infor)
   // Path
   memcpy((char *)Infor->Bin_Path, ch + Len, sizeof(Infor->Bin_Path) - Len);
 
-
   return 0;
 }
-
-
-
-
-
-
-
-///**
-// * @brief 版本信息数据处理
-// * @param {uint8_t} *data
-// * @param {uint8_t} len
-// * @return {*}
-// */
-//uint8_t User_Network_Info_Handle(uint8_t *data, uint16_t len , Info_Str *Info)
-//{
-//  /*当前版本号*/
-//  uint8_t Version[20];
-//  uint8_t buff[255];
-
-//  char *str;
-
-//  //获取版本号
-//  str = StrBetwString((char *)data, "\"version\":\"", "\",\"");
-
-//  //获取版本号长度
-//  len = strlen(str); 
-
-//  /*版本号错误*/
-//  if (str == NULL || len > 20)
-//  {
-//    return 1;
-//  }
-//  
-// 
-//  //版本号不一样
-//  if (memcmp(str, Version, len) != 0)
-//  {
-//    cStringRestore();
-
-//    //获取下载地址 URL
-//    str = StrBetwString((char *)data, "url\":\"", "\",\"");
-
-//    // URL 缓存到数组
-//    memset(buff, 0, sizeof(buff));
-//    sprintf((char *)buff, "%s", str);
-
-//    if (User_Network_Resolve_Url(buff , &System_infor) == 0)
-//    {
-//      //User_Boot_Infor_Set(System_infor);
-//      return 0;
-//    }
-
-//    //解析 URL
-//    /*
-//    if (IAPResolveUrl(buff) == 0)
-//    {
-//      //存储 url 到 flash
-
-//      iap_interface_set_update_url(IAPStructValue.buff, strlen(IAPStructValue.buff));
-//      cStringRestore();
-//      iap_interface_set_update_flage(); //设置更新标志
-//      iap_interface_reset_mcu();        //重启
-
-//    }
-//    */
-//  }
-//  else
-//  {
-//    /*版本已是最新,无需更新!*/
-//  }
-
-//  return 0;
-//}
-
-
-
-
-
-
