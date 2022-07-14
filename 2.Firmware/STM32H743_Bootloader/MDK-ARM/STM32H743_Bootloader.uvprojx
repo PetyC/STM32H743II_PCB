@@ -10,7 +10,7 @@
       <TargetName>STM32H743_Bootloader</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060960::V5.06 update 7 (build 960)::.\ARMCC</pCCUsed>
+      <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -185,7 +185,6 @@
             <uocXRam>0</uocXRam>
             <RvdsVP>3</RvdsVP>
             <RvdsMve>0</RvdsMve>
-            <RvdsCdeCp>0</RvdsCdeCp>
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -339,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../User/Bootloader;../User/Drive/Bsp_Uart;../User/Drive/Bsp_MCU_Flash;../User/APP/core;../User/Drive/Bsp_LCD;../User/App/Lcd;../User/App/Uart_process;../User/Drive/Bsp_W25QXX;../User/Drive/Bsp_Esp8266;..\User\App\network</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../User/Drive/Bsp_Uart;../User/Drive/Bsp_MCU_Flash;../User/APP/core;../User/Drive/Bsp_LCD;../User/App/Lcd;../User/App/Uart_process;../User/Drive/Bsp_W25QXX;../User/Drive/Bsp_Esp8266;..\User\App\network;..\User\App\Config;..\User\App\IAP</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -352,7 +351,7 @@
             <NoWarn>0</NoWarn>
             <uSurpInc>0</uSurpInc>
             <useXO>0</useXO>
-            <ClangAsOpt>4</ClangAsOpt>
+            <uClangAs>0</uClangAs>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -517,6 +516,26 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>User/App/IAP</GroupName>
+          <Files>
+            <File>
+              <FileName>IAP.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\App\IAP\IAP.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>User/App/Config</GroupName>
+          <Files>
+            <File>
+              <FileName>config.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\App\Config\config.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>User/App/network</GroupName>
           <Files>
             <File>
@@ -623,16 +642,6 @@
               <FileName>Fifo.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Drive\Bsp_Uart\Fifo.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>User/Bootloader</GroupName>
-          <Files>
-            <File>
-              <FileName>Bootloader.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Bootloader\Bootloader.c</FilePath>
             </File>
           </Files>
         </Group>

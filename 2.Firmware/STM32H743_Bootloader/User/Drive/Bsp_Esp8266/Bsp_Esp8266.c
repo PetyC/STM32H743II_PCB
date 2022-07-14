@@ -2,7 +2,7 @@
  * @Description:esp8266板级支持包 不适用FreeRTOS
  * @Autor: Pi
  * @Date: 2022-07-08 23:39:12
- * @LastEditTime: 2022-07-13 02:58:49
+ * @LastEditTime: 2022-07-14 16:12:20
  */
 #include "Bsp_ESP8266.h"
 
@@ -139,9 +139,7 @@ uint8_t Bsp_ESP8266_Config(uint8_t *Data, uint8_t Len, uint8_t *Reply0, uint8_t 
     {
       return 0;
     }
-
   }
-
 
   return 1;
 }
@@ -208,15 +206,14 @@ uint8_t Bsp_ESP8266_Power(uint8_t Enabel)
  */
 void Bsp_ESP8266_Reset(void)
 {
- 
+
   /*恢复出厂设置*/
   Bsp_ESP8266_TX("AT+RESTORE\r\n", 13);
 
-  Bsp_UART_RX_Enable(&huart1 , 0);
+  Bsp_UART_RX_Enable(&huart1, 0);
   HAL_Delay(3000);
-  Bsp_UART_RX_Enable(&huart1 , 1);
+  Bsp_UART_RX_Enable(&huart1, 1);
 }
-
 
 /**
  * @brief 重启ESP8266
@@ -226,8 +223,8 @@ void Bsp_ESP8266_RST(void)
 {
   /*恢复出厂设置*/
   Bsp_ESP8266_TX((uint8_t *)"AT+RST\r\n", 13);
-  
-  Bsp_UART_RX_Enable(&huart1 , 0);
+
+  Bsp_UART_RX_Enable(&huart1, 0);
   HAL_Delay(1000);
-  Bsp_UART_RX_Enable(&huart1 , 1);
+  Bsp_UART_RX_Enable(&huart1, 1);
 }

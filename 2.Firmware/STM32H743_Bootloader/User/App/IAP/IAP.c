@@ -2,17 +2,15 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:36
- * @LastEditTime: 2022-07-12 19:43:35
+ * @LastEditTime: 2022-07-14 16:28:59
  */
-#include "Bootloader.h"
-
+#include "IAP.h"
 #include <stdio.h>
 
 /*APP跳转标志*/
 uint32_t APP_Jump_Flag __attribute__((at(0x20000000), zero_init));
 
-/*系统信息存储*/
-System_Info_Str System_infor;
+
 
 /*Flash写入是否出错*/
 uint8_t Flash_Error = 0;
@@ -116,11 +114,7 @@ void User_App_MCU_Flash_Updata(uint8_t *data , uint16_t len)
   Offset_ADDR += len;
 
   /*写入地址大于解析地址，则也说明固件下载完成*/
-//  if(Offset_ADDR >= System_infor.Size)
-//  {
-//    Flash_Finished = 1;
-//  }
-  if(Offset_ADDR >= 70624)
+  if(Offset_ADDR >= 70624)   //System_Config.Info.Bin_Size
   {
     Flash_Finished = 1;
   }	
@@ -228,70 +222,20 @@ uint8_t User_App_MCU_Flash_CRC(uint32_t APP_File_Size)
 
 
 
-
 /**
- * @brief Boot初始化，读取外置FLASH判断是否需要升级，若不需要升级则跳入APP
+ * @brief IAP初始化，判断是否需要跳转
  * @return {*}
  */
-void User_Boot_Init(void)
+void User_IAP_Init(void)
 {
-  /*读取存储的系统信息*/
-  QSPI_W25Qx_Read_Buffer(FLASH_DATA_ADDR, (uint8_t *)&System_infor, sizeof(System_Info_Str));
-
-  /*信息未初始化则进行初始化*/
-  if (System_infor.Init != 0)
+  if(System_Config.Updata == 0 )
   {
-    QSPI_W25Qx_EraseSector(FLASH_DATA_ADDR);
-
-    System_infor.Init = 1;
-    System_infor.Size = 0;
-    System_infor.Updata = 0;
-    System_infor.SSLEN = 0;
-    System_infor.Port = 80;
-    memcpy(System_infor.Version, "0.0.0", 6);
-    memcpy(System_infor.IP, "www.qiandpi.com", 16);
-    memcpy(System_infor.Bin_Path , "/ota/hardware/H7-Core/user_crc.bin", 35);
-    memcpy(System_infor.Info_Path , "/ota/hardware/H7-Core/info.txt", 31);
-
-    uint16_t Len = sizeof(System_Info_Str);
-    /*以256字节 写入FLASH*/
-    for(uint32_t i = 0 ; i < Len/256 ; i++)
-    {
-      QSPI_W25Qx_Write_Buffer(FLASH_DATA_ADDR + (i * 256), (uint8_t *)&System_infor + (i*256), 256);
-    }
-    if(Len % 256 != 0)
-    {
-      QSPI_W25Qx_Write_Buffer(FLASH_DATA_ADDR + ((Len/256  + 1) * 256), (uint8_t *)&System_infor + (Len/256  + 1) * 256, 256);
-    }
-
-  }
-
-  /*无须升级*/
-  if (System_infor.Updata == 0)
-  {
+    /*不需要升级 则跳转入APP中*/
     //User_App_Jump_Start();
   }
+  else
+  {
+
+  }
 }
 
-
-/**
- * @brief 将新的INFO信息写入FALSH
- * @param {System_Info_Str} info
- * @return {*}
- */
-void User_Boot_Infor_Set(System_Info_Str info)
-{
-  QSPI_W25Qx_EraseSector(FLASH_DATA_ADDR);
-
-  uint16_t Len = sizeof(System_Info_Str);
-  /*以256字节 写入FLASH*/
-  for(uint32_t i = 0 ; i < Len/256 ; i++)
-  {
-    QSPI_W25Qx_Write_Buffer(FLASH_DATA_ADDR + (i * 256), (uint8_t *)&info + (i*256), 256);
-  }
-  if(Len % 256 != 0)
-  {
-    QSPI_W25Qx_Write_Buffer(FLASH_DATA_ADDR + ((Len/256  + 1) * 256), (uint8_t *)&info + (Len/256  + 1) * 256, 256);
-  }
-
-}

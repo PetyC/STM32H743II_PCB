@@ -2,7 +2,7 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:14
- * @LastEditTime: 2022-07-14 03:48:34
+ * @LastEditTime: 2022-07-14 19:54:38
  */
 #include "network.h"
 
@@ -29,6 +29,7 @@ uint8_t NetWork_Buff[NETWORK_BUFF_LEN];
 /*内部使用函数*/
 static void User_Network_Process(uint8_t *Data, uint16_t Len);
 static uint8_t User_Network_Query_Loop(void);
+static void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info);
 
 /**
  * @brief 判断回复消息是否正确或超时
@@ -239,6 +240,8 @@ uint8_t User_Network_Get_Info(uint8_t *IP, uint8_t *Info_Path, uint8_t SSLEN)
   /*发送Get请求到服务器*/
   if (User_Network_TX(tcp_buff, tcp_buff_Len, "Accept-Ranges: bytes", NULL, 30, 3) == 0)
   {
+    /*关闭连接*/
+    Bsp_ESP8266_Config("AT+CIPCLOSE=0\r\n", 16, "0,CLOSED", NULL, 30, 3); //非透传模式
     /*解析数据*/
     User_Network_Info_Process(NetWork_Buff, NETWORK_BUFF_LEN);
   }
@@ -279,17 +282,33 @@ Info_Str User_Network_Info_Process(uint8_t *data, uint16_t len)
   pStr = StrBetwString((char *)data, "\"Size\":\"", "\",\"");
 
   /*缓存Bin文件大小到结构体*/
-  // sprintf((char *)Info.Bin_Size , "%d", pStr);
   Info.Bin_Size = atoi(pStr);
 
   cStringRestore();
 
   /*服务器文件存放路径 */
-  pStr = StrBetwString((char *)data, "\"Url\":\"", "\",\"");
+  pStr = StrBetwString((char *)data, "\"IP\":\"", "\",\"");
+
+  cStringRestore();
 
   /*Url数据处理*/
   User_Network_Url_Process((uint8_t *)pStr, &Info);
 
+  /*Info文件存放路径 */
+  pStr = StrBetwString((char *)data, "\"Info_Path\":\"", ".txt\"");
+
+  /*存入结构体*/
+  sprintf((char *)Info.Info_Path, "%s.txt", pStr);
+
+  cStringRestore();
+
+  /*Bin文件存放路径 */
+  pStr = StrBetwString((char *)data, "\"Bin_Path\":\"", ".bin\"");
+
+  /*存入结构体*/
+  sprintf((char *)Info.Bin_Path, "%s.bin", pStr);
+
+  cStringRestore();
   return Info;
 }
 
@@ -299,7 +318,7 @@ Info_Str User_Network_Info_Process(uint8_t *data, uint16_t len)
  * @param {Info_Str} *Info  返回数据结构体
  * @return {*}
  */
-void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info)
+static void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info)
 {
   if (pStr == NULL || ((strlen((char *)pStr) < 5)))
   {
@@ -323,10 +342,6 @@ void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info)
 
   /*IP地址*/
   uint8_t *pIP;
-  /*端口号*/
-  uint8_t *pPort;
-  /*Bin文件地址*/
-  uint8_t *pBin;
 
   /*假设带端口号*/
   pIP = (uint8_t *)StrBetwString((char *)pStr + pStr_Pos, "://", ":");
@@ -337,144 +352,150 @@ void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info)
     sprintf((char *)Info->IP, "%s", pIP);
 
     cStringRestore();
-    /*处理位置更新*/
-    pStr_Pos = pStr_Pos + 3 + strlen((char *)Info->IP);
 
-    /*截取出端口号*/
-    pPort = (uint8_t *)StrBetwString((char *)pStr + pStr_Pos, ":", "/");
+    /*处理位置更新*/
+    pStr_Pos = pStr_Pos + 3 + strlen((char *)Info->IP) + 1;
 
     /*缓存端口号*/
-    // sprintf((char *)Info->Port , "%d", pPort);
-    Info->Port = atoi((char *)pPort);
-
-    /*处理位置更新*/
-    pStr_Pos = pStr_Pos + 1 + strlen((char *)pPort);
+    Info->Port = atoi((char *)pStr + pStr_Pos);
   }
   else //若为空则不带端口号
   {
     cStringRestore();
 
-    pIP = (uint8_t *)StrBetwString((char *)pStr + pStr_Pos, "://", "/");
-
-    if (pIP != NULL)
-    {
-      sprintf((char *)Info->IP, "%s", pIP);
-      /*处理位置更新*/
-      pStr_Pos = pStr_Pos + 3 + strlen((char *)pIP);
-    }
+    /*缓存IP*/
+    sprintf((char *)Info->IP, "%s", (char *)pStr + pStr_Pos + 3);
 
     /*默认端口80*/
     Info->Port = 80;
   }
-
-  cStringRestore();
-
-  /*Bin文件路径*/
-  pBin = (uint8_t *)StrBetwString((char *)pStr + pStr_Pos, "/", ".bin");
-
-  /*存入结构体*/
-  sprintf((char *)Info->Bin_Path, "/%s.bin", pBin);
 }
 
-/**
- * @brief URL解析
- * @param {uint8_t} *ch   数据
- * @param {App_information_Str} *Infor
- * @return {uint8_t} 0:成功     其他:错误
- */
-uint8_t User_Network_Resolve_Url(uint8_t *ch, Info_Str *Infor)
+
+
+
+#include "Fifo.h"
+#define HTTP_BUFFER_LEN   1024
+uint8_t Http_Buffer[HTTP_BUFFER_LEN];
+_fifo_t Http_RX_fifo;
+
+/* fifo上锁函数 */
+static void fifo_lock(void)
+{
+  __disable_irq();
+}
+
+/* fifo解锁函数 */
+static void fifo_unlock(void)
+{
+  __enable_irq();
+}
+
+
+uint8_t User_Network_Get_Bin(uint8_t *IP, uint8_t *Bin_Path, uint8_t SSLEN)
 {
 
-  if (ch == NULL || (strlen((char *)ch) < 5))
+  /*注册FIFO*/
+  fifo_register(&Http_RX_fifo, &Http_Buffer[0], sizeof(Http_Buffer), fifo_lock, fifo_unlock);
+
+  uint8_t tcp_buff[100] = {0};
+  uint8_t tcp_buff_Len = 0;
+
+  uint8_t AT_Buff[200];
+  uint8_t AT_Len = 0;
+
+  uint8_t tcp_http_index = 0;
+
+  //组合 get 指令
+  tcp_buff_Len = sprintf((char *)tcp_buff, "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n", Bin_Path, IP);
+
+  /*使用SSL*/
+  if (SSLEN == 1)
   {
-    return 1;
-  }
-
-  uint8_t Len = 0;
-
-  // http or https
-  if (memcmp(ch, "https", 5) == 0)
-  {
-    Infor->SSLEN = 1;
-    Len = 5;
-  }
-  else if (memcmp(ch, "http", 4) == 0)
-  {
-    Infor->SSLEN = 0;
-    Len = 4;
-  }
-  else
-  {
-    return 2;
-  }
-
-  /*IP*/
-  uint8_t *Buffer = (uint8_t *)StrBetwString((char *)ch + Len, "://", ":");
-
-  if (Buffer != NULL)
-  {
-    //带端口号
-    memset(Infor->IP, 0, sizeof(Infor->IP));
-    memcpy(Infor->IP, Buffer, strlen((char *)Buffer));
-
-    Len = Len + 3 + strlen((char *)Infor->IP);
-
-    cStringRestore();
-
-    Buffer = (uint8_t *)StrBetwString((char *)ch + Len, ":", "/"); // Port
-
-    if (Buffer != NULL)
-    {
-      if (strlen((char *)Buffer) < 6 && atoi((char *)Buffer) != 0)
-      {
-        Infor->Port = atoi((char *)Buffer);
-        Len = Len + 1 + strlen((char *)Buffer); // 18/19
-
-        cStringRestore();
-        // Path
-        memcpy((char *)Infor->Bin_Path, ch + Len, sizeof(Infor->Bin_Path) - Len);
-      }
-      else
-      {
-        return 3;
-      }
-    }
-    else
-    {
-      cStringRestore();
-      return 4;
-    }
-
-    return 0;
-  }
-
-  //不带端口号
-  cStringRestore();
-
-  if (Infor->SSLEN)
-  {
-    Infor->Port = 443;
+    AT_Len = sprintf((char *)AT_Buff, "AT+CIPSEND=%d\r\n", tcp_buff_Len);
   }
   else
   {
-    Infor->Port = 80;
+    AT_Len = sprintf((char *)AT_Buff, "AT+CIPSEND=%d,%d\r\n", tcp_http_index, tcp_buff_Len);
   }
 
-  // IP
-  Buffer = (uint8_t *)StrBetwString((char *)ch + Len, "://", "/");
-  if (Buffer != NULL)
+  /*设置连接ID和数据长度*/
+  Bsp_ESP8266_Config(AT_Buff, AT_Len, "OK", ">", 30, 3);
+
+  /*设置串口功能*/
+  User_UART_RX_Fun = User_Network_Down_Flash;
+  
+  /*发送Get请求到服务器*/
+  Bsp_ESP8266_TX(tcp_buff, tcp_buff_Len);
+
+  while(Flash_Finished != 1)
   {
-    memset(Infor->IP, 0, sizeof(Infor->IP));
-    memcpy(Infor->IP, Buffer, strlen((char *)Buffer));
-    Len = Len + 3 + strlen((char *)Infor->IP); // 14/15
+    User_UART_RX_Loop();
   }
-  else
-  {
-    return 6;
-  }
-  cStringRestore();
-  // Path
-  memcpy((char *)Infor->Bin_Path, ch + Len, sizeof(Infor->Bin_Path) - Len);
+
 
   return 0;
 }
+
+
+
+
+//uint8_t Data_Buffer[512] = {0};
+
+void User_Network_Down_Flash(uint8_t *Data , uint16_t Len)
+{
+  static uint8_t Http_End_Flag = 0;
+
+  if(Http_End_Flag == 0)
+  {
+    char *p;
+    char http_End[] = "Accept-Ranges: bytes\r\n\r\n";
+  
+    p = strstr((char *)Data, http_End);
+
+    if( p != NULL)
+    {
+      for(uint16_t i = 0 ; i < Len ; i++)
+      {
+        if(Data[i + 1] == 'A' && Data[i + 2] == 'c' && Data[i +3] == 'c' && Data[i +4] == 'e' && Data[i +5] == 'p'&& Data[i +6] == 't'&& Data[i + 7] == '-' && Data[i +8] == 'R' )
+        {
+          if(Data[i + 9] == 'a' && Data[i + 10] == 'n' && Data[i +11] == 'g' && Data[i +12] == 'e' && Data[i +13] == 's'&& Data[i +14] == ':'&& Data[i + 15] ==  ' ')
+          {
+            if(Data[i + 16] == 'b' && Data[i + 17] == 'y' && Data[i +18] == 't' && Data[i +19] == 'e' && Data[i +20] == 's'&& Data[i +21] == 0x0d && Data[i + 22] ==  0x0a)
+            {
+              uint16_t Bin_Number = Len - i - 1 - strlen(http_End);
+              uint32_t Offset_Add = i + strlen(http_End) + 1;
+              //memcpy((char *)Buffer , Data + i + strlen(http_End) + 1, bin_Number);
+
+              /*写入FIFO*/
+              fifo_write(&Http_RX_fifo , Data + Offset_Add , Bin_Number);
+              Http_End_Flag = 1;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  else
+  {
+    fifo_write(&Http_RX_fifo , Data , Len);
+  }
+  
+  uint16_t occupy_size = fifo_get_occupy_size(&Http_RX_fifo);
+
+  if(occupy_size % 32 == 0 && occupy_size != 0)
+  {
+    uint8_t temp[1024];
+    uint16_t len = fifo_read(&Http_RX_fifo , temp , 1024);
+
+    User_App_MCU_Flash_Updata(temp , len);
+  }
+
+  //User_UART_RX_Fun = User_App_MCU_Flash_Updata;
+  
+  
+}
+
+
+

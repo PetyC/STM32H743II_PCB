@@ -31,11 +31,12 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "app.h"
-#include "Bootloader.h"
+#include "IAP.h"
 #include "app_uart.h"
 #include "Bsp_w25qxx.h"
 #include "Bsp_ESP8266.H"
 #include "network.h"
+#include "config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -117,7 +118,7 @@ int main(void)
   // app_init();
   QSPI_W25Qx_Init();
   
-  User_Boot_Init();
+  User_Config_Init();
   
 
   if(Bsp_ESP8266_Power(1) == 0)
@@ -127,21 +128,29 @@ int main(void)
   
   Bsp_ESP8266_RST();
   
-//  if(User_Network_Connect_AP((uint8_t *)"TNY" , (uint8_t *)"23333333") == 0)
+//  if(User_Network_Connect_AP((uint8_t *)"Moujiti" , (uint8_t *)"moujiti7222") == 0)
 //  {
 //    HAL_GPIO_WritePin(LED1_GPIO_Port , LED1_Pin , GPIO_PIN_RESET);
 //  }
   
-  if(User_Network_Connect_Tcp(System_infor.IP , System_infor.Port , System_infor.SSLEN) == 1)
+  User_App_MCU_Flash_Erase(70624);
+
+
+  if(User_Network_Connect_Tcp(System_Config.Info.IP , System_Config.Info.Port , System_Config.Info.SSLEN) == 1)
   {
     HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
   }
   
-  if(User_Network_Get_Info(System_infor.IP ,  System_infor.Info_Path , System_infor.SSLEN) == 1)
+//  if(User_Network_Get_Info(System_Config.Info.IP ,  System_Config.Info.Info_Path , System_Config.Info.SSLEN) == 1)
+//  {
+//    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
+//  }
+  
+  if(User_Network_Get_Bin(System_Config.Info.IP ,(uint8_t *)"/ota/hardware/H7-Core/app.bin" , System_Config.Info.SSLEN) == 1)
   {
     HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
   }
- 
+  User_App_MCU_Flash_CRC(70624);
 //  Bsp_UART_Write(&huart1 , "MCU Flash Erase Start!\r\n" , 25);
 //  Bsp_UART_Poll_DMA_TX(&huart1);
 

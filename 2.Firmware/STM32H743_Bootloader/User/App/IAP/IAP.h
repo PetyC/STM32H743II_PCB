@@ -2,19 +2,18 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:43
- * @LastEditTime: 2022-07-13 00:00:07
+ * @LastEditTime: 2022-07-14 16:12:49
  */
-#ifndef BOOTLOADER_H
-#define BOOTLOADER_H
+#ifndef IAP_H
+#define IAP_H
 
 #include "main.h"
 
-#include "Bsp_MCU_Flash.h"
+#include "config.h"
 #include "Bsp_Uart.h"
+#include "Bsp_MCU_Flash.h"
 #include "Bsp_w25qxx.h"
-#include "st7735s.h"
-#include "fonts.h"
-#include "gfx.h"
+
 
 
 /*内部Flash*/
@@ -44,9 +43,7 @@
 #define APP_JUMP_VALUE  0X11223344
 
 
-
-/*系统状态存储*/
-extern uint32_t APP_Jump_Flag;         //是否升级标志
+ 
  
  
 
@@ -66,21 +63,10 @@ typedef enum
 }SYS_State_Enum;
 
 
-typedef struct
-{
-  uint8_t Init;           //是否已初始化
-  uint8_t Version[10];    //目前版本号
-  uint8_t Updata;         //是否需要升级
-  uint32_t Size;          //固件大小
-  uint8_t IP[256];        // 服务器地址or域名
-  uint16_t Port;           //端口号
-  uint8_t SSLEN;          //1:ssl   0:非SSL
-  uint8_t Bin_Path[255];  //Bin文件地址
-  uint8_t Info_Path[255];  //配置信息文件地址
 
-}System_Info_Str;
 
-extern System_Info_Str System_infor;
+/*IAP初始化*/
+void User_IAP_Init(void);
 
 /*跳转到APP应用*/
 void User_App_Jump_Init(void);
@@ -107,12 +93,7 @@ void User_APP_MCU_Flash_Finished(void);
 uint8_t User_App_MCU_Flash_CRC(uint32_t APP_File_Size);
 
 
-/*初始化Boot*/
-void User_Boot_Init(void);
 
-
-/*重新写入info到FLASH*/
-void User_Boot_Infor_Set(System_Info_Str info);
 
 
 
