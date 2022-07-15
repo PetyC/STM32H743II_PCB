@@ -312,7 +312,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>1</Optim>
+            <Optim>3</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../User/Drive/Bsp_Uart;../User/Drive/Bsp_MCU_Flash;../User/APP/core;../User/Drive/Bsp_LCD;../User/App/Lcd;../User/App/Uart_process;../User/Drive/Bsp_W25QXX;../User/Drive/Bsp_Esp8266;..\User\App\network;..\User\App\Config;..\User\App\IAP</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../User/Drive/Bsp_Uart;../User/Drive/Bsp_MCU_Flash;../User/APP/core;../User/Drive/Bsp_LCD;../User/App/Lcd;../User/App/Uart_process;../User/Drive/Bsp_W25QXX;../User/Drive/Bsp_Esp8266;../User/App/network;../User/App/Config;../User/App/IAP</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>

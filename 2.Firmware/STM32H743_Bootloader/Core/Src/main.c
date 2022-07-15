@@ -133,14 +133,14 @@ int main(void)
 //    HAL_GPIO_WritePin(LED1_GPIO_Port , LED1_Pin , GPIO_PIN_RESET);
 //  }
   
-  User_App_MCU_Flash_Erase(70624);
+//  User_App_MCU_Flash_Erase(70624);
 
 
   if(User_Network_Connect_Tcp(System_Config.Info.IP , System_Config.Info.Port , System_Config.Info.SSLEN) == 1)
   {
     HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
   }
-  
+  `
 //  if(User_Network_Get_Info(System_Config.Info.IP ,  System_Config.Info.Info_Path , System_Config.Info.SSLEN) == 1)
 //  {
 //    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
@@ -150,17 +150,8 @@ int main(void)
   {
     HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
   }
-  User_App_MCU_Flash_CRC(70624);
-//  Bsp_UART_Write(&huart1 , "MCU Flash Erase Start!\r\n" , 25);
-//  Bsp_UART_Poll_DMA_TX(&huart1);
+//  User_App_MCU_Flash_CRC(70624);
 
-//  if(User_App_MCU_Flash_Erase(70624) == 0)
-//  {
-//    Bsp_UART_Write(&huart1 , "MCU Flash Erase is ok!\r\n" , 25);
-//    Bsp_UART_Poll_DMA_TX(&huart1);
-//  }
-
-//  User_UART_RX_Fun = User_App_MCU_Flash_Updata;
   
 	
   /* USER CODE END 2 */
@@ -280,8 +271,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if (htim->Instance == TIM13)
   {
-    HAL_TIM_Base_Stop_IT(&htim13);
-    UART_RX_Time_Out_Flag = 1;
+    User_UART_Timer();
+    HAL_GPIO_TogglePin(LED1_GPIO_Port , LED1_Pin );
   }
 	else if(htim->Instance == TIM12)
 	{

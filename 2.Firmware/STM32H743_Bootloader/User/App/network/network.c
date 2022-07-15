@@ -2,7 +2,7 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:14
- * @LastEditTime: 2022-07-14 19:54:38
+ * @LastEditTime: 2022-07-15 19:26:41
  */
 #include "network.h"
 
@@ -374,29 +374,8 @@ static void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info)
 
 
 
-#include "Fifo.h"
-#define HTTP_BUFFER_LEN   1024
-uint8_t Http_Buffer[HTTP_BUFFER_LEN];
-_fifo_t Http_RX_fifo;
-
-/* fifo上锁函数 */
-static void fifo_lock(void)
-{
-  __disable_irq();
-}
-
-/* fifo解锁函数 */
-static void fifo_unlock(void)
-{
-  __enable_irq();
-}
-
-
 uint8_t User_Network_Get_Bin(uint8_t *IP, uint8_t *Bin_Path, uint8_t SSLEN)
 {
-
-  /*注册FIFO*/
-  fifo_register(&Http_RX_fifo, &Http_Buffer[0], sizeof(Http_Buffer), fifo_lock, fifo_unlock);
 
   uint8_t tcp_buff[100] = {0};
   uint8_t tcp_buff_Len = 0;
@@ -422,8 +401,13 @@ uint8_t User_Network_Get_Bin(uint8_t *IP, uint8_t *Bin_Path, uint8_t SSLEN)
   /*设置连接ID和数据长度*/
   Bsp_ESP8266_Config(AT_Buff, AT_Len, "OK", ">", 30, 3);
 
+  /*设置接收数量*/
+  User_UART_RX_Read_Len(1);
+
   /*设置串口功能*/
   User_UART_RX_Fun = User_Network_Down_Flash;
+  User_UART_RX_Finished = User_APP_MCU_Flash_Finished;
+  Updata_Flag = 1;
   
   /*发送Get请求到服务器*/
   Bsp_ESP8266_TX(tcp_buff, tcp_buff_Len);
@@ -440,60 +424,33 @@ uint8_t User_Network_Get_Bin(uint8_t *IP, uint8_t *Bin_Path, uint8_t SSLEN)
 
 
 
-//uint8_t Data_Buffer[512] = {0};
+ 
 
 void User_Network_Down_Flash(uint8_t *Data , uint16_t Len)
 {
   static uint8_t Http_End_Flag = 0;
+  static char http_End[] = "Accept-Ranges: bytes\r\n\r\n";  
+  static uint8_t RX_Count = 0;
 
   if(Http_End_Flag == 0)
   {
-    char *p;
-    char http_End[] = "Accept-Ranges: bytes\r\n\r\n";
-  
-    p = strstr((char *)Data, http_End);
-
-    if( p != NULL)
+    if( http_End[RX_Count] == Data[0] )
     {
-      for(uint16_t i = 0 ; i < Len ; i++)
-      {
-        if(Data[i + 1] == 'A' && Data[i + 2] == 'c' && Data[i +3] == 'c' && Data[i +4] == 'e' && Data[i +5] == 'p'&& Data[i +6] == 't'&& Data[i + 7] == '-' && Data[i +8] == 'R' )
-        {
-          if(Data[i + 9] == 'a' && Data[i + 10] == 'n' && Data[i +11] == 'g' && Data[i +12] == 'e' && Data[i +13] == 's'&& Data[i +14] == ':'&& Data[i + 15] ==  ' ')
-          {
-            if(Data[i + 16] == 'b' && Data[i + 17] == 'y' && Data[i +18] == 't' && Data[i +19] == 'e' && Data[i +20] == 's'&& Data[i +21] == 0x0d && Data[i + 22] ==  0x0a)
-            {
-              uint16_t Bin_Number = Len - i - 1 - strlen(http_End);
-              uint32_t Offset_Add = i + strlen(http_End) + 1;
-              //memcpy((char *)Buffer , Data + i + strlen(http_End) + 1, bin_Number);
 
-              /*写入FIFO*/
-              fifo_write(&Http_RX_fifo , Data + Offset_Add , Bin_Number);
-              Http_End_Flag = 1;
-              break;
-            }
-          }
-        }
+      RX_Count++;
+      if(RX_Count >= 24)
+      {
+        RX_Count = 0;
+        Http_End_Flag = 1;
+        User_UART_RX_Read_Len(0);
       }
     }
   }
   else
   {
-    fifo_write(&Http_RX_fifo , Data , Len);
-  }
-  
-  uint16_t occupy_size = fifo_get_occupy_size(&Http_RX_fifo);
-
-  if(occupy_size % 32 == 0 && occupy_size != 0)
-  {
-    uint8_t temp[1024];
-    uint16_t len = fifo_read(&Http_RX_fifo , temp , 1024);
-
-    User_App_MCU_Flash_Updata(temp , len);
+    User_UART_RX_Fun = User_App_MCU_Flash_Updata;
   }
 
-  //User_UART_RX_Fun = User_App_MCU_Flash_Updata;
-  
   
 }
 

@@ -2,7 +2,7 @@
  * @Description:esp8266板级支持包 不适用FreeRTOS
  * @Autor: Pi
  * @Date: 2022-07-08 23:39:12
- * @LastEditTime: 2022-07-14 16:12:20
+ * @LastEditTime: 2022-07-15 18:21:50
  */
 #include "Bsp_ESP8266.h"
 
@@ -87,6 +87,8 @@ static uint8_t Bsp_ESP8266_Query_Loop(void)
     User_UART_RX_Loop();
   } while ((ESP8266_Time.Time_Out_Flag != 1) && (Reply_Target.Find_Flag != 1));
 
+  User_UART_Timer_Reset(); 
+
   /*超时未找到*/
   if (ESP8266_Time.Time_Out_Flag == 1)
   {
@@ -132,7 +134,8 @@ uint8_t Bsp_ESP8266_Config(uint8_t *Data, uint8_t Len, uint8_t *Reply0, uint8_t 
     User_UART_RX_Fun = Bsp_ESP8266_Config_Process;
 
     Bsp_ESP8266_TX(Data, Len);
-
+    
+    __HAL_TIM_CLEAR_FLAG(&htim12,TIM_FLAG_UPDATE);
     HAL_TIM_Base_Start_IT(&htim12);
     /*成功直接返回0*/
     if (Bsp_ESP8266_Query_Loop() == 0)
