@@ -69,7 +69,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-static uint8_t Time_Out_Flag = 0;
+
 /* USER CODE END 0 */
 
 /**
@@ -116,15 +116,15 @@ int main(void)
   MX_TIM12_Init();
   /* USER CODE BEGIN 2 */
   // app_init();
-//  QSPI_W25Qx_Init();
-//  
-//  User_Config_Init();
+  QSPI_W25Qx_Init();
   
-
-//  if(Bsp_ESP8266_Power(1) == 0)
-//  {
-//    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_RESET);
-//  }
+  User_Config_Init();
+  
+ 
+  if(Bsp_ESP8266_Power(1) == 0)
+  {
+    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_RESET);
+  }
 //  
 //  Bsp_ESP8266_RST();
   
@@ -152,14 +152,15 @@ int main(void)
 //  }
 //  User_App_MCU_Flash_CRC(70624);
 
-  User_UART_RX_Fun = User_UART_Echo;
-  User_UART_RX_Finished = User_UART_Finished_Demo;
-//  uint32_t size;
-//  uint8_t buff[255];
-  static uint32_t count;
+//  User_UART_RX_Fun = User_UART_Echo;
+//  User_UART_RX_Finished = User_UART_Finished_Demo;
 
-uint8_t Uart_Buffer[512]; //串口接收缓存
-  //User_UART_RX_Finished= User_UART_Finished_Demo;
+   if (Bsp_ESP8266_Config("AT\r\n", 5, "OK", NULL, 30, 3) != 0) //测试是否正常
+  {
+    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
+  }
+//User_UART_RX_Size_Max(1);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -168,57 +169,9 @@ uint8_t Uart_Buffer[512]; //串口接收缓存
   {
 //    HAL_GPIO_TogglePin(LED2_GPIO_Port , LED2_Pin);
 //    HAL_Delay(800);
-     User_UART_RX_FSM();
-    
+//     User_UART_RX_Loop();
+//     User_UART_TX_Loop();
 
-
-//        uint16_t RX_Reality_Size = Bsp_UART_Get_RX_Buff_Occupy(&huart1);
-//        
-//        if(RX_Reality_Size >0)
-//        {
-//          uint16_t size = Bsp_UART_Read(&huart1, Uart_Buffer, 512);
-//          Bsp_UART_Write(&huart1, Uart_Buffer, size);
-////          Bsp_UART_Poll_DMA_TX(&huart1);
-//        }
-//     
-//        uint16_t Buff_Occupy = Bsp_UART_Get_TX_Buff_Occupy(&huart1);
-
-//        if (Buff_Occupy < 256 && Buff_Occupy > 0)
-//        {
-//          //串口超时定时器开启
-//          if (Time_Out_Flag == 0)
-//          {
-//            Time_Out_Flag = 1;
-//            __HAL_TIM_CLEAR_FLAG(&htim12, TIM_FLAG_UPDATE);
-//            HAL_TIM_Base_Start_IT(&htim12);
-//          }
-//          //定时器超时
-//          if(Time_Out_Flag == 1 )
-//          {
-//            Time_Out_Flag = 0;
-//            Bsp_UART_Poll_DMA_TX(&huart1);
-//          }
-//        }
-//        else if (Bsp_UART_Get_TX_Buff_Occupy(&huart1) > 512)
-//        {
-//          Bsp_UART_Poll_DMA_TX(&huart1);
-
-//          if (Time_Out_Flag == 1)
-//          {
-//            Time_Out_Flag = 0;
-//          
-//            HAL_TIM_Base_Stop(&htim12);
-//            __HAL_TIM_SetCounter(&htim12, 0);
-//          }
-//        }
-
-//      count++;
-//      if (count % 5000)
-//      {
-//        size = Bsp_UART_Read(&huart1, buff, 255);
-//        Bsp_UART_Write(&huart1, buff, size);
-//        Bsp_UART_Poll_DMA_TX(&huart1);
-//      }
 
 
 //    /*写入完成 且无错误*/
@@ -332,8 +285,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   }
 	else if(htim->Instance == TIM12)
 	{
-    Time_Out_Flag = 1;
-		//Bsp_ESP8266_Timer();
+    User_UART_TX_Timer();
+		Bsp_ESP8266_Timer();
 	}
 	
 }

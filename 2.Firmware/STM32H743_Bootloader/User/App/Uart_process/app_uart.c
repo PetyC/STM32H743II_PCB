@@ -2,113 +2,72 @@
  * @Description: 串口数据处理
  * @Autor: Pi
  * @Date: 2022-07-04 19:10:36
- * @LastEditTime: 2022-07-18 20:57:55
+ * @LastEditTime: 2022-07-19 02:27:09
  */
 #include "App_Uart.h"
 
 /*相关句柄*/
 extern TIM_HandleTypeDef htim13;
+extern TIM_HandleTypeDef htim12;
 
 /*内部使用变量*/
 #define UART_BUFFER_LEN 512 //串口接收缓存长度
 #define UART_BUFFER_HALF (uint16_t)(UART_BUFFER_LEN / 2)
 uint8_t Uart_Buffer[UART_BUFFER_LEN]; //串口接收缓存
 
- 
-static uint8_t Receive_Flag = 0; //接收到数据标志
+static uint16_t RX_Size_Max = UART_BUFFER_LEN; //单次读取长度
 
-static uint16_t Timeout_Max = 10; //串口接收超时最大时间   5ms * Timeout_Max = Timeout
+static uint16_t Timeout_Max = 1; //串口接收超时最大时间   5ms * Timeout_Max = Timeout
 static uint8_t Timeout_Flag = 0; //串口接收超时标志
 
-static uint16_t RX_Size_Min = 0; //串口接收数据最小长度
-static uint16_t RX_Size_Half = 0;
-static uint16_t RX_Size_Max = UART_BUFFER_LEN; //串口接收数据最大长度
-
-/*串口接收状态*/
-enum User_UART_RX_State
-{
-  Full,      //收到数据满一帧
-  Wait_Full, //收到部分数据，等待后续数据
-  None,      //没有数据
-} RX_State = None;
+static uint8_t Full_Flag = 0;      //接收数据满一帧长度标志
+static uint8_t Full_Half_Flag = 0; //接收数据满一半长度标志
 
 /*外部使用变量*/
 void (*User_UART_RX_Fun)(uint8_t *data, uint16_t len);
 void (*User_UART_RX_Finished)(uint8_t *data, uint16_t len);
 
 /*内部使用函数*/
+static uint8_t User_UART_Query_Timeout(void);
+static void User_UART_Timer_Enable(uint8_t Enable);
 
 /**
  * @brief 串口接收 数据处理状态机 循环调用
  * @return {*}
  */
-void User_UART_RX_FSM(void)
+void User_UART_RX_Loop(void)
 {
   uint16_t RX_Reality_Size = Bsp_UART_Get_RX_Buff_Occupy(&huart1);
 
-  if (RX_Reality_Size > 0 && RX_Reality_Size < 256)
+  if (RX_Reality_Size > 0 && RX_Reality_Size < UART_BUFFER_HALF)
   {
-    RX_State = Wait_Full;
-    Receive_Flag = 1;
-    __HAL_TIM_CLEAR_FLAG(&htim13, TIM_FLAG_UPDATE);   //重置状态
-    __HAL_TIM_SetCounter(&htim13, 0); 
-    User_UART_Timer_Enable(1);                    //开启定时器
-  }
-  else if (RX_Reality_Size >= 256)
-  {
-    RX_State = Full;
-    Receive_Flag = 1;
-    User_UART_Timer_Enable(0);                    //关闭定时器
-  }
-  else
-  {
-    RX_State = None;
-
-    if(Receive_Flag == 1)
+    if (Full_Flag == 0)
     {
-      User_UART_Timer_Enable(1);                        //开启定时器
+      Full_Half_Flag = 0;
+      Full_Flag = 1;
+      User_UART_Timer_Enable(1); //开启定时器
     }
   }
-
-
-
-  switch (RX_State)
+  else if (RX_Reality_Size >= UART_BUFFER_HALF)
   {
-  case Wait_Full:
- 
-    if (User_UART_Query_Timeout() == 1) //查询若是超时
+    if (Full_Half_Flag == 0)
     {
-      Receive_Flag = 0;
-      uint16_t size = Bsp_UART_Read(&huart1, Uart_Buffer, 512);
-      User_UART_RX_Finished(Uart_Buffer, size); //则调用完成函数
+      Full_Flag = 0;
+      Full_Half_Flag = 1;
+      User_UART_Timer_Enable(1); //开启定时器
     }
-    
-  
-    break;
 
-  case Full:
+    uint16_t size = Bsp_UART_Read(&huart1, Uart_Buffer, RX_Size_Max);
+    User_UART_RX_Fun(Uart_Buffer, size); //调用数据处理函数
+  }
 
-    Receive_Flag = 0;
-    uint16_t size = Bsp_UART_Read(&huart1, Uart_Buffer, 512);
-    User_UART_RX_Fun(Uart_Buffer, size);    //则调用数据处理函数
-
-    break;
-
-  case None:
-
-    if (User_UART_Query_Timeout() == 1) //查询若是超时
-    {
-      uint16_t size = Bsp_UART_Read(&huart1, Uart_Buffer, 512);
-      
-      User_UART_RX_Finished(Uart_Buffer, size); //则调用完成函数
-    }
-    
-
- 
-    break;
-
-  default:
-    break;
+  /*若收到数据 则查询是否超时*/
+  if (User_UART_Query_Timeout() == 1)
+  {
+    Full_Flag = 0;
+    Full_Half_Flag = 0;
+    uint16_t size = Bsp_UART_Read(&huart1, Uart_Buffer, RX_Size_Max);
+    User_UART_RX_Finished(Uart_Buffer, size); //则调用完成函数
   }
 }
 
@@ -119,7 +78,6 @@ void User_UART_RX_FSM(void)
 void User_UART_Timer(void)
 {
   static uint16_t Count = 0;
-
   Count++;
 
   if (Count >= Timeout_Max)
@@ -139,13 +97,6 @@ void User_UART_Timer(void)
  */
 void User_UART_Timer_Enable(uint8_t Enable)
 {
-  static uint8_t Enable_Last = 0;
-
-  if (Enable == Enable_Last)
-  {
-    return;
-  }
-
   if (Enable)
   {
     __HAL_TIM_CLEAR_FLAG(&htim13, TIM_FLAG_UPDATE);
@@ -156,8 +107,6 @@ void User_UART_Timer_Enable(uint8_t Enable)
     HAL_TIM_Base_Stop_IT(&htim13);
     __HAL_TIM_SetCounter(&htim13, 0);
   }
-
-  Enable_Last = Enable;
 }
 
 /**
@@ -182,32 +131,15 @@ uint8_t User_UART_Query_Timeout(void)
  * @param {uint16_t} Size
  * @return {*}
  */
-// void User_UART_RX_Size_Max(uint16_t Size)
-//{
-//   if(Size < UART_BUFFER_LEN)
-//   {
-//     RX_Size_Max = Size;
-//   }
-//   else
-//   {
-//     RX_Size_Max = UART_BUFFER_LEN;
-//   }
-// }
-
-/**
- * @brief 设置从串口读取数据长度最小值
- * @param {uint16_t} Size
- * @return {*}
- */
-void User_UART_RX_Size_Min(uint16_t Size)
+void User_UART_RX_Size_Max(uint16_t Size)
 {
   if (Size < UART_BUFFER_LEN)
   {
-    RX_Size_Min = Size;
+    RX_Size_Max = Size;
   }
   else
   {
-    RX_Size_Min = UART_BUFFER_LEN;
+    RX_Size_Max = UART_BUFFER_LEN;
   }
 }
 
@@ -221,6 +153,8 @@ void User_Uart_RX_Timeout_Set(uint16_t Timeout)
   Timeout_Max = Timeout;
 }
 
+/************************测试用函数********************/
+
 /**
  * @brief 串口回显 测试用
  * @param {uint8_t} *data
@@ -230,7 +164,7 @@ void User_Uart_RX_Timeout_Set(uint16_t Timeout)
 void User_UART_Echo(uint8_t *data, uint16_t len)
 {
   Bsp_UART_Write(&huart1, data, len);
-  //Bsp_UART_Poll_DMA_TX(&huart1);
+  // Bsp_UART_Poll_DMA_TX(&huart1);
 }
 
 /**
@@ -239,6 +173,56 @@ void User_UART_Echo(uint8_t *data, uint16_t len)
  */
 void User_UART_Finished_Demo(uint8_t *data, uint16_t len)
 {
-  //Bsp_UART_Write(&huart1, "Uart RX is finished!\r\n", 21);
-  Bsp_UART_Poll_DMA_TX(&huart1);
+  // Bsp_UART_Write(&huart1, "Uart RX is finished!\r\n", 21);
+  // Bsp_UART_Poll_DMA_TX(&huart1);
+  Bsp_UART_Write(&huart1, data, len);
+}
+
+static uint8_t Time_Out_Flag = 0;
+
+/**
+ * @brief 将FIFO中的数据循环发送出去
+ * @return {*}
+ */
+void User_UART_TX_Loop(void)
+{
+  uint16_t Buff_Occupy = Bsp_UART_Get_TX_Buff_Occupy(&huart1);
+
+  if (Buff_Occupy > 0 && Buff_Occupy < 512)
+  {
+    //串口超时定时器开启
+    if (Time_Out_Flag == 0)
+    {
+      Time_Out_Flag = 1;
+      __HAL_TIM_CLEAR_FLAG(&htim12, TIM_FLAG_UPDATE);
+      HAL_TIM_Base_Start_IT(&htim12);
+    }
+    //定时器超时
+    if (Time_Out_Flag == 1)
+    {
+      Time_Out_Flag = 0;
+      Bsp_UART_Poll_DMA_TX(&huart1);
+    }
+  }
+  else if (Buff_Occupy > 256)
+  {
+    Bsp_UART_Poll_DMA_TX(&huart1);
+
+    if (Time_Out_Flag == 1)
+    {
+      Time_Out_Flag = 0;
+
+      HAL_TIM_Base_Stop(&htim12);
+      __HAL_TIM_SetCounter(&htim12, 0);
+    }
+  }
+}
+
+/**
+ * @brief 串口发送中断服务函数
+ * @return {*}
+ */
+void User_UART_TX_Timer(void)
+{
+  Time_Out_Flag = 1;
 }

@@ -2,7 +2,7 @@
  * @Description:esp8266板级支持包 不适用FreeRTOS
  * @Autor: Pi
  * @Date: 2022-07-08 23:39:12
- * @LastEditTime: 2022-07-15 18:21:50
+ * @LastEditTime: 2022-07-19 02:47:34
  */
 #include "Bsp_ESP8266.h"
 
@@ -74,6 +74,21 @@ static void Bsp_ESP8266_Config_Process(uint8_t *Data, uint16_t Len)
 
     return;
   }
+ /* 
+  uint8_t data[] = "ready";
+  static uint8_t Target_Count = 0;
+
+  if(Data[0] == data[Target_Count])
+  {
+    Target_Count++;
+  }
+
+  if(Target_Count > 4)
+  {
+    /*目标找到*/
+    Reply_Target.Find_Flag = 1;
+  }
+  */
 }
 
 /**
@@ -86,8 +101,6 @@ static uint8_t Bsp_ESP8266_Query_Loop(void)
   {
     User_UART_RX_Loop();
   } while ((ESP8266_Time.Time_Out_Flag != 1) && (Reply_Target.Find_Flag != 1));
-
-  User_UART_Timer_Reset(); 
 
   /*超时未找到*/
   if (ESP8266_Time.Time_Out_Flag == 1)
@@ -132,6 +145,7 @@ uint8_t Bsp_ESP8266_Config(uint8_t *Data, uint8_t Len, uint8_t *Reply0, uint8_t 
   {
     /*设置串口功能*/
     User_UART_RX_Fun = Bsp_ESP8266_Config_Process;
+    User_UART_RX_Finished = Bsp_ESP8266_Config_Process;
 
     Bsp_ESP8266_TX(Data, Len);
     
@@ -186,20 +200,25 @@ uint8_t Bsp_ESP8266_Power(uint8_t Enabel)
 
   uint8_t Ret = 1;
 
-  /*设置波特兰74880*/
-  Bsp_UART_Set_BRR(&huart1, 1);
+//  /*设置波特率74880*/
+//  Bsp_UART_Set_BRR(&huart1, 1);
 
-  /*使能ESP8266 芯片*/
-  HAL_GPIO_WritePin(ESP_POW_GPIO_Port, ESP_POW_Pin, GPIO_PIN_SET);
+//  /*使能ESP8266 芯片*/
+//  HAL_GPIO_WritePin(ESP_POW_GPIO_Port, ESP_POW_Pin, GPIO_PIN_SET);
 
-  /*等待收到消息*/
-  Ret = Bsp_ESP8266_Config(NULL, NULL, "phy ver: 1145_0, pp ver: 10.2", NULL, 30, 1);
+//  /*等待收到消息*/
+//  Ret = Bsp_ESP8266_Config(NULL, NULL, "phy ver: 1145_0, pp ver: 10.2", NULL, 30, 1);
 
-  /*设置波特兰115200*/
-  Bsp_UART_Set_BRR(&huart1, 0);
+//  /*设置波特兰115200*/
+//  Bsp_UART_Set_BRR(&huart1, 0);
 
-  Ret = Bsp_ESP8266_Config(NULL, NULL, "ready", NULL, 30, 1);
-
+//  Ret = Bsp_ESP8266_Config(NULL, NULL, "ready", NULL, 30, 1);
+  
+    
+  
+  
+  
+  
   return Ret;
 }
 
