@@ -69,7 +69,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+static uint8_t Time_Out_Flag = 0;
 /* USER CODE END 0 */
 
 /**
@@ -81,7 +81,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
 
   // SCB->VTOR = FLASH_BASE | 0x4000;//设置中断偏移
-  User_App_Jump_Init();
+//  User_App_Jump_Init();
 
   /* USER CODE END 1 */
 
@@ -116,17 +116,17 @@ int main(void)
   MX_TIM12_Init();
   /* USER CODE BEGIN 2 */
   // app_init();
-  QSPI_W25Qx_Init();
-  
-  User_Config_Init();
+//  QSPI_W25Qx_Init();
+//  
+//  User_Config_Init();
   
 
-  if(Bsp_ESP8266_Power(1) == 0)
-  {
-    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_RESET);
-  }
-  
-  Bsp_ESP8266_RST();
+//  if(Bsp_ESP8266_Power(1) == 0)
+//  {
+//    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_RESET);
+//  }
+//  
+//  Bsp_ESP8266_RST();
   
 //  if(User_Network_Connect_AP((uint8_t *)"Moujiti" , (uint8_t *)"moujiti7222") == 0)
 //  {
@@ -136,35 +136,91 @@ int main(void)
 //  User_App_MCU_Flash_Erase(70624);
 
 
-  if(User_Network_Connect_Tcp(System_Config.Info.IP , System_Config.Info.Port , System_Config.Info.SSLEN) == 1)
-  {
-    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
-  }
-  `
+//  if(User_Network_Connect_Tcp(System_Config.Info.IP , System_Config.Info.Port , System_Config.Info.SSLEN) == 1)
+//  {
+//    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
+//  }
+  
 //  if(User_Network_Get_Info(System_Config.Info.IP ,  System_Config.Info.Info_Path , System_Config.Info.SSLEN) == 1)
 //  {
 //    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
 //  }
   
-  if(User_Network_Get_Bin(System_Config.Info.IP ,(uint8_t *)"/ota/hardware/H7-Core/app.bin" , System_Config.Info.SSLEN) == 1)
-  {
-    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
-  }
+//  if(User_Network_Get_Bin(System_Config.Info.IP ,(uint8_t *)"/ota/hardware/H7-Core/app.bin" , System_Config.Info.SSLEN) == 1)
+//  {
+//    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
+//  }
 //  User_App_MCU_Flash_CRC(70624);
 
-  
-	
+  User_UART_RX_Fun = User_UART_Echo;
+  User_UART_RX_Finished = User_UART_Finished_Demo;
+//  uint32_t size;
+//  uint8_t buff[255];
+  static uint32_t count;
+
+uint8_t Uart_Buffer[512]; //串口接收缓存
+  //User_UART_RX_Finished= User_UART_Finished_Demo;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    HAL_GPIO_TogglePin(LED2_GPIO_Port , LED2_Pin);
-    HAL_Delay(800);
-     
-  // User_UART_RX_Loop();
+//    HAL_GPIO_TogglePin(LED2_GPIO_Port , LED2_Pin);
+//    HAL_Delay(800);
+     User_UART_RX_FSM();
     
+
+
+//        uint16_t RX_Reality_Size = Bsp_UART_Get_RX_Buff_Occupy(&huart1);
+//        
+//        if(RX_Reality_Size >0)
+//        {
+//          uint16_t size = Bsp_UART_Read(&huart1, Uart_Buffer, 512);
+//          Bsp_UART_Write(&huart1, Uart_Buffer, size);
+////          Bsp_UART_Poll_DMA_TX(&huart1);
+//        }
+//     
+//        uint16_t Buff_Occupy = Bsp_UART_Get_TX_Buff_Occupy(&huart1);
+
+//        if (Buff_Occupy < 256 && Buff_Occupy > 0)
+//        {
+//          //串口超时定时器开启
+//          if (Time_Out_Flag == 0)
+//          {
+//            Time_Out_Flag = 1;
+//            __HAL_TIM_CLEAR_FLAG(&htim12, TIM_FLAG_UPDATE);
+//            HAL_TIM_Base_Start_IT(&htim12);
+//          }
+//          //定时器超时
+//          if(Time_Out_Flag == 1 )
+//          {
+//            Time_Out_Flag = 0;
+//            Bsp_UART_Poll_DMA_TX(&huart1);
+//          }
+//        }
+//        else if (Bsp_UART_Get_TX_Buff_Occupy(&huart1) > 512)
+//        {
+//          Bsp_UART_Poll_DMA_TX(&huart1);
+
+//          if (Time_Out_Flag == 1)
+//          {
+//            Time_Out_Flag = 0;
+//          
+//            HAL_TIM_Base_Stop(&htim12);
+//            __HAL_TIM_SetCounter(&htim12, 0);
+//          }
+//        }
+
+//      count++;
+//      if (count % 5000)
+//      {
+//        size = Bsp_UART_Read(&huart1, buff, 255);
+//        Bsp_UART_Write(&huart1, buff, size);
+//        Bsp_UART_Poll_DMA_TX(&huart1);
+//      }
+
+
 //    /*写入完成 且无错误*/
 //    if(Flash_Finished == 1 && Flash_Error == 0)
 //    {
@@ -276,7 +332,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   }
 	else if(htim->Instance == TIM12)
 	{
-		Bsp_ESP8266_Timer();
+    Time_Out_Flag = 1;
+		//Bsp_ESP8266_Timer();
 	}
 	
 }

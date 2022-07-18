@@ -312,7 +312,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>3</Optim>
+            <Optim>1</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -539,11 +539,6 @@
           <GroupName>User/App/network</GroupName>
           <Files>
             <File>
-              <FileName>network.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\App\network\network.c</FilePath>
-            </File>
-            <File>
               <FileName>cString.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\App\network\cString.c</FilePath>
@@ -592,11 +587,6 @@
               <FileName>Bsp_MCU_Flash.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Drive\Bsp_MCU_Flash\Bsp_MCU_Flash.c</FilePath>
-            </File>
-            <File>
-              <FileName>Bsp_ESP8266.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Drive\Bsp_Esp8266\Bsp_ESP8266.c</FilePath>
             </File>
           </Files>
         </Group>
