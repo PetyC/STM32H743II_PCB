@@ -2,7 +2,7 @@
  * @Description: esp8266板级支持包 不适用FreeRTOS
  * @Autor: Pi
  * @Date: 2022-07-08 23:39:19
- * @LastEditTime: 2022-07-14 16:12:12
+ * @LastEditTime: 2022-07-19 21:39:15
  */
 #ifndef BSP_ESP8266_H
 #define BSP_ESP8266_H
@@ -29,12 +29,19 @@ void Bsp_ESP8266_Reset(void);
 /*重启ESP8266*/
 void Bsp_ESP8266_RST(void);
 
-/*设置默认连接WIFI*/
+/*发送数据到ESP8266*/
+void Bsp_ESP8266_TX(uint8_t *Data, uint8_t Len);
+
+/*ESP8266 WIFI连接*/
 uint8_t Bsp_ESP8266_Connect_AP(uint8_t *SSID, uint8_t *PAW);
 
 /*连接TCP服务器*/
-uint8_t Bsp_ESP8266_Connect_Tcp(uint8_t *IP, uint8_t Port, uint8_t Https_Enable);
+uint8_t Bsp_ESP8266_Connect_TCP(uint8_t *IP, uint8_t Port, uint8_t Https_Enable); 
 
-/*发送数据到ESP8266*/
-void Bsp_ESP8266_TX(uint8_t *Data, uint8_t Len);
+/*发送GET请求*/
+uint8_t Bsp_ESP8266_Send_Get_Request(uint8_t *IP, uint8_t *Path, uint8_t SSLEN);
+
+
+
+
 #endif

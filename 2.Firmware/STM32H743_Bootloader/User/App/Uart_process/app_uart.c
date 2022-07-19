@@ -2,7 +2,7 @@
  * @Description: 串口数据处理
  * @Autor: Pi
  * @Date: 2022-07-04 19:10:36
- * @LastEditTime: 2022-07-19 02:27:09
+ * @LastEditTime: 2022-07-19 21:50:32
  */
 #include "App_Uart.h"
 
@@ -70,6 +70,8 @@ void User_UART_RX_Loop(void)
     User_UART_RX_Finished(Uart_Buffer, size); //则调用完成函数
   }
 }
+
+
 
 /**
  * @brief 定时中断服务函数
@@ -144,7 +146,7 @@ void User_UART_RX_Size_Max(uint16_t Size)
 }
 
 /**
- * @brief 设置串口超时最大时间 默认5ms
+ * @brief 设置串口超时最大时间 默认5ms 5ms*Timeout=Timeout_Max
  * @param {uint16_t} Timeout  最大超时时间    5ms * Timeout = Timeout_Max
  * @return {*}
  */

@@ -10,7 +10,7 @@
       <TargetName>STM32H743_Bootloader</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060960::V5.06 update 7 (build 960)::.\ARMCC</pCCUsed>
+      <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -185,7 +185,6 @@
             <uocXRam>0</uocXRam>
             <RvdsVP>3</RvdsVP>
             <RvdsMve>0</RvdsMve>
-            <RvdsCdeCp>0</RvdsCdeCp>
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -352,7 +351,7 @@
             <NoWarn>0</NoWarn>
             <uSurpInc>0</uSurpInc>
             <useXO>0</useXO>
-            <ClangAsOpt>4</ClangAsOpt>
+            <uClangAs>0</uClangAs>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -530,9 +529,9 @@
           <GroupName>User/App/Config</GroupName>
           <Files>
             <File>
-              <FileName>config.c</FileName>
+              <FileName>User_config.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\App\Config\config.c</FilePath>
+              <FilePath>..\User\App\Config\User_config.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -543,6 +542,11 @@
               <FileName>cString.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\App\network\cString.c</FilePath>
+            </File>
+            <File>
+              <FileName>network.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\App\network\network.c</FilePath>
             </File>
           </Files>
         </Group>

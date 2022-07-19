@@ -9,7 +9,7 @@
 
 #include "main.h"
 
-#include "config.h"
+#include "User_config.h"
 #include "Bsp_Uart.h"
 #include "Bsp_MCU_Flash.h"
 #include "Bsp_w25qxx.h"

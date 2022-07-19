@@ -2,7 +2,7 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-04-14 16:11:43
- * @LastEditTime: 2022-07-15 19:22:19
+ * @LastEditTime: 2022-07-19 20:18:43
  */
 #include "Bsp_Uart.h"
 
@@ -401,6 +401,58 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
   Bsp_UART_TX_Cplt_Callback(huart);
 }
+
+
+/**
+ * @brief 串口错误回调中断
+ * @param {UART_HandleTypeDef} *huart
+ * @return {*}
+ */
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+  if(huart == &huart1)
+  {
+    /*
+    switch(huart->ErrorCode)
+    {
+    case HAL_UART_ERROR_NONE:
+
+      break;
+      
+    case HAL_UART_ERROR_PE:
+
+      break;
+
+    case HAL_UART_ERROR_NE:
+
+      break;
+
+    case HAL_UART_ERROR_FE:
+
+      break;
+
+    case HAL_UART_ERROR_ORE:
+
+      break;
+
+    case HAL_UART_ERROR_DMA:
+
+      break;
+
+    case HAL_UART_ERROR_RTO:
+
+      break;
+    }
+    */
+    //清标志
+    __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_PE);
+    __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_FE);
+    __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_NE);
+    __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_ORE);
+
+  }
+}
+
 
 /**
  * @brief 串口波特率设置

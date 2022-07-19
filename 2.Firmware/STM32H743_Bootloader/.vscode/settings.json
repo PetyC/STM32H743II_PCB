@@ -37,7 +37,9 @@
       "string.h": "c",
       "sstream": "c",
       "config.h": "c",
-      "fifo.h": "c"
+      "fifo.h": "c",
+      "cstring.h": "c",
+      "user_config.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

@@ -2,137 +2,37 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:14
- * @LastEditTime: 2022-07-15 19:26:41
+ * @LastEditTime: 2022-07-19 21:49:17
  */
 #include "network.h"
 
 /*HAL库句柄*/
 extern TIM_HandleTypeDef htim12;
 
-/*目标回复结构体*/
-typedef struct
-{
-  uint8_t Find_Flag;
-  uint8_t *Target0;
-  uint8_t *Target1;
-  uint16_t Time_Out_Max; // 100ms * 30 = 3S
-  uint16_t Time_Out_Count;
-  uint8_t Time_Out_Flag;
-} Reply_Target_Str;
-
-static Reply_Target_Str Reply_Target;
-
-/*数据缓存*/
-#define NETWORK_BUFF_LEN 1024
-uint8_t NetWork_Buff[NETWORK_BUFF_LEN];
 
 /*内部使用函数*/
-static void User_Network_Process(uint8_t *Data, uint16_t Len);
-static uint8_t User_Network_Query_Loop(void);
 static void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info);
 
-/**
- * @brief 判断回复消息是否正确或超时
- * @param {uint8_t} *Data 串口数据
- * @param {uint8_t} Len 数据长度
- * @return {*}
- */
-static void User_Network_Process(uint8_t *Data, uint16_t Len)
+struct 
 {
-  /*等待到目标语句*/
-  if (strstr((char *)Data, (char *)Reply_Target.Target0) || strstr((char *)Data, (char *)Reply_Target.Target1))
-  {
-    /*关闭计时并重置超时计数*/
-    Reply_Target.Time_Out_Count = 0;
-    Reply_Target.Time_Out_Flag = 0;
-    HAL_TIM_Base_Stop_IT(&htim12);
+  uint16_t Max; // 100ms * 30 = 3S
+  uint16_t Count;
+  uint8_t  Flag;
+}Network_Timer;
 
-    /*目标找到*/
-    Reply_Target.Find_Flag = 1;
-
-    /*复制到公共缓存中*/
-    memcpy(NetWork_Buff, Data, Len);
-
-    /*释放串口*/
-    User_UART_RX_Fun = NULL;
-
-    return;
-  }
-}
-
-/**
- * @brief 堵塞查询消息是否收到 或超时
- * @return {uint8_t} 0:成功   1:失败
- */
-static uint8_t User_Network_Query_Loop(void)
+/*目标回复结构体*/
+/*
+struct
 {
-  do
-  {
-    User_UART_RX_Loop();
-  } while ((Reply_Target.Time_Out_Flag != 1) && (Reply_Target.Find_Flag != 1));
+  uint8_t Flag;
+  uint8_t *Target0;
+  uint8_t *Target1;
+} Reply_Target;
+*/
+//#define NETWORK_BUFF_LEN 1024
+//uint8_t NetWork_Buff[NETWORK_BUFF_LEN];
 
-  /*超时未找到*/
-  if (Reply_Target.Time_Out_Flag == 1)
-  {
-    Reply_Target.Time_Out_Flag = 0;
-    return 1;
-  }
 
-  /*回复正确*/
-  if (Reply_Target.Find_Flag == 1)
-  {
-    Reply_Target.Find_Flag = 0;
-    return 0;
-  }
-
-  /*清空公共缓存区*/
-  memset(NetWork_Buff, 0, NETWORK_BUFF_LEN);
-
-  return 1;
-}
-
-/**
- * @brief 通过网络模块发送数据
- * @param {uint8_t} *Data       发送的数据
- * @param {uint8_t} Len         发送的数据的长度
- * @param {uint8_t} *Reply0     预期返回的数据
- * @param {uint8_t} *Reply1     预期返回的数据
- * @param {uint16_t} Time_Out   等待最大值 和定时器时基有关 当前 100ms*Time_Out = 超时时间(ms)
- * @param {uint8_t} Retry       最大重试次数
- * @return {uint8_t} 0:成功   1:失败
- */
-uint8_t User_Network_TX(uint8_t *Data, uint8_t Len, uint8_t *Reply0, uint8_t *Reply1, uint16_t Time_Out, uint8_t Retry)
-{
-  /*清空公共缓存区*/
-  memset(NetWork_Buff, 0, NETWORK_BUFF_LEN);
-
-  /*设置等待回复目标语句*/
-  Reply_Target.Target0 = Reply0;
-  Reply_Target.Target1 = Reply1;
-
-  /*设置超时时间*/
-  Reply_Target.Time_Out_Max = Time_Out;
-
-  /*设置超时标志*/
-  Reply_Target.Time_Out_Flag = 0;
-
-  for (uint8_t i = 0; i < Retry; i++)
-  {
-    /*设置串口功能*/
-    User_UART_RX_Fun = User_Network_Process;
-
-    Bsp_ESP8266_TX(Data, Len);
-
-    HAL_TIM_Base_Start_IT(&htim12);
-    /*成功直接返回0*/
-    if (User_Network_Query_Loop() == 0)
-    {
-      return 0;
-    }
-  }
-
-  return 1;
-}
 
 /**
  * @brief 设置默认连接路由器
@@ -142,24 +42,16 @@ uint8_t User_Network_TX(uint8_t *Data, uint8_t Len, uint8_t *Reply0, uint8_t *Re
  */
 uint8_t User_Network_Connect_AP(uint8_t *SSID, uint8_t *PAW)
 {
-  /*复位模组*/
-  Bsp_ESP8266_Power(0);
-  HAL_Delay(300);
-  Bsp_ESP8266_Power(1);
+  if(Bsp_ESP8266_Connect_AP(SSID , PAW) == 0)
+  {
+    return 0;
+  }
+  else
+  {
+    return 1;
+  }
 
-  Bsp_ESP8266_Reset();                                              //恢复出厂设置
-  Bsp_ESP8266_Config("ATE0\r\n", 7, "OK", NULL, 30, 3);             //关闭回显
-  Bsp_ESP8266_Config("AT+CWMODE_DEF=1\r\n", 18, "OK", NULL, 30, 3); // WIFI模式1 单station模式
-  Bsp_ESP8266_Config("AT+CWAUTOCONN=1\r\n", 18, "OK", NULL, 30, 3); //自动连接路由器
-
-  uint8_t Data[100] = {0};
-  uint8_t Len = sprintf((char *)Data, "AT+CWJAP_DEF=\"%s\",\"%s\"\r\n", SSID, PAW);
-  Bsp_ESP8266_Config(Data, Len, "OK", NULL, 30, 3); //设置连接的路由器
-
-  uint8_t Ret = Bsp_ESP8266_Config("AT+CIPSTATUS\r\n", 15, "STATUS:2", NULL, 50, 5); //等待连接成功
-
-  return Ret;
-}
+} 
 
 /**
  * @brief 连接TCP服务器
@@ -170,38 +62,14 @@ uint8_t User_Network_Connect_AP(uint8_t *SSID, uint8_t *PAW)
  */
 uint8_t User_Network_Connect_Tcp(uint8_t *IP, uint8_t Port, uint8_t Https_Enable)
 {
-  if (Bsp_ESP8266_Config("AT\r\n", 5, "OK", NULL, 30, 3) != 0) //测试是否正常
+  if(Bsp_ESP8266_Connect_TCP(IP , Port , Https_Enable) == 0)
   {
-    return 1;
-  }
-
-  if (Bsp_ESP8266_Config("AT+CIPSTATUS\r\n", 15, "STATUS:2", NULL, 50, 5) != 0) //测试是否连接上wifi
-  {
-    return 1;
-  }
-
-  uint8_t Data[100] = {0};
-  uint8_t Len = 0;
-
-  Bsp_ESP8266_Config("ATE0\r\n", 7, "OK", NULL, 30, 3);          //关闭回显
-  Bsp_ESP8266_Config("AT+CIPMODE=0\r\n", 15, "OK", NULL, 30, 3); //非透传模式
-
-  if (Https_Enable == 1)
-  {
-    Bsp_ESP8266_Config("AT+CIPSSLSIZE=4096\r\n", 21, "OK", NULL, 30, 3); //设置SSL缓存
-    Len = sprintf((char *)Data, "AT+CIPSTART=\"SSL\",\"%s\",%d\r\n", IP, Port);
-    Data[Len] = 0;
+    return 0;
   }
   else
   {
-    Bsp_ESP8266_Config("AT+CIPMUX=1\r\n", 14, "OK", NULL, 30, 3); //设置多连接
-    Len = sprintf((char *)Data, "AT+CIPSTART=%d,\"TCP\",\"%s\",%d\r\n", 0, IP, Port);
-    Data[Len] = 0;
+    return 1;
   }
-
-  uint8_t flag = Bsp_ESP8266_Config(Data, Len, "CONNECT", NULL, 30, 3); //建立TCP连接
-
-  return flag;
 }
 
 /**
@@ -209,45 +77,26 @@ uint8_t User_Network_Connect_Tcp(uint8_t *IP, uint8_t Port, uint8_t Https_Enable
  * @param {uint8_t} *IP
  * @param {uint8_t} *Bin_Path
  * @param {uint8_t} SSLEN
+ * @param {uint8_t} Info
  * @return {*}
  */
-uint8_t User_Network_Get_Info(uint8_t *IP, uint8_t *Info_Path, uint8_t SSLEN)
+uint8_t User_Network_Get_Info(uint8_t *IP, uint8_t *Info_Path, uint8_t SSLEN , Info_Str *Info)
 {
-  uint8_t tcp_buff[100] = {0};
-  uint8_t tcp_buff_Len = 0;
-
-  uint8_t AT_Buff[200];
-  uint8_t AT_Len = 0;
-
-  uint8_t tcp_http_index = 0;
-
-  //组合 get 指令
-  tcp_buff_Len = sprintf((char *)tcp_buff, "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n", Info_Path, IP);
-
-  /*使用SSL*/
-  if (SSLEN == 1)
+  /*发送失败*/
+  if(Bsp_ESP8266_Send_Get_Request(IP , Info_Path , SSLEN) == 1)
   {
-    AT_Len = sprintf((char *)AT_Buff, "AT+CIPSEND=%d\r\n", tcp_buff_Len);
-  }
-  else
-  {
-    AT_Len = sprintf((char *)AT_Buff, "AT+CIPSEND=%d,%d\r\n", tcp_http_index, tcp_buff_Len);
+    return 1;
   }
 
-  /*设置连接ID和数据长度*/
-  Bsp_ESP8266_Config(AT_Buff, AT_Len, "OK", ">", 30, 3);
+  /*设置超时时间50毫秒*/
+  User_Uart_RX_Timeout_Set(10);
 
-  /*发送Get请求到服务器*/
-  if (User_Network_TX(tcp_buff, tcp_buff_Len, "Accept-Ranges: bytes", NULL, 30, 3) == 0)
-  {
-    /*关闭连接*/
-    Bsp_ESP8266_Config("AT+CIPCLOSE=0\r\n", 16, "0,CLOSED", NULL, 30, 3); //非透传模式
-    /*解析数据*/
-    User_Network_Info_Process(NetWork_Buff, NETWORK_BUFF_LEN);
-  }
 
   return 0;
+  
 }
+
+
 
 /**
  * @brief Inof文本数据解析
@@ -255,7 +104,7 @@ uint8_t User_Network_Get_Info(uint8_t *IP, uint8_t *Info_Path, uint8_t SSLEN)
  * @param {uint16_t} len    数据长度
  * @return {*}
  */
-Info_Str User_Network_Info_Process(uint8_t *data, uint16_t len)
+static Info_Str User_Network_Info_Process(uint8_t *data, uint16_t len)
 {
 
   Info_Str Info = {0};
@@ -377,45 +226,16 @@ static void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info)
 uint8_t User_Network_Get_Bin(uint8_t *IP, uint8_t *Bin_Path, uint8_t SSLEN)
 {
 
-  uint8_t tcp_buff[100] = {0};
-  uint8_t tcp_buff_Len = 0;
-
-  uint8_t AT_Buff[200];
-  uint8_t AT_Len = 0;
-
-  uint8_t tcp_http_index = 0;
-
-  //组合 get 指令
-  tcp_buff_Len = sprintf((char *)tcp_buff, "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n", Bin_Path, IP);
-
-  /*使用SSL*/
-  if (SSLEN == 1)
-  {
-    AT_Len = sprintf((char *)AT_Buff, "AT+CIPSEND=%d\r\n", tcp_buff_Len);
-  }
-  else
-  {
-    AT_Len = sprintf((char *)AT_Buff, "AT+CIPSEND=%d,%d\r\n", tcp_http_index, tcp_buff_Len);
-  }
-
-  /*设置连接ID和数据长度*/
-  Bsp_ESP8266_Config(AT_Buff, AT_Len, "OK", ">", 30, 3);
+  Bsp_ESP8266_Send_Get_Request(IP , Bin_Path , SSLEN);
 
   /*设置接收数量*/
-  User_UART_RX_Read_Len(1);
+  //User_UART_RX_Read_Len(1);
 
   /*设置串口功能*/
   User_UART_RX_Fun = User_Network_Down_Flash;
-  User_UART_RX_Finished = User_APP_MCU_Flash_Finished;
-  Updata_Flag = 1;
-  
-  /*发送Get请求到服务器*/
-  Bsp_ESP8266_TX(tcp_buff, tcp_buff_Len);
+ // User_UART_RX_Finished = User_APP_MCU_Flash_Finished;
 
-  while(Flash_Finished != 1)
-  {
-    User_UART_RX_Loop();
-  }
+
 
 
   return 0;
@@ -442,7 +262,7 @@ void User_Network_Down_Flash(uint8_t *Data , uint16_t Len)
       {
         RX_Count = 0;
         Http_End_Flag = 1;
-        User_UART_RX_Read_Len(0);
+        //User_UART_RX_Read_Len(0);
       }
     }
   }

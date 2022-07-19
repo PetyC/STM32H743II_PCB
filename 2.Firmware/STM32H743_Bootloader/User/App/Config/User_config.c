@@ -2,9 +2,9 @@
  * @Description: 系统配置文件
  * @Autor: Pi
  * @Date: 2022-07-14 15:41:44
- * @LastEditTime: 2022-07-14 19:09:13
+ * @LastEditTime: 2022-07-19 20:26:35
  */
-#include "config.h"
+#include "User_config.h"
 
 /*系统信息存储*/
 System_Config_Str System_Config;

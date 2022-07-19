@@ -2,7 +2,7 @@
  * @Description: 
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:17
- * @LastEditTime: 2022-07-14 19:11:49
+ * @LastEditTime: 2022-07-19 21:44:31
  */
 #ifndef NETWORK_H
 #define NETWORK_H
@@ -15,9 +15,8 @@
 #include "main.h"
 #include "app_uart.h"
 #include "Bsp_Esp8266.h"
+#include "User_config.h"
 #include "cString.h"
-#include "config.h"
-
 
 
 
@@ -28,10 +27,11 @@ uint8_t User_Network_Connect_AP(uint8_t *SSID, uint8_t *PAW);
 uint8_t User_Network_Connect_Tcp(uint8_t *IP , uint8_t Port , uint8_t Https_Enable);
 
 /*发送Get请求获取版本信息*/
-uint8_t User_Network_Get_Info(uint8_t *IP, uint8_t *Info_Path, uint8_t SSLEN);
+uint8_t User_Network_Get_Info(uint8_t *IP, uint8_t *Info_Path, uint8_t SSLEN, Info_Str *Info);
 
 /*解析Info数据*/
 Info_Str User_Network_Info_Process(uint8_t *data , uint16_t len);
+
 
 uint8_t User_Network_Get_Bin(uint8_t *IP, uint8_t *Bin_Path, uint8_t SSLEN);
 

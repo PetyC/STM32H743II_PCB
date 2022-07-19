@@ -2,10 +2,10 @@
  * @Description:系统配置文件 
  * @Autor: Pi
  * @Date: 2022-07-14 15:41:48
- * @LastEditTime: 2022-07-14 16:03:07
+ * @LastEditTime: 2022-07-19 20:26:53
  */
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef USER_CONFIG_H
+#define USER_CONFIG_H
 
 #include "main.h"
 #include "Bsp_w25qxx.h"
