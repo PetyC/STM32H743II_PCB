@@ -120,10 +120,8 @@ int main(void)
   
   User_Config_Init();
   
-  if(Bsp_ESP8266_Power(1) == 0)
-  {
-    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_RESET);
-  }
+  Bsp_ESP8266_Power(1);
+
     //Bsp_ESP8266_Reset();
 //  
 //  Bsp_ESP8266_RST();
@@ -136,15 +134,15 @@ int main(void)
 //  User_App_MCU_Flash_Erase(70624);
 
 
-  if(User_Network_Connect_Tcp(System_Config.Info.IP , System_Config.Info.Port , System_Config.Info.SSLEN) == 1)
-  {
-    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
-  }
-  Info_Str temp;
-  if(User_Network_Get_Info(System_Config.Info.IP ,  System_Config.Info.Info_Path , System_Config.Info.SSLEN , &temp) == 1)
-  {
-    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
-  }
+//  if(User_Network_Connect_Tcp(System_Config.Info.IP , System_Config.Info.Port , System_Config.Info.SSLEN) == 1)
+//  {
+//    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
+//  }
+//  Info_Str temp;
+//  if(User_Network_Get_Info(System_Config.Info.IP ,  System_Config.Info.Info_Path , System_Config.Info.SSLEN , &temp) == 1)
+//  {
+//    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
+//  }
   
 //  if(User_Network_Get_Bin(System_Config.Info.IP ,(uint8_t *)"/ota/hardware/H7-Core/app.bin" , System_Config.Info.SSLEN) == 1)
 //  {
@@ -155,12 +153,12 @@ int main(void)
 //  User_UART_RX_Fun = User_UART_Echo;
 //  User_UART_RX_Finished = User_UART_Finished_Demo;
 
-//   if (Bsp_ESP8266_Config("AT\r\n", 5, "OK", NULL, 30, 3) == 0) //测试是否正常
-//  {
-//    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
+   if (Bsp_ESP8266_Config("AT\r\n", 5, "OK", NULL, 5 , 5) == 0) //测试是否正常
+  {
+    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
 
 //    User_Network_Connect_AP("Moujiti" , "moujiti7222");
-//  }
+  }
 
   
 //User_UART_RX_Size_Max(1);
@@ -290,7 +288,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	else if(htim->Instance == TIM12)
 	{
     //User_UART_TX_Timer();
-		Bsp_ESP8266_Timer();
+//		Bsp_ESP8266_Timer();
 	}
 	
 }

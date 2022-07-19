@@ -24,7 +24,6 @@
 /* USER CODE BEGIN Includes */
 #include "Bsp_Uart.h"
 #include "app.h"
-#include "Bsp_Esp8266.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

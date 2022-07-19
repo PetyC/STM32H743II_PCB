@@ -2,7 +2,7 @@
  * @Description: 串口数据处理
  * @Autor: Pi
  * @Date: 2022-07-04 19:10:36
- * @LastEditTime: 2022-07-19 21:50:32
+ * @LastEditTime: 2022-07-20 01:21:19
  */
 #include "App_Uart.h"
 
@@ -26,6 +26,7 @@ static uint8_t Full_Half_Flag = 0; //接收数据满一半长度标志
 /*外部使用变量*/
 void (*User_UART_RX_Fun)(uint8_t *data, uint16_t len);
 void (*User_UART_RX_Finished)(uint8_t *data, uint16_t len);
+void (*User_UART_RX_None)(void);
 
 /*内部使用函数*/
 static uint8_t User_UART_Query_Timeout(void);
@@ -68,6 +69,10 @@ void User_UART_RX_Loop(void)
     Full_Half_Flag = 0;
     uint16_t size = Bsp_UART_Read(&huart1, Uart_Buffer, RX_Size_Max);
     User_UART_RX_Finished(Uart_Buffer, size); //则调用完成函数
+  }
+  else if((Full_Flag != 1) && (Full_Half_Flag != 1))
+  {
+    User_UART_RX_None();
   }
 }
 
