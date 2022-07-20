@@ -2,15 +2,15 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-04-14 16:11:43
- * @LastEditTime: 2022-07-19 20:18:43
+ * @LastEditTime: 2022-07-20 21:56:24
  */
 #include "Bsp_Uart.h"
 
 /* 串口缓存大小 */
 #define UART1_TX_BUF_SIZE 1024
-#define UART1_RX_BUF_SIZE 2048
+#define UART1_RX_BUF_SIZE (1024 * 2)
 #define UART1_DMA_TX_BUF_SIZE 1024
-#define UART1_DMA_RX_BUF_SIZE 2048
+#define UART1_DMA_RX_BUF_SIZE (1024 * 2)
 
 /* 串口缓存 */
 static uint8_t s_uart1_tx_buf[UART1_TX_BUF_SIZE];

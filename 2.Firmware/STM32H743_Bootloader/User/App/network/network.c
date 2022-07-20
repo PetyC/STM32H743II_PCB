@@ -2,7 +2,7 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:14
- * @LastEditTime: 2022-07-19 21:49:17
+ * @LastEditTime: 2022-07-20 22:11:58
  */
 #include "network.h"
 
@@ -12,6 +12,11 @@ extern TIM_HandleTypeDef htim12;
 
 /*内部使用函数*/
 static void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info);
+static Info_Str User_Network_Info_Process(uint8_t *data, uint16_t len);
+
+static void User_Network_Finished(uint8_t *data, uint16_t len);                      //串口接收数据处理完成函数指针
+static void User_Network_RX_Fun(uint8_t *data, uint16_t len);                           //串口接收数据处理函数指针
+
 
 struct 
 {
@@ -72,6 +77,9 @@ uint8_t User_Network_Connect_Tcp(uint8_t *IP, uint8_t Port, uint8_t Https_Enable
   }
 }
 
+uint8_t Finish_Flag = 0;
+uint8_t Info_Bufer[1024];
+uint16_t Info_Pos = 0;
 /**
  * @brief 发送Get请求获取版本信息
  * @param {uint8_t} *IP
@@ -82,20 +90,44 @@ uint8_t User_Network_Connect_Tcp(uint8_t *IP, uint8_t Port, uint8_t Https_Enable
  */
 uint8_t User_Network_Get_Info(uint8_t *IP, uint8_t *Info_Path, uint8_t SSLEN , Info_Str *Info)
 {
+
   /*发送失败*/
   if(Bsp_ESP8266_Send_Get_Request(IP , Info_Path , SSLEN) == 1)
   {
     return 1;
   }
+  
+  User_UART_RX_Fun = User_Network_RX_Fun;
+  User_UART_RX_Finished = User_Network_Finished;
 
-  /*设置超时时间50毫秒*/
-  User_Uart_RX_Timeout_Set(10);
+  do
+  {
+    User_UART_RX_Loop();
+  } while (Finish_Flag != 1);
+  
+  /*关闭连接*/
+  //Bsp_ESP8266_Config("AT+CIPCLOSE=0\r\n", 16, "0,CLOSED", NULL, 10, 3); //非透传模式
 
+  *Info = User_Network_Info_Process(Info_Bufer , sizeof(Info_Bufer));
 
   return 0;
   
 }
 
+
+ 
+void User_Network_RX_Fun(uint8_t *data, uint16_t len)                           //串口接收数据处理函数指针
+{
+  memcpy(Info_Bufer+Info_Pos , data , len);
+  Info_Pos += len;
+}
+
+void User_Network_Finished(uint8_t *data, uint16_t len)                      //串口接收数据处理完成函数指针
+{
+  memcpy(Info_Bufer+Info_Pos , data , len);
+  Info_Pos += len;
+  Finish_Flag = 1;
+}
 
 
 /**
@@ -220,25 +252,101 @@ static void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info)
   }
 }
 
-
-
+#define Bin_Buffer_Len 128
+uint8_t Bin_Buffer[Bin_Buffer_Len];
+uint8_t Updata_Flag = 0;
+uint16_t Updata_Tick = 0;
+uint32_t Updata_Size = 0;
+uint8_t IPD[] = "+IPD,0";
 
 uint8_t User_Network_Get_Bin(uint8_t *IP, uint8_t *Bin_Path, uint8_t SSLEN)
 {
+  
+  /*发送失败*/
+  if(Bsp_ESP8266_Send_Get_Request(IP , Bin_Path , SSLEN) == 1)
+  {
+    return 1;
+  }
 
-  Bsp_ESP8266_Send_Get_Request(IP , Bin_Path , SSLEN);
+  static uint8_t Http_End_Flag = 0;
+  static char http_End[] = "Accept-Ranges: bytes\r\n\r\n";  
+  static uint8_t RX_Count = 0;
 
-  /*设置接收数量*/
-  //User_UART_RX_Read_Len(1);
+  while(1)
+  {
+    uint16_t size = Bsp_UART_Get_RX_Buff_Occupy(&huart1);
+    
+    if(Http_End_Flag == 0)
+    {
+      if(size > 0)
+      {
+        uint8_t Temp;
+        Bsp_UART_Read(&huart1 , &Temp , 1);
 
-  /*设置串口功能*/
-  User_UART_RX_Fun = User_Network_Down_Flash;
- // User_UART_RX_Finished = User_APP_MCU_Flash_Finished;
+        if( http_End[RX_Count] == Temp )
+        {
+          RX_Count++;
+          if(RX_Count >= 24)
+          {
+            RX_Count = 0;
+            Http_End_Flag = 1;
+          }
+        }
+      }
+    }
+    else
+    {
+      if(size >= Bin_Buffer_Len)
+      {
+        Updata_Tick = 0;
+        Updata_Flag = 0;
+        HAL_TIM_Base_Stop_IT(&htim12);
+        __HAL_TIM_SET_COUNTER(&htim12 , 0);
+        uint16_t Tem = Bsp_UART_Read(&huart1 , Bin_Buffer , Bin_Buffer_Len);
+
+        
+        User_App_MCU_Flash_Updata(Bin_Buffer , Bin_Buffer_Len);
+        Updata_Size += Tem;
+      }
+      else
+      {
+        if(Updata_Flag == 0)
+        {
+          __HAL_TIM_CLEAR_FLAG(&htim12 , TIM_FLAG_UPDATE);
+          HAL_TIM_Base_Start_IT(&htim12);
+        }
+        else
+        {
+          uint16_t Tem = Bsp_UART_Read(&huart1 , Bin_Buffer , Bin_Buffer_Len);
+          User_App_MCU_Flash_Updata(Bin_Buffer , Bin_Buffer_Len);
+
+          Updata_Size += Tem;
+          return 0;
+        }
+      }
+    }
+
+  }
+
+  /*
+  User_Uart_RX_Timeout_Set(1000);
+  User_UART_RX_Fun = User_App_MCU_Flash_Updata;
+  User_UART_RX_Finished = User_Network_Finished;
+
+  do
+  {
+    User_UART_RX_Loop();
+  } while (Flash_Finished != 1);
+  */
+
+  /*关闭连接*/
+  //Bsp_ESP8266_Config("AT+CIPCLOSE=0\r\n", 16, "0,CLOSED", NULL, 10, 3); //非透传模式
+  
+  
 
 
 
 
-  return 0;
 }
 
 

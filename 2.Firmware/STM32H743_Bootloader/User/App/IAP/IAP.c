@@ -2,7 +2,7 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:36
- * @LastEditTime: 2022-07-14 16:28:59
+ * @LastEditTime: 2022-07-20 17:26:43
  */
 #include "IAP.h"
 #include <stdio.h>
@@ -132,8 +132,11 @@ void User_App_MCU_Flash_Updata(uint8_t *data , uint16_t len)
  * @brief 串口超过一定时间未接收到新数据 则也说明接收完成
  * @return {*}
  */
-void User_APP_MCU_Flash_Finished(void)
+void User_APP_MCU_Flash_Finished(uint8_t *data , uint16_t len)
 {
+  
+  User_App_MCU_Flash_Updata(data ,  len);
+
   Flash_Finished = 1;
 }
 

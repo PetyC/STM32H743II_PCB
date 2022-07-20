@@ -2,7 +2,7 @@
  * @Description: 串口数据处理
  * @Autor: Pi
  * @Date: 2022-07-04 19:10:39
- * @LastEditTime: 2022-07-20 01:18:14
+ * @LastEditTime: 2022-07-20 17:37:25
  */
 #ifndef APP_UART_H
 #define APP_UART_H
@@ -19,6 +19,9 @@ void User_UART_RX_Loop(void);
 
 /*设置从串口读取数据长度最大值*/
 void User_UART_RX_Size_Max(uint16_t Size);
+
+/*单帧最短长度*/
+void User_UART_RX_Overflow_Max(uint16_t Size);
 
 /*设置串口超时最大时间 默认5ms*/
 void User_Uart_RX_Timeout_Set(uint16_t Timeout);

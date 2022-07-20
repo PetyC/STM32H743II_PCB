@@ -2,7 +2,7 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:43
- * @LastEditTime: 2022-07-14 16:12:49
+ * @LastEditTime: 2022-07-20 17:27:00
  */
 #ifndef IAP_H
 #define IAP_H
@@ -87,7 +87,7 @@ uint8_t User_App_MCU_Flash_Erase(uint32_t APP_File_Size);
 void User_App_MCU_Flash_Updata(uint8_t *data , uint16_t len);
 
 /* 从串口接收APP数据 并写入内部FALSH完成*/
-void User_APP_MCU_Flash_Finished(void);
+void User_APP_MCU_Flash_Finished(uint8_t *data , uint16_t len);
 
 /*CRC校验写入MUC Flash数据*/
 uint8_t User_App_MCU_Flash_CRC(uint32_t APP_File_Size);

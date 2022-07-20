@@ -2,7 +2,7 @@
  * @Description: 串口数据处理
  * @Autor: Pi
  * @Date: 2022-07-04 19:10:36
- * @LastEditTime: 2022-07-20 01:21:19
+ * @LastEditTime: 2022-07-20 19:56:15
  */
 #include "App_Uart.h"
 
@@ -11,10 +11,11 @@ extern TIM_HandleTypeDef htim13;
 extern TIM_HandleTypeDef htim12;
 
 /*内部使用变量*/
-#define UART_BUFFER_LEN 512 //串口接收缓存长度
+#define UART_BUFFER_LEN 1024 //串口接收缓存长度
 #define UART_BUFFER_HALF (uint16_t)(UART_BUFFER_LEN / 2)
 uint8_t Uart_Buffer[UART_BUFFER_LEN]; //串口接收缓存
 
+static uint16_t Overflow_Max = UART_BUFFER_HALF;
 static uint16_t RX_Size_Max = UART_BUFFER_LEN; //单次读取长度
 
 static uint16_t Timeout_Max = 1; //串口接收超时最大时间   5ms * Timeout_Max = Timeout
@@ -72,7 +73,11 @@ void User_UART_RX_Loop(void)
   }
   else if((Full_Flag != 1) && (Full_Half_Flag != 1))
   {
-    User_UART_RX_None();
+    if(User_UART_RX_None != NULL)
+    {
+      User_UART_RX_None();  
+    }
+ 
   }
 }
 
@@ -149,6 +154,25 @@ void User_UART_RX_Size_Max(uint16_t Size)
     RX_Size_Max = UART_BUFFER_LEN;
   }
 }
+
+
+/**
+ * @brief 单帧最短长度
+ * @param {uint16_t} Size
+ * @return {*}
+ */
+void User_UART_RX_Overflow_Max(uint16_t Size)
+{
+  if(Overflow_Max > UART_BUFFER_LEN)
+  {
+    
+  }
+  else
+  {
+    Overflow_Max = Size;
+  }
+}
+
 
 /**
  * @brief 设置串口超时最大时间 默认5ms 5ms*Timeout=Timeout_Max

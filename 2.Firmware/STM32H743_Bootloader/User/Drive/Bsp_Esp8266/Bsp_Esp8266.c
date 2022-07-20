@@ -2,7 +2,7 @@
  * @Description: 重构
  * @Autor: Pi
  * @Date: 2022-07-19 21:58:01
- * @LastEditTime: 2022-07-20 01:22:34
+ * @LastEditTime: 2022-07-20 19:50:10
  */
 #include "Bsp_ESP8266.h"
 
@@ -21,6 +21,9 @@ enum
   OFF,          //关机
   ON,           //开机
 }ESP8266_State = OFF;
+
+
+
 
 /*内部使用函数*/
 static void Bsp_ESP8266_RX_Fun(uint8_t *Data, uint16_t Len);
@@ -62,12 +65,12 @@ uint8_t Bsp_ESP8266_Config(uint8_t *Data, uint8_t Len, uint8_t *Reply0, uint8_t 
   Reply_Target.Target1 = Reply1;
 
   /*设置超时时间*/
-  User_Uart_RX_Timeout_Set(5);
+  User_Uart_RX_Timeout_Set(Timeout);
 
   /*设置串口函数功能*/
   User_UART_RX_Fun = Bsp_ESP8266_RX_Fun;
   User_UART_RX_Finished = Bsp_ESP8266_RX_Finished;
-  User_UART_RX_None = Bsp_ESP8266_RX_None;
+ 
   
   for(uint8_t i = 0 ; i < Retry ; i++)
   {
@@ -86,17 +89,19 @@ uint8_t Bsp_ESP8266_Config(uint8_t *Data, uint8_t Len, uint8_t *Reply0, uint8_t 
       Reply_Target.Find_Flag = 0;
       return 0;
     }
+
+    /*若是超时*/
+    if (Reply_Target.Timeout_Flag == 1)
+    {
+      Reply_Target.Timeout_Flag = 0;
+    }
+
   }
 
   /*设置超时时间*/
   User_Uart_RX_Timeout_Set(1);
 
-  /*若是超时*/
-  if (Reply_Target.Timeout_Flag == 1)
-  {
-    Reply_Target.Timeout_Flag = 0;
-    return 1;
-  }
+  /*超时未找到*/
 
   return 1;
 
@@ -111,36 +116,14 @@ uint8_t Bsp_ESP8266_Config(uint8_t *Data, uint8_t Len, uint8_t *Reply0, uint8_t 
  */
 static void Bsp_ESP8266_RX_Fun(uint8_t *Data, uint16_t Len)
 {
-  if(ESP8266_State == OFF)
+  
+  if(strstr((char *)Data, (char *)Reply_Target.Target0) || strstr((char *)Data, (char *)Reply_Target.Target1))
   {
-    uint8_t data[] = "ready";
-    static uint8_t Target_Count = 0;
-
-    for(uint16_t i = 0 ; i< Len ; i++)
-    {
-      if(Data[i] == data[Target_Count])
-      {
-        Target_Count++;
-      }
-    }
-
-    if(Target_Count > 4)
-    {
-      /*目标找到*/
-      Reply_Target.Find_Flag = 1;
-      Target_Count = 0;
-    }
+    /*目标找到*/
+    Reply_Target.Find_Flag = 1;
+    Reply_Target.Timeout_Flag = 0;
   }
-  /*等待到目标语句*/
-  else 
-  {
-    if(strstr((char *)Data, (char *)Reply_Target.Target0) || strstr((char *)Data, (char *)Reply_Target.Target1))
-    {
-        /*目标找到*/
-      Reply_Target.Find_Flag = 1;
-      Reply_Target.Timeout_Flag = 0;
-    }
-  }
+  
 
 }
 
@@ -153,41 +136,19 @@ static void Bsp_ESP8266_RX_Fun(uint8_t *Data, uint16_t Len)
  */
 static void Bsp_ESP8266_RX_Finished(uint8_t *Data, uint16_t Len)
 {
-  if(ESP8266_State == OFF)
+
+  if(strstr((char *)Data, (char *)Reply_Target.Target0) || strstr((char *)Data, (char *)Reply_Target.Target1))
   {
-    uint8_t data[] = "ready";
-    static uint8_t Target_Count = 0;
-
-    for(uint16_t i = 0 ; i< Len ; i++)
-    {
-      if(Data[i] == data[Target_Count])
-      {
-        Target_Count++;
-      }
-    }
-
-    if(Target_Count > 4)
-    {
       /*目标找到*/
-      Reply_Target.Find_Flag = 1;
-      Target_Count = 0;
-    }
+    Reply_Target.Find_Flag = 1;
+    Reply_Target.Timeout_Flag = 0;
   }
-  /*等待到目标语句*/
-  else 
+  else
   {
-    if(strstr((char *)Data, (char *)Reply_Target.Target0) || strstr((char *)Data, (char *)Reply_Target.Target1))
-    {
-        /*目标找到*/
-      Reply_Target.Find_Flag = 1;
-      Reply_Target.Timeout_Flag = 0;
-    }
-    else
-    {
-      Reply_Target.Find_Flag = 0;
-      Reply_Target.Timeout_Flag = 1;
-    }
+    Reply_Target.Find_Flag = 0;
+    Reply_Target.Timeout_Flag = 1;
   }
+
 
 
 }
@@ -198,7 +159,8 @@ static void Bsp_ESP8266_RX_Finished(uint8_t *Data, uint16_t Len)
  */
 static void Bsp_ESP8266_RX_None(void)
 {
-  Reply_Target.Timeout_Flag = 1;
+//  Reply_Target.Timeout_Flag = 1;
+
 }
 
 /**
@@ -217,7 +179,7 @@ void Bsp_ESP8266_Power(uint8_t Enabel)
     return;
   }
 
-  /*
+
   Bsp_UART_RX_Enable(&huart1, 0);
 
    
@@ -228,17 +190,9 @@ void Bsp_ESP8266_Power(uint8_t Enabel)
   HAL_Delay(1000);
 
   Bsp_UART_RX_Enable(&huart1, 1);
-
-  return 0;
-  */
- // User_UART_RX_Size_Max(1);
-  HAL_GPIO_WritePin(ESP_POW_GPIO_Port, ESP_POW_Pin, GPIO_PIN_SET);
   
-  if(Bsp_ESP8266_Config(NULL , NULL , NULL , NULL , 50 , 1) == 0)
-  {
-    ESP8266_State = ON;
-  }
-//  User_UART_RX_Size_Max(512);
+   
+  
 }
 
 
@@ -249,20 +203,9 @@ void Bsp_ESP8266_Power(uint8_t Enabel)
  */
 void Bsp_ESP8266_Reset(void)
 {
-//  ESP8266_State = RST;
+
   uint8_t CMD[] = "AT+RESTORE\r\n";
   
-  /*
-  uint8_t Ret = Bsp_ESP8266_Config(CMD, sizeof(CMD), "ready", NULL, 3, 3);
-  if(Ret == 0)
-  {
-    ESP8266_State = ON;
-  }
-  else
-  {
-    ESP8266_State = RST;
-  }
-  */
   Bsp_UART_RX_Enable(&huart1, 0);
 
   Bsp_ESP8266_TX(CMD , sizeof(CMD));
@@ -284,10 +227,131 @@ void Bsp_ESP8266_Reset(void)
  */
 void Bsp_ESP8266_RST(void)
 {
+  Bsp_UART_RX_Enable(&huart1, 0);
   /*恢复出厂设置*/
   Bsp_ESP8266_TX((uint8_t *)"AT+RST\r\n", 13);
 
-  Bsp_UART_RX_Enable(&huart1, 0);
   HAL_Delay(1000);
   Bsp_UART_RX_Enable(&huart1, 1);
+}
+
+
+
+
+
+/**
+ * @brief ESP8266 WIFI连接
+ * @param {uint8_t} *SSID
+ * @param {uint8_t} *PAW
+ * @return {*}
+ */
+uint8_t Bsp_ESP8266_Connect_AP(uint8_t *SSID, uint8_t *PAW)
+{
+  /*复位模组*/
+  Bsp_ESP8266_RST();
+
+  Bsp_ESP8266_Reset();                                             //恢复出厂设置
+  Bsp_ESP8266_Config("ATE1\r\n", 7, "OK", NULL, 10, 3);             //关闭回显
+  Bsp_ESP8266_Config("AT+CWMODE_DEF=1\r\n", 18, "OK", NULL, 10, 3); // WIFI模式1 单station模式
+  Bsp_ESP8266_Config("AT+CWAUTOCONN=1\r\n", 18, "OK", NULL, 10, 3); //自动连接路由器
+
+  uint8_t Data[100] = {0};
+  uint8_t Len = sprintf((char *)Data, "AT+CWJAP_DEF=\"%s\",\"%s\"\r\n", SSID, PAW);
+  Bsp_ESP8266_Config(Data, Len, "OK", NULL, 10, 3); //设置连接的路由器
+
+  uint8_t Ret = Bsp_ESP8266_Config("AT+CIPSTATUS\r\n", 15, "STATUS:2", NULL, 50, 5); //等待连接成功
+
+  return Ret;
+}
+
+
+
+/**
+ * @brief 连接TCP服务器
+ * @param {uint8_t} *IP
+ * @param {uint8_t} Port
+ * @param {uint8_t} Https_Enable
+ * @return {uint8_t} 0:连接成功   1:连接失败
+ */
+uint8_t Bsp_ESP8266_Connect_TCP(uint8_t *IP, uint8_t Port, uint8_t Https_Enable)
+{
+  if (Bsp_ESP8266_Config("AT\r\n", 5, "OK", NULL, 10, 3) != 0) //测试是否正常
+  {
+    return 1;
+  }
+
+  if (Bsp_ESP8266_Config("AT+CIPSTATUS\r\n", 15, "STATUS:2", NULL, 50, 5) != 0) //测试是否连接上wifi
+  {
+    return 1;
+  }
+
+  uint8_t Data[100] = {0};
+  uint8_t Len = 0;
+
+  Bsp_ESP8266_Config("ATE0\r\n", 7, "OK", NULL, 10, 3);          //关闭回显
+  Bsp_ESP8266_Config("AT+CIPMODE=0\r\n", 15, "OK", NULL, 10, 3); //非透传模式
+
+  if (Https_Enable == 1)
+  {
+    Bsp_ESP8266_Config("AT+CIPSSLSIZE=4096\r\n", 21, "OK", NULL, 10, 3); //设置SSL缓存
+    Len = sprintf((char *)Data, "AT+CIPSTART=\"SSL\",\"%s\",%d\r\n", IP, Port);
+    Data[Len] = 0;
+  }
+  else
+  {
+    Bsp_ESP8266_Config("AT+CIPMUX=1\r\n", 14, "OK", NULL, 10, 3); //设置多连接
+    Len = sprintf((char *)Data, "AT+CIPSTART=%d,\"TCP\",\"%s\",%d\r\n", 0, IP, Port);
+    Data[Len] = 0;
+  }
+
+  uint8_t flag = Bsp_ESP8266_Config(Data, Len, "CONNECT", NULL, 10, 3); //建立TCP连接
+
+  return flag;
+}
+
+
+
+/**
+ * @brief ESP8266发送GET请求      
+ * @param {uint8_t} *IP
+ * @param {uint8_t} *Path
+ * @param {uint8_t} SSLEN
+ * @return {uint8_t} 0:成功   1:失败
+ */
+uint8_t Bsp_ESP8266_Send_Get_Request(uint8_t *IP, uint8_t *Path, uint8_t SSLEN)
+{
+  uint8_t tcp_buff[100] = {0};
+  uint8_t tcp_buff_Len = 0;
+
+  uint8_t AT_Buff[200];
+  uint8_t AT_Len = 0;
+
+  uint8_t tcp_http_index = 0;
+
+  //组合 get 指令
+  tcp_buff_Len = sprintf((char *)tcp_buff, "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n", Path, IP);
+
+  /*使用SSL*/
+  if (SSLEN == 1)
+  {
+    AT_Len = sprintf((char *)AT_Buff, "AT+CIPSEND=%d\r\n", tcp_buff_Len);
+  }
+  else
+  {
+    AT_Len = sprintf((char *)AT_Buff, "AT+CIPSEND=%d,%d\r\n", tcp_http_index, tcp_buff_Len);
+  }
+
+  /*设置连接ID和数据长度*/
+  if(Bsp_ESP8266_Config(AT_Buff, AT_Len, "OK", ">", 10, 5) == 0)
+  {
+    HAL_Delay(50);
+    /*发送Get请求到服务器*/
+    Bsp_ESP8266_TX(tcp_buff , tcp_buff_Len);
+    return 0;
+  }
+
+  return 1;
+
+  /*关闭连接*/
+  //Bsp_ESP8266_Config("AT+CIPCLOSE=0\r\n", 16, "0,CLOSED", NULL, 10, 3); //非透传模式
 }
