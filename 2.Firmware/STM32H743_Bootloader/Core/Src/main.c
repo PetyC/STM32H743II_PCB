@@ -119,41 +119,41 @@ int main(void)
   QSPI_W25Qx_Init();
   
   User_Config_Init();
-  
-  Bsp_ESP8266_Power(1);
+
+//  Bsp_ESP8266_Power(1);
 
     //Bsp_ESP8266_Reset();
 //  
 //  Bsp_ESP8266_RST();
   
-//  if(User_Network_Connect_AP((uint8_t *)"Moujiti" , (uint8_t *)"moujiti7222") == 0)
+//  if(User_Network_Connect_AP((uint8_t *)"TNY" , (uint8_t *)"23333333") == 0)
 //  {
 //    HAL_GPIO_WritePin(LED1_GPIO_Port , LED1_Pin , GPIO_PIN_RESET);
 //  }
   
-  User_App_MCU_Flash_Erase(70624);
-  while(Bsp_ESP8266_Config("AT+CIPSTATUS\r\n", 15, "STATUS:2", NULL, 200, 5) != 0);
+//  User_App_MCU_Flash_Erase(70624);
+//  while(Bsp_ESP8266_Config("AT+CIPSTATUS\r\n", 15, "STATUS:2", NULL, 200, 5) != 0);
 
-  if(User_Network_Connect_Tcp(System_Config.Info.IP , System_Config.Info.Port , System_Config.Info.SSLEN) == 1)
-  {
-    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
-  }
-  Info_Str temp;
-  if(User_Network_Get_Info(System_Config.Info.IP ,  System_Config.Info.Info_Path , System_Config.Info.SSLEN , &temp) == 1)
-  {
-    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
-  }
-  
 //  if(User_Network_Connect_Tcp(System_Config.Info.IP , System_Config.Info.Port , System_Config.Info.SSLEN) == 1)
 //  {
 //    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
 //  }
-
-  if(User_Network_Get_Bin(System_Config.Info.IP ,(uint8_t *)"/ota/hardware/H7-Core/app.bin" , System_Config.Info.SSLEN) == 1)
-  {
-    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
-  }
-  User_App_MCU_Flash_CRC(70624);
+//  Info_Str temp;
+//  if(User_Network_Get_Info(System_Config.Info.IP ,  System_Config.Info.Info_Path , System_Config.Info.SSLEN , &temp) == 1)
+//  {
+//    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
+//  }
+//  
+//  if(User_Network_Connect_Tcp(System_Config.Info.IP , System_Config.Info.Port , System_Config.Info.SSLEN) == 1)
+//  {
+//    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
+//  }
+  //"/ota/hardware/H7-Core/app.bin"  System_Config.Info.Info_Path
+//  if(User_Network_Get_Bin(System_Config.Info.IP ,"/ota/hardware/H7-Core/app.bin" , System_Config.Info.SSLEN) == 1)
+//  {
+//    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
+//  }
+//  User_App_MCU_Flash_CRC(70624);
 
 //  User_UART_RX_Fun = User_UART_Echo;
 //  User_UART_RX_Finished = User_UART_Finished_Demo;
@@ -165,7 +165,17 @@ int main(void)
 //    User_Network_Connect_AP("Moujiti" , "moujiti7222");
 //  }
 
- 
+uint8_t Buffer[1024]; 
+uint16_t add_offset = 0;
+for(uint16_t i = 0 ; i < 70 ; i++)
+{
+  Bsp_MCU_FLASH_Read(MCU_FLASH_APP_ADDR + add_offset, Buffer , sizeof(Buffer));
+  add_offset += 1024;
+  Bsp_UART_Write(&huart1 , Buffer , sizeof(Buffer));
+  Bsp_UART_Poll_DMA_TX(&huart1);
+
+  HAL_Delay(50);
+}
 
   
 //User_UART_RX_Size_Max(1);
@@ -279,14 +289,14 @@ void SystemClock_Config(void)
   }
 }
 
-extern uint16_t Updata_Tick;
-extern uint8_t Updata_Flag;
 /* USER CODE BEGIN 4 */
 /**
- * @brief 定时器中断回调函数
+ * @brief 定时器中断回调函�?
  * @param {TIM_HandleTypeDef} *htim
  * @return {*}
  */
+extern uint8_t Updata_Flag;
+extern uint16_t Updata_Tick;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if (htim->Instance == TIM13)

@@ -65,7 +65,7 @@ void HAL_QSPI_MspInit(QSPI_HandleTypeDef* qspiHandle)
   if(qspiHandle->Instance==QUADSPI)
   {
   /* USER CODE BEGIN QUADSPI_MspInit 0 */
-   __HAL_RCC_MDMA_CLK_ENABLE();		// �?启MDMA化时�?
+   __HAL_RCC_MDMA_CLK_ENABLE();		// �??启MDMA化时�??
   /* USER CODE END QUADSPI_MspInit 0 */
 
   /** Initializes the peripherals clock

@@ -2,7 +2,7 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:14
- * @LastEditTime: 2022-07-20 22:11:58
+ * @LastEditTime: 2022-07-21 04:51:23
  */
 #include "network.h"
 
@@ -252,12 +252,20 @@ static void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info)
   }
 }
 
-#define Bin_Buffer_Len 128
+
+
+#define Bin_Buffer_Len 1024
 uint8_t Bin_Buffer[Bin_Buffer_Len];
+uint16_t Bin_Buufer_Count = 0;
+uint8_t Temp_Bin;
+uint8_t Temp_Bin_Flag;
+
+uint8_t Updata_Enable = 0;
 uint8_t Updata_Flag = 0;
 uint16_t Updata_Tick = 0;
 uint32_t Updata_Size = 0;
-uint8_t IPD[] = "+IPD,0";
+ 
+static uint16_t Demo = 0;
 
 uint8_t User_Network_Get_Bin(uint8_t *IP, uint8_t *Bin_Path, uint8_t SSLEN)
 {
@@ -268,22 +276,37 @@ uint8_t User_Network_Get_Bin(uint8_t *IP, uint8_t *Bin_Path, uint8_t SSLEN)
     return 1;
   }
 
-  static uint8_t Http_End_Flag = 0;
-  static char http_End[] = "Accept-Ranges: bytes\r\n\r\n";  
-  static uint8_t RX_Count = 0;
+  static uint8_t Http_End_Flag = 0;                              //HTTP头接收完成
+  static char http_End[] = "Accept-Ranges: bytes\r\n\r\n";       //HTTP头
+  static uint8_t RX_Count = 0;                                   //HTTP接收字符位置
+
+  static uint8_t IPD[] = "\r\n+IPD,0,";
+  static uint8_t IPD_Count = 0;
+ 
+
+  uint8_t Temp_Data = 0;
 
   while(1)
   {
-    uint16_t size = Bsp_UART_Get_RX_Buff_Occupy(&huart1);
+    uint16_t Occup_Size = Bsp_UART_Get_RX_Buff_Occupy(&huart1);
     
-    if(Http_End_Flag == 0)
-    {
-      if(size > 0)
+    if(Occup_Size > 0)
+    { 
+      if(Updata_Enable == 1)
       {
-        uint8_t Temp;
-        Bsp_UART_Read(&huart1 , &Temp , 1);
+        Updata_Enable = 0;
+        Updata_Tick = 0;
+        Updata_Flag = 0;
+        HAL_TIM_Base_Stop_IT(&htim12);
+        __HAL_TIM_SET_COUNTER(&htim12 , 0);
+      }
 
-        if( http_End[RX_Count] == Temp )
+
+      /*等待接收到HTTP消息头*/
+      if(Http_End_Flag == 0)
+      {
+        Bsp_UART_Read(&huart1 , &Temp_Data , 1);
+        if( http_End[RX_Count] == Temp_Data )
         {
           RX_Count++;
           if(RX_Count >= 24)
@@ -292,20 +315,109 @@ uint8_t User_Network_Get_Bin(uint8_t *IP, uint8_t *Bin_Path, uint8_t SSLEN)
             Http_End_Flag = 1;
           }
         }
+        else
+        {
+          continue;
+        }
+      }
+      else
+      {
+        Bsp_UART_Read(&huart1 , &Temp_Data , 1);
+
+        if(Temp_Data == IPD[IPD_Count])
+        {
+          Temp_Bin = Temp_Data;
+          Temp_Bin_Flag = 1;
+          IPD_Count++;
+          
+        }
+        else if(IPD_Count > 8)
+        {
+          IPD_Count++;
+          if(Temp_Data == ':')
+          {
+            /*收到+IPD尾部*/
+            IPD_Count = 0;
+          }
+          
+        }
+        else
+        {
+          IPD_Count = 0;
+          /*存入数组*/
+          if(Temp_Bin_Flag == 1)
+          {
+            Temp_Bin_Flag = 0;
+            Bin_Buffer[Bin_Buufer_Count] = Temp_Bin;
+            Bin_Buufer_Count++;  
+
+            if(Bin_Buufer_Count == Bin_Buffer_Len)
+            {
+              Bin_Buufer_Count = 0;
+              /*写入内存*/
+              User_App_MCU_Flash_Updata(Bin_Buffer , Bin_Buffer_Len);
+              memset(Bin_Buffer , 0 , Bin_Buffer_Len);
+              Demo++;
+              continue;
+            }
+          }
+
+          Bin_Buffer[Bin_Buufer_Count] = Temp_Data;
+          Bin_Buufer_Count++;  
+
+          if(Bin_Buufer_Count == Bin_Buffer_Len)
+          {
+            Bin_Buufer_Count = 0;
+            /*写入内存*/
+            User_App_MCU_Flash_Updata(Bin_Buffer , Bin_Buffer_Len);
+            memset(Bin_Buffer , 0 , Bin_Buffer_Len);
+            Demo++;
+          }
+        }
       }
     }
     else
     {
-      if(size >= Bin_Buffer_Len)
+      /*开启定时器*/
+      if(Updata_Flag == 0)
+      {
+        Updata_Enable = 1;
+        __HAL_TIM_CLEAR_FLAG(&htim12 , TIM_FLAG_UPDATE);
+        HAL_TIM_Base_Start_IT(&htim12);
+      }
+      else
+      {
+        if(Bin_Buufer_Count > 0)
+        {
+          User_App_MCU_Flash_Updata(Bin_Buffer , Bin_Buufer_Count);
+          Bin_Buufer_Count = 0;
+          Demo++;
+          return 0;
+        }
+      }
+
+    }
+
+
+  }
+
+}
+
+/*
+    else
+    {
+      if(Occup_Size >= Bin_Buffer_Len)
       {
         Updata_Tick = 0;
         Updata_Flag = 0;
         HAL_TIM_Base_Stop_IT(&htim12);
         __HAL_TIM_SET_COUNTER(&htim12 , 0);
-        uint16_t Tem = Bsp_UART_Read(&huart1 , Bin_Buffer , Bin_Buffer_Len);
+        uint16_t Tem = Bsp_UART_Read(&huart1 , Bin_Buffer , 1);
 
+ 
         
-        User_App_MCU_Flash_Updata(Bin_Buffer , Bin_Buffer_Len);
+        
+        //User_App_MCU_Flash_Updata(Bin_Buffer , Bin_Buffer_Len);
         Updata_Size += Tem;
       }
       else
@@ -320,13 +432,23 @@ uint8_t User_Network_Get_Bin(uint8_t *IP, uint8_t *Bin_Path, uint8_t SSLEN)
           uint16_t Tem = Bsp_UART_Read(&huart1 , Bin_Buffer , Bin_Buffer_Len);
           User_App_MCU_Flash_Updata(Bin_Buffer , Bin_Buffer_Len);
 
-          Updata_Size += Tem;
+          Updata_Size += Tem; 
+
+       
+          Bsp_ESP8266_Config("AT+CIPCLOSE=0\r\n", 16, "0,CLOSED", NULL, 10, 3); //关闭连接
           return 0;
         }
       }
     }
+*/
 
-  }
+
+
+
+
+
+
+
 
   /*
   User_Uart_RX_Timeout_Set(1000);
@@ -347,7 +469,7 @@ uint8_t User_Network_Get_Bin(uint8_t *IP, uint8_t *Bin_Path, uint8_t SSLEN)
 
 
 
-}
+
 
 
 

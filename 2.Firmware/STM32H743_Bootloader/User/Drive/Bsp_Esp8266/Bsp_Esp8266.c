@@ -251,7 +251,7 @@ uint8_t Bsp_ESP8266_Connect_AP(uint8_t *SSID, uint8_t *PAW)
   Bsp_ESP8266_RST();
 
   Bsp_ESP8266_Reset();                                             //恢复出厂设置
-  Bsp_ESP8266_Config("ATE1\r\n", 7, "OK", NULL, 10, 3);             //关闭回显
+  Bsp_ESP8266_Config("ATE0\r\n", 7, "OK", NULL, 10, 3);             //关闭回显
   Bsp_ESP8266_Config("AT+CWMODE_DEF=1\r\n", 18, "OK", NULL, 10, 3); // WIFI模式1 单station模式
   Bsp_ESP8266_Config("AT+CWAUTOCONN=1\r\n", 18, "OK", NULL, 10, 3); //自动连接路由器
 
