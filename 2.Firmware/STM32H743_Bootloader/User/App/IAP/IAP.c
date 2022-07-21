@@ -2,24 +2,20 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:36
- * @LastEditTime: 2022-07-20 17:26:43
+ * @LastEditTime: 2022-07-22 00:21:30
  */
 #include "IAP.h"
 #include <stdio.h>
 
+/*HAL库相关句柄*/
+extern CRC_HandleTypeDef hcrc;
+
 /*APP跳转标志*/
 uint32_t APP_Jump_Flag __attribute__((at(0x20000000), zero_init));
 
+/*系统升级状态*/
+Flash_State_Str Flash_State = {0,0};
 
-
-/*Flash写入是否出错*/
-uint8_t Flash_Error = 0;
-
-/*Flash写入是否完成*/
-uint8_t Flash_Finished = 0;
-
-/*相关句柄*/
-extern CRC_HandleTypeDef hcrc;
 
 
 /**
@@ -114,31 +110,20 @@ void User_App_MCU_Flash_Updata(uint8_t *data , uint16_t len)
   Offset_ADDR += len;
 
   /*写入地址大于解析地址，则也说明固件下载完成*/
-  if(Offset_ADDR >= 70624)   //System_Config.Info.Bin_Size
+  if(Offset_ADDR >= System_Config.Info.Bin_Size)   //System_Config.Info.Bin_Size
   {
-    Flash_Finished = 1;
+    Flash_State.Finish = 1;
   }	
 	
 	
   /*FLASH写入出错*/
   if(Error == 1)
   {
-    Flash_Error = 1;
+    Flash_State.Error = 1;
   }
 
 }
 
-/**
- * @brief 串口超过一定时间未接收到新数据 则也说明接收完成
- * @return {*}
- */
-void User_APP_MCU_Flash_Finished(uint8_t *data , uint16_t len)
-{
-  
-  User_App_MCU_Flash_Updata(data ,  len);
-
-  Flash_Finished = 1;
-}
 
 
 

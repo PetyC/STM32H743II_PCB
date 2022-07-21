@@ -2,7 +2,7 @@
  * @Description: 重构
  * @Autor: Pi
  * @Date: 2022-07-19 21:58:01
- * @LastEditTime: 2022-07-20 19:50:10
+ * @LastEditTime: 2022-07-21 23:59:44
  */
 #include "Bsp_ESP8266.h"
 
@@ -157,11 +157,11 @@ static void Bsp_ESP8266_RX_Finished(uint8_t *Data, uint16_t Len)
  * @brief 串口无数据
  * @return {*}
  */
-static void Bsp_ESP8266_RX_None(void)
-{
-//  Reply_Target.Timeout_Flag = 1;
+//static void Bsp_ESP8266_RX_None(void)
+//{
+////  Reply_Target.Timeout_Flag = 1;
 
-}
+//}
 
 /**
  * @brief esp8266电源控制
@@ -309,7 +309,21 @@ uint8_t Bsp_ESP8266_Connect_TCP(uint8_t *IP, uint8_t Port, uint8_t Https_Enable)
   return flag;
 }
 
-
+/**
+ * @brief 关闭TCP连接
+ * @return {uint8_t}0:成功   1:失败
+ */
+uint8_t Bsp_ESP8266_Connect_TCP_Close(void)
+{
+  if(Bsp_ESP8266_Config("AT+CIPCLOSE=0\r\n", 16, "0,CLOSED", NULL, 10, 3) == 0)
+  {
+    return 0;
+  }
+  else
+  {
+    return 1;
+  }
+}
 
 /**
  * @brief ESP8266发送GET请求      
@@ -352,6 +366,4 @@ uint8_t Bsp_ESP8266_Send_Get_Request(uint8_t *IP, uint8_t *Path, uint8_t SSLEN)
 
   return 1;
 
-  /*关闭连接*/
-  //Bsp_ESP8266_Config("AT+CIPCLOSE=0\r\n", 16, "0,CLOSED", NULL, 10, 3); //非透传模式
 }

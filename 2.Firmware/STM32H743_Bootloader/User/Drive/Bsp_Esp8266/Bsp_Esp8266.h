@@ -36,6 +36,9 @@ uint8_t Bsp_ESP8266_Connect_AP(uint8_t *SSID, uint8_t *PAW);
 /*连接TCP服务器*/
 uint8_t Bsp_ESP8266_Connect_TCP(uint8_t *IP, uint8_t Port, uint8_t Https_Enable); 
 
+/*关闭TCP连接*/
+uint8_t Bsp_ESP8266_Connect_TCP_Close(void);
+
 /*发送GET请求*/
 uint8_t Bsp_ESP8266_Send_Get_Request(uint8_t *IP, uint8_t *Path, uint8_t SSLEN);
 

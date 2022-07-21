@@ -2,7 +2,7 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:43
- * @LastEditTime: 2022-07-20 17:27:00
+ * @LastEditTime: 2022-07-22 00:20:34
  */
 #ifndef IAP_H
 #define IAP_H
@@ -44,10 +44,6 @@
 
 
  
- 
- 
-
-
 /*系统状态*/
 typedef enum 
 {
@@ -63,7 +59,14 @@ typedef enum
 }SYS_State_Enum;
 
 
+/*系统升级状态*/
+typedef struct 
+{
+  uint8_t Error;
+  uint8_t Finish;
+}Flash_State_Str;
 
+extern Flash_State_Str Flash_State;
 
 /*IAP初始化*/
 void User_IAP_Init(void);
@@ -86,8 +89,6 @@ uint8_t User_App_MCU_Flash_Erase(uint32_t APP_File_Size);
 /* 从串口接收APP数据 并写入内部FALSH中*/
 void User_App_MCU_Flash_Updata(uint8_t *data , uint16_t len);
 
-/* 从串口接收APP数据 并写入内部FALSH完成*/
-void User_APP_MCU_Flash_Finished(uint8_t *data , uint16_t len);
 
 /*CRC校验写入MUC Flash数据*/
 uint8_t User_App_MCU_Flash_CRC(uint32_t APP_File_Size);
