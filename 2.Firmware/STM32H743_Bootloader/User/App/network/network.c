@@ -2,42 +2,27 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:14
- * @LastEditTime: 2022-07-21 04:51:23
+ * @LastEditTime: 2022-07-21 19:56:11
  */
 #include "network.h"
 
 /*HAL库句柄*/
 extern TIM_HandleTypeDef htim12;
 
-
 /*内部使用函数*/
 static void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info);
 static Info_Str User_Network_Info_Process(uint8_t *data, uint16_t len);
 
-static void User_Network_Finished(uint8_t *data, uint16_t len);                      //串口接收数据处理完成函数指针
-static void User_Network_RX_Fun(uint8_t *data, uint16_t len);                           //串口接收数据处理函数指针
+static void User_Network_Finished(uint8_t *data, uint16_t len); //串口接收数据处理完成函数指针
+static void User_Network_RX_Fun(uint8_t *data, uint16_t len);   //串口接收数据处理函数指针
 
-
-struct 
-{
-  uint16_t Max; // 100ms * 30 = 3S
-  uint16_t Count;
-  uint8_t  Flag;
-}Network_Timer;
-
-/*目标回复结构体*/
-/*
 struct
 {
+  uint16_t Count;
+  uint16_t Max;
   uint8_t Flag;
-  uint8_t *Target0;
-  uint8_t *Target1;
-} Reply_Target;
-*/
-//#define NETWORK_BUFF_LEN 1024
-//uint8_t NetWork_Buff[NETWORK_BUFF_LEN];
-
-
+  uint8_t Enable;
+} Network_Timer = {0, 20, 0, 0};
 
 /**
  * @brief 设置默认连接路由器
@@ -47,7 +32,7 @@ struct
  */
 uint8_t User_Network_Connect_AP(uint8_t *SSID, uint8_t *PAW)
 {
-  if(Bsp_ESP8266_Connect_AP(SSID , PAW) == 0)
+  if (Bsp_ESP8266_Connect_AP(SSID, PAW) == 0)
   {
     return 0;
   }
@@ -55,8 +40,7 @@ uint8_t User_Network_Connect_AP(uint8_t *SSID, uint8_t *PAW)
   {
     return 1;
   }
-
-} 
+}
 
 /**
  * @brief 连接TCP服务器
@@ -67,7 +51,7 @@ uint8_t User_Network_Connect_AP(uint8_t *SSID, uint8_t *PAW)
  */
 uint8_t User_Network_Connect_Tcp(uint8_t *IP, uint8_t Port, uint8_t Https_Enable)
 {
-  if(Bsp_ESP8266_Connect_TCP(IP , Port , Https_Enable) == 0)
+  if (Bsp_ESP8266_Connect_TCP(IP, Port, Https_Enable) == 0)
   {
     return 0;
   }
@@ -88,15 +72,15 @@ uint16_t Info_Pos = 0;
  * @param {uint8_t} Info
  * @return {*}
  */
-uint8_t User_Network_Get_Info(uint8_t *IP, uint8_t *Info_Path, uint8_t SSLEN , Info_Str *Info)
+uint8_t User_Network_Get_Info(uint8_t *IP, uint8_t *Info_Path, uint8_t SSLEN, Info_Str *Info)
 {
 
   /*发送失败*/
-  if(Bsp_ESP8266_Send_Get_Request(IP , Info_Path , SSLEN) == 1)
+  if (Bsp_ESP8266_Send_Get_Request(IP, Info_Path, SSLEN) == 1)
   {
     return 1;
   }
-  
+
   User_UART_RX_Fun = User_Network_RX_Fun;
   User_UART_RX_Finished = User_Network_Finished;
 
@@ -104,31 +88,27 @@ uint8_t User_Network_Get_Info(uint8_t *IP, uint8_t *Info_Path, uint8_t SSLEN , I
   {
     User_UART_RX_Loop();
   } while (Finish_Flag != 1);
-  
-  /*关闭连接*/
-  //Bsp_ESP8266_Config("AT+CIPCLOSE=0\r\n", 16, "0,CLOSED", NULL, 10, 3); //非透传模式
 
-  *Info = User_Network_Info_Process(Info_Bufer , sizeof(Info_Bufer));
+  /*关闭连接*/
+  // Bsp_ESP8266_Config("AT+CIPCLOSE=0\r\n", 16, "0,CLOSED", NULL, 10, 3); //非透传模式
+
+  *Info = User_Network_Info_Process(Info_Bufer, sizeof(Info_Bufer));
 
   return 0;
-  
 }
 
-
- 
-void User_Network_RX_Fun(uint8_t *data, uint16_t len)                           //串口接收数据处理函数指针
+void User_Network_RX_Fun(uint8_t *data, uint16_t len) //串口接收数据处理函数指针
 {
-  memcpy(Info_Bufer+Info_Pos , data , len);
+  memcpy(Info_Bufer + Info_Pos, data, len);
   Info_Pos += len;
 }
 
-void User_Network_Finished(uint8_t *data, uint16_t len)                      //串口接收数据处理完成函数指针
+void User_Network_Finished(uint8_t *data, uint16_t len) //串口接收数据处理完成函数指针
 {
-  memcpy(Info_Bufer+Info_Pos , data , len);
+  memcpy(Info_Bufer + Info_Pos, data, len);
   Info_Pos += len;
   Finish_Flag = 1;
 }
-
 
 /**
  * @brief Inof文本数据解析
@@ -257,252 +237,281 @@ static void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info)
 #define Bin_Buffer_Len 1024
 uint8_t Bin_Buffer[Bin_Buffer_Len];
 uint16_t Bin_Buufer_Count = 0;
-uint8_t Temp_Bin;
-uint8_t Temp_Bin_Flag;
 
-uint8_t Updata_Enable = 0;
-uint8_t Updata_Flag = 0;
-uint16_t Updata_Tick = 0;
-uint32_t Updata_Size = 0;
- 
-static uint16_t Demo = 0;
 
-uint8_t User_Network_Get_Bin(uint8_t *IP, uint8_t *Bin_Path, uint8_t SSLEN)
+void User_Network_Get_Bin(uint8_t *IP, uint8_t *Bin_Path, uint8_t SSLEN)
 {
-  
-  /*发送失败*/
-  if(Bsp_ESP8266_Send_Get_Request(IP , Bin_Path , SSLEN) == 1)
+
+  if (Bsp_ESP8266_Send_Get_Request(IP, Bin_Path, SSLEN) == 1)
   {
-    return 1;
+    return;
   }
 
-  static uint8_t Http_End_Flag = 0;                              //HTTP头接收完成
-  static char http_End[] = "Accept-Ranges: bytes\r\n\r\n";       //HTTP头
-  static uint8_t RX_Count = 0;                                   //HTTP接收字符位置
+  uint8_t Temp_Data;
 
-  static uint8_t IPD[] = "\r\n+IPD,0,";
-  static uint8_t IPD_Count = 0;
- 
 
-  uint8_t Temp_Data = 0;
-
+  /*循环找到HTTP头部*/
   while(1)
   {
+    uint8_t Data = 0;
     uint16_t Occup_Size = Bsp_UART_Get_RX_Buff_Occupy(&huart1);
-    
-    if(Occup_Size > 0)
-    { 
-      if(Updata_Enable == 1)
-      {
-        Updata_Enable = 0;
-        Updata_Tick = 0;
-        Updata_Flag = 0;
-        HAL_TIM_Base_Stop_IT(&htim12);
-        __HAL_TIM_SET_COUNTER(&htim12 , 0);
-      }
 
+    if (Occup_Size > 0)
+    {
+      Bsp_UART_Read(&huart1, &Temp_Data, 1);
 
-      /*等待接收到HTTP消息头*/
-      if(Http_End_Flag == 0)
+      if(User_Networt_IPD_Process(Temp_Data , &Data) == 0)
       {
-        Bsp_UART_Read(&huart1 , &Temp_Data , 1);
-        if( http_End[RX_Count] == Temp_Data )
+        if(User_Networt_HTTP_Process(Data) == 0)
         {
-          RX_Count++;
-          if(RX_Count >= 24)
-          {
-            RX_Count = 0;
-            Http_End_Flag = 1;
-          }
-        }
-        else
-        {
-          continue;
+          break;
         }
       }
-      else
+    }
+  }
+
+  /*数据部分*/
+  while (1)
+  {
+    uint8_t Data = 0;
+    uint16_t Occup_Size = Bsp_UART_Get_RX_Buff_Occupy(&huart1);
+
+    if (Occup_Size > 0)
+    {
+      if(Network_Timer.Enable == 1)
       {
-        Bsp_UART_Read(&huart1 , &Temp_Data , 1);
+        User_Networt_Timer_Enable(0);
+      }
 
-        if(Temp_Data == IPD[IPD_Count])
+      Bsp_UART_Read(&huart1, &Temp_Data, 1);
+
+      if(User_Networt_IPD_Process(Temp_Data , &Data) == 0)
+      {
+        Bin_Buffer[Bin_Buufer_Count] = Data;
+        Bin_Buufer_Count++;
+
+        if(Bin_Buufer_Count == Bin_Buffer_Len)
         {
-          Temp_Bin = Temp_Data;
-          Temp_Bin_Flag = 1;
-          IPD_Count++;
-          
-        }
-        else if(IPD_Count > 8)
-        {
-          IPD_Count++;
-          if(Temp_Data == ':')
-          {
-            /*收到+IPD尾部*/
-            IPD_Count = 0;
-          }
-          
-        }
-        else
-        {
-          IPD_Count = 0;
-          /*存入数组*/
-          if(Temp_Bin_Flag == 1)
-          {
-            Temp_Bin_Flag = 0;
-            Bin_Buffer[Bin_Buufer_Count] = Temp_Bin;
-            Bin_Buufer_Count++;  
-
-            if(Bin_Buufer_Count == Bin_Buffer_Len)
-            {
-              Bin_Buufer_Count = 0;
-              /*写入内存*/
-              User_App_MCU_Flash_Updata(Bin_Buffer , Bin_Buffer_Len);
-              memset(Bin_Buffer , 0 , Bin_Buffer_Len);
-              Demo++;
-              continue;
-            }
-          }
-
-          Bin_Buffer[Bin_Buufer_Count] = Temp_Data;
-          Bin_Buufer_Count++;  
-
-          if(Bin_Buufer_Count == Bin_Buffer_Len)
-          {
-            Bin_Buufer_Count = 0;
-            /*写入内存*/
-            User_App_MCU_Flash_Updata(Bin_Buffer , Bin_Buffer_Len);
-            memset(Bin_Buffer , 0 , Bin_Buffer_Len);
-            Demo++;
-          }
+          Bin_Buufer_Count = 0;
+          User_App_MCU_Flash_Updata(Bin_Buffer , Bin_Buffer_Len);
+          memset(Bin_Buffer , 0 , Bin_Buffer_Len);
         }
       }
     }
     else
     {
-      /*开启定时器*/
-      if(Updata_Flag == 0)
+      /*打开定时器*/
+      if(Network_Timer.Enable == 0)
       {
-        Updata_Enable = 1;
-        __HAL_TIM_CLEAR_FLAG(&htim12 , TIM_FLAG_UPDATE);
-        HAL_TIM_Base_Start_IT(&htim12);
+        User_Networt_Timer_Enable(1);
       }
-      else
+      
+      /*定时器超时*/
+      if(Network_Timer.Flag == 1)
       {
+        Network_Timer.Flag = 0;
+
         if(Bin_Buufer_Count > 0)
         {
-          User_App_MCU_Flash_Updata(Bin_Buffer , Bin_Buufer_Count);
           Bin_Buufer_Count = 0;
-          Demo++;
-          return 0;
+          User_App_MCU_Flash_Updata(Bin_Buffer , Bin_Buffer_Len);
+          memset(Bin_Buffer , 0 , Bin_Buffer_Len);
         }
+
+        return 0;
       }
 
     }
 
 
   }
-
+  
+    
 }
 
-/*
-    else
-    {
-      if(Occup_Size >= Bin_Buffer_Len)
-      {
-        Updata_Tick = 0;
-        Updata_Flag = 0;
-        HAL_TIM_Base_Stop_IT(&htim12);
-        __HAL_TIM_SET_COUNTER(&htim12 , 0);
-        uint16_t Tem = Bsp_UART_Read(&huart1 , Bin_Buffer , 1);
 
- 
-        
-        
-        //User_App_MCU_Flash_Updata(Bin_Buffer , Bin_Buffer_Len);
-        Updata_Size += Tem;
+
+
+
+struct 
+{
+  uint8_t Count;
+  uint8_t ID;
+  uint8_t Len_Count;
+}IPD;
+
+
+
+struct  
+{
+  uint16_t Data_Len;
+  uint8_t  Start;     
+  uint8_t  Flag;     //是否是网络数据
+}Recv; 
+
+
+
+
+
+
+
+
+
+
+/*功能已实现 待重构优化*/
+
+static uint8_t IPD_Count = 0;
+static uint8_t IPD_ID = 0;
+
+static uint16_t Recv_Data_Len = 0;
+static uint8_t Recv_Start = 0;
+static uint8_t Recv_Flag = 0;     //是否是网络数据
+static uint8_t Recv_Count = 0;    //接收到的数据长度 计数
+
+
+
+
+uint8_t User_Networt_IPD_Process(uint8_t data , uint8_t *return_data)
+{
+  uint8_t Ret = 1;
+  
+  /*返回网络数据*/
+  if(Recv_Flag == 1)
+  {
+    if(Recv_Data_Len > 0)    //还没结束
+    {
+      Recv_Data_Len--;
+      *return_data = data;
+      Ret = 0;
+    }
+    else      //数据结束
+    {
+      Recv_Flag = 0;
+      Recv_Data_Len = 0;
+      Recv_Start = 0;
+    }
+  }
+
+
+  /*接收到的数据个数*/
+  if(Recv_Start == 1)
+  {
+    if(Recv_Count <=5)
+    {
+      Recv_Count++;
+
+      if(data == ':')     //接收到数据长度
+      {
+        Recv_Start = 0;
+        Recv_Count = 0;
+        Recv_Flag = 1;
       }
       else
       {
-        if(Updata_Flag == 0)
+        if(data >= '0' && data <= '9')      //取出数据长度
         {
-          __HAL_TIM_CLEAR_FLAG(&htim12 , TIM_FLAG_UPDATE);
-          HAL_TIM_Base_Start_IT(&htim12);
-        }
-        else
-        {
-          uint16_t Tem = Bsp_UART_Read(&huart1 , Bin_Buffer , Bin_Buffer_Len);
-          User_App_MCU_Flash_Updata(Bin_Buffer , Bin_Buffer_Len);
-
-          Updata_Size += Tem; 
-
-       
-          Bsp_ESP8266_Config("AT+CIPCLOSE=0\r\n", 16, "0,CLOSED", NULL, 10, 3); //关闭连接
-          return 0;
+          Recv_Data_Len = Recv_Data_Len * 10;
+          Recv_Data_Len = Recv_Data_Len + (data -0x30);
         }
       }
     }
-*/
+    else
+    {
+      Recv_Count = 0;
+    }
 
+  }
 
-
-
-
-
-
-
-
-  /*
-  User_Uart_RX_Timeout_Set(1000);
-  User_UART_RX_Fun = User_App_MCU_Flash_Updata;
-  User_UART_RX_Finished = User_Network_Finished;
-
-  do
+  if(data == '+' && IPD_Count == 0)IPD_Count++;
+  else if(data == 'I' && IPD_Count == 1)IPD_Count++;
+  else if(data == 'P' && IPD_Count == 2)IPD_Count++;
+  else if(data == 'D' && IPD_Count == 3)IPD_Count++;
+  else if(data == ',' && IPD_Count == 4)IPD_Count++;
+  else if(data >= '0'	&& data <='9' && IPD_Count == 5){IPD_Count++;IPD_ID = data;}        /*自行决定是否需要返回ID号*/
+  else if(data == ',' && IPD_Count == 6){IPD_Count = 0 , Recv_Start = 1;  Recv_Count = 0; Recv_Data_Len = 0;}
+  else
   {
-    User_UART_RX_Loop();
-  } while (Flash_Finished != 1);
-  */
+    if(data == '+' && IPD_Count == 1)
+    {
+      IPD_Count = 1;
+    }
+    else
+    {
+      IPD_Count = 0;
+    }
+  }
 
-  /*关闭连接*/
-  //Bsp_ESP8266_Config("AT+CIPCLOSE=0\r\n", 16, "0,CLOSED", NULL, 10, 3); //非透传模式
-  
-  
-
-
-
-
-
-
+  return Ret;
+}
 
 
 
- 
 
-void User_Network_Down_Flash(uint8_t *Data , uint16_t Len)
+/**
+ * @brief 判断是否收到HTTP消息头 需要放在最前面进行解析
+ * @param {uint8_t} data    单个数据
+ * @return {uint8_t}  0:成功  1:失败
+ */
+uint8_t User_Networt_HTTP_Process(uint8_t data)
 {
-  static uint8_t Http_End_Flag = 0;
-  static char http_End[] = "Accept-Ranges: bytes\r\n\r\n";  
+  uint8_t http_End[] = "Accept-Ranges: bytes\r\n\r\n";
+
   static uint8_t RX_Count = 0;
 
-  if(Http_End_Flag == 0)
+  /*HTTP头消息未收到*/
+  if (http_End[RX_Count] == data)
   {
-    if( http_End[RX_Count] == Data[0] )
+    RX_Count++;
+    if (RX_Count >= 24)
     {
-
-      RX_Count++;
-      if(RX_Count >= 24)
-      {
-        RX_Count = 0;
-        Http_End_Flag = 1;
-        //User_UART_RX_Read_Len(0);
-      }
+      RX_Count = 0;
+      return 0;
     }
+  }
+  
+  return 1;
+}
+
+
+
+
+
+/**
+ * @brief 超时服务函数 放中断
+ * @return {*}
+ */
+void User_Networt_Timer(void)
+{
+  Network_Timer.Count++;
+
+  if (Network_Timer.Count >= Network_Timer.Max)
+  {
+    Network_Timer.Count = 0;
+    Network_Timer.Flag = 1;
+    HAL_TIM_Base_Stop_IT(&htim12);
+    __HAL_TIM_SET_COUNTER(&htim12, 0);
+  }
+}
+
+/**
+ * @brief 定时器使能
+ * @param {uint8_t} Enable
+ * @return {*}
+ */
+void User_Networt_Timer_Enable(uint8_t Enable)
+{
+  if (Enable)
+  {
+    Network_Timer.Count = 0;
+    Network_Timer.Enable = 1;
+    __HAL_TIM_CLEAR_FLAG(&htim12, TIM_FLAG_UPDATE);
+    HAL_TIM_Base_Start_IT(&htim12);
   }
   else
   {
-    User_UART_RX_Fun = User_App_MCU_Flash_Updata;
+    Network_Timer.Enable = 0;
+    Network_Timer.Count = 0;
+    HAL_TIM_Base_Stop_IT(&htim12);
+    __HAL_TIM_SET_COUNTER(&htim12, 0);
   }
-
-  
 }
-
-
-
