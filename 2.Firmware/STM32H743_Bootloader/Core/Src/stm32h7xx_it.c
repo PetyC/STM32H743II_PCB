@@ -23,7 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Bsp_Uart.h"
-#include "app.h"
+#include "User_config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

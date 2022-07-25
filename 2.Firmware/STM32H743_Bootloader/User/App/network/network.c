@@ -2,7 +2,7 @@
  * @Description:
  * @Autor: Pi
  * @Date: 2022-07-06 21:19:14
- * @LastEditTime: 2022-07-22 00:25:57
+ * @LastEditTime: 2022-07-25 19:23:56
  */
 #include "network.h"
 
@@ -12,8 +12,6 @@ extern TIM_HandleTypeDef htim12;
 /*内部使用函数*/
 static void User_Networt_Timer_Enable(uint8_t Enable);
 
-static void User_Network_Finished(uint8_t *data, uint16_t len); //串口接收数据处理完成函数指针
-static void User_Network_RX_Fun(uint8_t *data, uint16_t len);   //串口接收数据处理函数指针
 
 /*内部使用变量*/
 struct
@@ -25,11 +23,11 @@ struct
 } Network_Timer = {0, 20, 0, 0};
 
 /*公共缓存*/
-#define PUBLIC_BUFF_LEN 256
+#define PUBLIC_BUFF_LEN 1024
 uint8_t Public_Buff[PUBLIC_BUFF_LEN];
 uint16_t Public_Buff_Count = 0;
 
-uint8_t Finish_Flag = 0;
+
 
 /**
  * @brief 设置默认连接路由器
@@ -87,34 +85,109 @@ uint8_t User_Network_Get_Info(uint8_t *IP, uint8_t *Info_Path, uint8_t SSLEN, In
     return 1;
   }
 
-  User_UART_RX_Fun = User_Network_RX_Fun;
-  User_UART_RX_Finished = User_Network_Finished;
+  uint8_t Temp_Data;
 
-  do
+  /*循环找到HTTP头部*/
+  while (1)
   {
-    User_UART_RX_Loop();
-  } while (Finish_Flag != 1);
+    uint8_t Data = 0;
+    uint16_t Occup_Size = Bsp_UART_Get_RX_Buff_Occupy(&huart1);
 
-  /*关闭连接*/
-  Bsp_ESP8266_Connect_TCP_Close();
+    if (Occup_Size > 0)
+    {
+      if (Network_Timer.Enable == 1)
+      {
+        User_Networt_Timer_Enable(0);
+      }
 
-  *Info = User_Network_Info_Process(Public_Buff, PUBLIC_BUFF_LEN);
+      Bsp_UART_Read(&huart1, &Temp_Data, 1);
 
-  return 0;
+      if (User_Networt_IPD_Process(Temp_Data, &Data, NULL) == 0)
+      {
+        if (User_Networt_HTTP_Process(Data) == 0)
+        {
+          break;
+        }
+      }
+    }
+    else
+    {
+      /*打开定时器*/
+      if (Network_Timer.Enable == 0)
+      {
+        User_Networt_Timer_Enable(1);
+      }
+
+      /*定时器超时*/
+      if (Network_Timer.Flag == 1)
+      {
+        Network_Timer.Flag = 0;
+        Bsp_ESP8266_Connect_TCP_Close();
+        return 1;
+      }
+    }
+  }
+
+   /*数据部分*/
+  while (1)
+  {
+    uint8_t Data = 0;
+    uint16_t Occup_Size = Bsp_UART_Get_RX_Buff_Occupy(&huart1);
+
+    if (Occup_Size > 0)
+    {
+      if (Network_Timer.Enable == 1)
+      {
+        User_Networt_Timer_Enable(0);
+      }
+
+      Bsp_UART_Read(&huart1, &Temp_Data, 1);
+
+      if (User_Networt_IPD_Process(Temp_Data, &Data, NULL) == 0)
+      {
+        Public_Buff[Public_Buff_Count] = Data;
+        Public_Buff_Count++;
+
+        if (Public_Buff_Count == PUBLIC_BUFF_LEN)
+        {
+          Public_Buff_Count = 0;
+          *Info = User_Network_Info_Process(Public_Buff , PUBLIC_BUFF_LEN);
+          memset(Public_Buff, 0, PUBLIC_BUFF_LEN);
+        }
+      }
+    }
+    else
+    {
+      /*打开定时器*/
+      if (Network_Timer.Enable == 0)
+      {
+        User_Networt_Timer_Enable(1);
+      }
+
+      /*定时器超时*/
+      if (Network_Timer.Flag == 1)
+      {
+        Network_Timer.Flag = 0;
+
+        if (Public_Buff_Count > 0)
+        {
+          Public_Buff_Count = 0;
+          *Info = User_Network_Info_Process(Public_Buff , PUBLIC_BUFF_LEN);
+          memset(Public_Buff, 0, PUBLIC_BUFF_LEN);
+        }
+
+        /*关闭连接*/
+        Bsp_ESP8266_Connect_TCP_Close();
+        return 0;
+      }
+    }
+  }
+  
+
 }
 
-void User_Network_RX_Fun(uint8_t *data, uint16_t len) //串口接收数据处理函数指针
-{
-  memcpy(Public_Buff + Public_Buff_Count, data, len);
-  Public_Buff_Count += len;
-}
 
-void User_Network_Finished(uint8_t *data, uint16_t len) //串口接收数据处理完成函数指针
-{
-  memcpy(Public_Buff + Public_Buff_Count, data, len);
-  Public_Buff_Count += len;
-  Finish_Flag = 1;
-}
+
 
 /**
  * @brief 下载BIN文件至MCU内置FLASH中

@@ -30,7 +30,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "app.h"
 #include "IAP.h"
 #include "app_uart.h"
 #include "Bsp_w25qxx.h"
@@ -80,8 +79,8 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
-  // SCB->VTOR = FLASH_BASE | 0x4000;//设置中断偏移
-//  User_App_Jump_Init();
+
+  User_App_Jump_Init();
 
   /* USER CODE END 1 */
 
@@ -96,7 +95,6 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
-
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
@@ -115,62 +113,129 @@ int main(void)
   MX_TIM13_Init();
   MX_TIM12_Init();
   /* USER CODE BEGIN 2 */
-  // app_init();
+ 
   HAL_TIM_PWM_Start(&htim1 , TIM_CHANNEL_1);
 
   QSPI_W25Qx_Init();
-  
+
   User_Config_Init();
   
+  /*不需要在Bootloader中查询更新信息话*/
+  if(System_Config.Inquire == 0 && System_Config.Error == 0)
+  {
+    /*校验当前固件*/
+    if(User_App_MCU_Flash_CRC(System_Config.Info.Bin_Size) == 0)    //CRC正确 则跳转
+    {
+      /*跳转*/
+      User_App_Jump_Start();
+    }
+                                                           
+    /*校验错误 则从外置Flash拉取备份文件*/
 
-//  while(1);
-//  Bsp_ESP8266_Power(1);
+    /*擦除MCU Flash*/
+    User_App_MCU_Flash_Erase(System_Config.Info.Bin_Size);
 
-//  Bsp_ESP8266_Reset();
-//  
-//  Bsp_ESP8266_RST();
-  
-//  if(User_Network_Connect_AP((uint8_t *)"TNY" , (uint8_t *)"23333333") == 0)
-//  {
-//    HAL_GPIO_WritePin(LED1_GPIO_Port , LED1_Pin , GPIO_PIN_RESET);
-//  }
+    /*还原MCU Flash内容*/
+    User_App_Flash_Copy();
+    
+    /*再次校验*/
+    if(User_App_MCU_Flash_CRC(System_Config.Info.Bin_Size) == 0)    
+    {
+      /*跳转*/
+      User_App_Jump_Start();
+    }
 
-//  User_App_MCU_Flash_Erase(70624);
-//  while(Bsp_ESP8266_Config("AT+CIPSTATUS\r\n", 15, "STATUS:2", NULL, 200, 5) != 0);
+    /*设置极端错误标志*/
+    System_Config.Error = 1;
 
-//  if(User_Network_Connect_Tcp(System_Config.Info.IP , System_Config.Info.Port , System_Config.Info.SSLEN) == 1)
-//  {
-//    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
-//  }
-//  Info_Str temp;
-//  if(User_Network_Get_Info(System_Config.Info.IP ,  System_Config.Info.Info_Path , System_Config.Info.SSLEN , &temp) == 1)
-//  {
-//    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
-//  }
-//  
-//  Bsp_ESP8266_RST();
-//  
-//  while(Bsp_ESP8266_Config("AT+CIPSTATUS\r\n", 15, "STATUS:2", NULL, 200, 5) != 0);
-//  
-//  if(User_Network_Connect_Tcp(System_Config.Info.IP , System_Config.Info.Port , System_Config.Info.SSLEN) == 1)
-//  {
-//    HAL_GPIO_WritePin(LED2_GPIO_Port , LED2_Pin , GPIO_PIN_SET);
-//  }
-//  
-//    
+    User_Config_Set(System_Config);
+  }
 
-//  User_Network_Get_Bin(System_Config.Info.IP ,  "/ota/hardware/H7-Core/app.bin" , System_Config.Info.SSLEN);
+  /*若发生极端错误 或需要开机检查更新 */
 
-//  User_App_MCU_Flash_CRC(70624);
+  Bsp_ESP8266_Power(1);
+
+//User_Network_Connect_AP((uint8_t *)"Moujiti" , (uint8_t *)"moujiti7222");
+
+  Bsp_ESP8266_RST();
+
+  while(Bsp_ESP8266_Config("AT+CIPSTATUS\r\n", 15, "STATUS:2", NULL, 200, 5) != 0);
+
+  /*建立TCP通信*/
+  User_Network_Connect_Tcp(System_Config.Info.IP , System_Config.Info.Port , System_Config.Info.SSLEN);
+
+  Info_Str Temp_Info;
+
+  /*获取云端版本信息*/
+  User_Network_Get_Info(System_Config.Info.IP ,  System_Config.Info.Info_Path , System_Config.Info.SSLEN , &Temp_Info);
 
 
+  /*版本号相等 则无需更新*/
+  if(strcmp((char *)Temp_Info.Version  , (char *)System_Config.Info.Version) == 0 && System_Config.Error == 0)
+  {
+    User_App_Jump_Start();
+    /*正常情况下后面的不会执行了*/
+  }
+
+  /*需要更新*/
+  System_Config.Updata = 1;
+
+  /*更新除版本信息之外的信息*/
+  uint8_t Version[10] = {0};
+  memcpy(Version , System_Config.Info.Version , sizeof(System_Config.Info.Version));
+  System_Config.Info = Temp_Info;
+  memcpy(System_Config.Info.Version , Version , sizeof(System_Config.Info.Version));
+
+ 
+  /*保存配置写入到外置Flash*/
+  User_Config_Set(System_Config);
+	
+  if(System_Config.Error != 1)
+  {
+    /*备份至片外Flash*/
+    User_App_MCU_Flash_Copy();
+  }
 
 
+  /*擦除MCU Flash*/
+  User_App_MCU_Flash_Erase(System_Config.Info.Bin_Size);
+
+  Bsp_ESP8266_RST();
+  while(Bsp_ESP8266_Config("AT+CIPSTATUS\r\n", 15, "STATUS:2", NULL, 200, 5) != 0);
+
+  /*建立TCP通信*/
+  User_Network_Connect_Tcp(System_Config.Info.IP , System_Config.Info.Port , System_Config.Info.SSLEN);
+
+  /*下载APP到MCU Flash*/
+  User_Network_Down_Bin(System_Config.Info.IP ,  System_Config.Info.Bin_Path , System_Config.Info.SSLEN);
+
+  /*校验MCU Flash APP 正确性 */
+  if(User_App_MCU_Flash_CRC(System_Config.Info.Bin_Size) == 1)    //校验错误
+  {
+    /*擦除MCU Flash*/
+    User_App_MCU_Flash_Erase(System_Config.Info.Bin_Size);
+
+    /*还原MCU Flash内容*/
+    User_App_Flash_Copy();
+
+    /*跳转*/
+    User_App_Jump_Start();
+  }
+
+  /*更新Config*/
+  memcpy(System_Config.Info.Version , Temp_Info.Version , sizeof(Temp_Info.Version));
+
+  System_Config.Inquire = 0;
+  System_Config.Error = 0;
+  System_Config.Updata = 0;
+
+  User_Config_Set(System_Config);
+
+  /*跳转*/
+  User_App_Jump_Start();
 
 
-
-  
-//User_UART_RX_Size_Max(1);
+  /*正常情况不会运行到后面去*/
 
   /* USER CODE END 2 */
 
@@ -178,36 +243,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//    HAL_GPIO_TogglePin(LED2_GPIO_Port , LED2_Pin);
-//    HAL_Delay(800);
-//     User_UART_RX_Loop();
-//     User_UART_TX_Loop();
 
-
-
-//    /*写入完成 且无错误*/
-//    if(Flash_Finished == 1 && Flash_Error == 0)
-//    {
-//      Bsp_UART_Write(&huart1 , "MCU Flash Write OK!\r\n" , 25);
-//      Bsp_UART_Poll_DMA_TX(&huart1);
-//      
-
-//      /*CRC校验*/
-//      if(User_App_MCU_Flash_CRC(70624) == 0)
-//      {
-//        Bsp_UART_Write(&huart1 , "MCU Flash CRC OK!\r\n" , 25);
-//        Bsp_UART_Poll_DMA_TX(&huart1);
-//        HAL_Delay(500);
-//        /*准备跳入APP*/
-//        User_App_Jump_Start();
-//      }
-//    }
-
-//    if(Flash_Error == 1)
-//    {
-//      Bsp_UART_Write(&huart1 , "MCU Flash Write Error!\r\n" , 25);
-//      Bsp_UART_Poll_DMA_TX(&huart1);
-//    }
 
 
     // app_loop();

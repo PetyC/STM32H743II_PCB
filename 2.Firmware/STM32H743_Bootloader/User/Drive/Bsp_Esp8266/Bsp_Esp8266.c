@@ -2,7 +2,7 @@
  * @Description: 重构
  * @Autor: Pi
  * @Date: 2022-07-19 21:58:01
- * @LastEditTime: 2022-07-21 23:59:44
+ * @LastEditTime: 2022-07-25 19:21:31
  */
 #include "Bsp_ESP8266.h"
 
@@ -275,6 +275,8 @@ uint8_t Bsp_ESP8266_Connect_AP(uint8_t *SSID, uint8_t *PAW)
  */
 uint8_t Bsp_ESP8266_Connect_TCP(uint8_t *IP, uint8_t Port, uint8_t Https_Enable)
 {
+
+  
   if (Bsp_ESP8266_Config("AT\r\n", 5, "OK", NULL, 10, 3) != 0) //测试是否正常
   {
     return 1;

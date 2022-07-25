@@ -2,7 +2,7 @@
  * @Description: Bootloader跳转到APP程序
  * @Autor: Pi
  * @Date: 2022-07-01 16:53:36
- * @LastEditTime: 2022-07-22 00:21:30
+ * @LastEditTime: 2022-07-25 20:44:00
  */
 #include "IAP.h"
 #include <stdio.h>
@@ -216,14 +216,6 @@ uint8_t User_App_MCU_Flash_CRC(uint32_t APP_File_Size)
  */
 void User_IAP_Init(void)
 {
-  if(System_Config.Updata == 0 )
-  {
-    /*不需要升级 则跳转入APP中*/
-    //User_App_Jump_Start();
-  }
-  else
-  {
-
-  }
+  
 }
 

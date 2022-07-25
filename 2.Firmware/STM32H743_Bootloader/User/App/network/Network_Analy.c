@@ -2,7 +2,7 @@
  * @Description: 网络返回数据解析
  * @Autor: Pi
  * @Date: 2022-07-22 00:01:24
- * @LastEditTime: 2022-07-22 00:09:00
+ * @LastEditTime: 2022-07-25 19:04:35
  */
 #include "Network_Analy.h"
 
@@ -47,13 +47,16 @@ Info_Str User_Network_Info_Process(uint8_t *data, uint16_t len)
 
   cStringRestore();
 
-  /*服务器文件存放路径 */
-  pStr = StrBetwString((char *)data, "\"IP\":\"", "\",\"");
+  /*Url数据处理*/
+  User_Network_Url_Process(data , &Info);
+	
+
+  /*端口号*/
+  pStr = StrBetwString((char *)data, "\"Port\":\"", "\",\"");
+
+  Info.Port = atoi(pStr);
 
   cStringRestore();
-
-  /*Url数据处理*/
-  User_Network_Url_Process((uint8_t *)pStr, &Info);
 
   /*Info文件存放路径 */
   pStr = StrBetwString((char *)data, "\"Info_Path\":\"", ".txt\"");
@@ -79,15 +82,17 @@ Info_Str User_Network_Info_Process(uint8_t *data, uint16_t len)
  * @param {Info_Str} *Info  返回数据结构体
  * @return {*}
  */
-static void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info)
+static void User_Network_Url_Process(uint8_t *data, Info_Str *Info)
 {
+  char *pStr;
+  uint8_t pStr_Pos = 0;
+  /*服务器文件存放路径 */
+  pStr = StrBetwString((char *)data, "\"IP\":\"", "\",\"");
+  
   if (pStr == NULL || ((strlen((char *)pStr) < 5)))
   {
     return;
   }
-
-  uint8_t pStr_Pos = 0;
-
   /*https */
   if (memcmp(pStr, "https", 5) == 0)
   {
@@ -100,36 +105,10 @@ static void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info)
     Info->SSLEN = 0;
     pStr_Pos = 4;
   }
+   /*缓存IP*/
+  sprintf((char *)Info->IP, "%s", (char *)pStr + pStr_Pos + 3);
 
-  /*IP地址*/
-  uint8_t *pIP;
-
-  /*假设带端口号*/
-  pIP = (uint8_t *)StrBetwString((char *)pStr + pStr_Pos, "://", ":");
-
-  if (pIP != NULL)
-  {
-    /*缓存IP*/
-    sprintf((char *)Info->IP, "%s", pIP);
-
-    cStringRestore();
-
-    /*处理位置更新*/
-    pStr_Pos = pStr_Pos + 3 + strlen((char *)Info->IP) + 1;
-
-    /*缓存端口号*/
-    Info->Port = atoi((char *)pStr + pStr_Pos);
-  }
-  else //若为空则不带端口号
-  {
-    cStringRestore();
-
-    /*缓存IP*/
-    sprintf((char *)Info->IP, "%s", (char *)pStr + pStr_Pos + 3);
-
-    /*默认端口80*/
-    Info->Port = 80;
-  }
+  cStringRestore();
 }
 
 
