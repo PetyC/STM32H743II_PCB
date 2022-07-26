@@ -80,7 +80,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
 
 
-  User_App_Jump_Init();
+  //User_App_Jump_Init();
 
   /* USER CODE END 1 */
 
@@ -120,6 +120,10 @@ int main(void)
 
   User_Config_Init();
   
+	User_Networt_Apuconfig();
+	while(1);
+
+
   /*不需要在Bootloader中查询更新信息话*/
   if(System_Config.Inquire == 0 && System_Config.Error == 0)
   {

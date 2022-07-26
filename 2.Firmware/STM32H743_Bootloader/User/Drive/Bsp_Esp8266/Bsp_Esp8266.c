@@ -2,7 +2,7 @@
  * @Description: 重构
  * @Autor: Pi
  * @Date: 2022-07-19 21:58:01
- * @LastEditTime: 2022-07-25 19:21:31
+ * @LastEditTime: 2022-07-26 19:39:11
  */
 #include "Bsp_ESP8266.h"
 
@@ -28,7 +28,7 @@ enum
 /*内部使用函数*/
 static void Bsp_ESP8266_RX_Fun(uint8_t *Data, uint16_t Len);
 static void Bsp_ESP8266_RX_Finished(uint8_t *Data, uint16_t Len);
-static void Bsp_ESP8266_RX_None(void);
+//static void Bsp_ESP8266_RX_None(void);
 
 /**
  * @brief 发送AT消息到ESP8266
@@ -229,7 +229,7 @@ void Bsp_ESP8266_RST(void)
 {
   Bsp_UART_RX_Enable(&huart1, 0);
   /*恢复出厂设置*/
-  Bsp_ESP8266_TX((uint8_t *)"AT+RST\r\n", 13);
+  Bsp_ESP8266_TX((uint8_t *)"AT+RST\r\n", 8);
 
   HAL_Delay(1000);
   Bsp_UART_RX_Enable(&huart1, 1);

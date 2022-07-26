@@ -2,10 +2,9 @@
  * @Description: 网络返回数据解析
  * @Autor: Pi
  * @Date: 2022-07-22 00:01:24
- * @LastEditTime: 2022-07-25 19:04:35
+ * @LastEditTime: 2022-07-26 20:08:12
  */
 #include "Network_Analy.h"
-
 
 /*内部使用函数*/
 static void User_Network_Url_Process(uint8_t *pStr, Info_Str *Info);
@@ -48,8 +47,7 @@ Info_Str User_Network_Info_Process(uint8_t *data, uint16_t len)
   cStringRestore();
 
   /*Url数据处理*/
-  User_Network_Url_Process(data , &Info);
-	
+  User_Network_Url_Process(data, &Info);
 
   /*端口号*/
   pStr = StrBetwString((char *)data, "\"Port\":\"", "\",\"");
@@ -88,7 +86,7 @@ static void User_Network_Url_Process(uint8_t *data, Info_Str *Info)
   uint8_t pStr_Pos = 0;
   /*服务器文件存放路径 */
   pStr = StrBetwString((char *)data, "\"IP\":\"", "\",\"");
-  
+
   if (pStr == NULL || ((strlen((char *)pStr) < 5)))
   {
     return;
@@ -105,13 +103,11 @@ static void User_Network_Url_Process(uint8_t *data, Info_Str *Info)
     Info->SSLEN = 0;
     pStr_Pos = 4;
   }
-   /*缓存IP*/
+  /*缓存IP*/
   sprintf((char *)Info->IP, "%s", (char *)pStr + pStr_Pos + 3);
 
   cStringRestore();
 }
-
-
 
 /**
  * @brief 网络数据处理，剔除+IPD的标号
@@ -120,25 +116,26 @@ static void User_Network_Url_Process(uint8_t *data, Info_Str *Info)
  * @param {uint8_t} *ID   收到的网络连接ID号
  * @return {uint8_t} 0:有效数据   1:无效数据
  */
-uint8_t User_Networt_IPD_Process(uint8_t data , uint8_t *return_data , uint8_t *ID)
+uint8_t User_Networt_IPD_Process(uint8_t data, uint8_t *return_data, uint8_t *ID)
 {
+  static uint8_t IPD_Count0 = 0;
   static uint8_t IPD_Count = 0;
   static uint16_t Recv_Data_Len = 0;
   static uint8_t Recv_Start = 0;
-  static uint8_t Recv_Flag = 0;     //是否是网络数据
-  static uint8_t Recv_Count = 0;    //接收到的数据长度 计数
+  static uint8_t Recv_Flag = 0;  //是否是网络数据
+  static uint8_t Recv_Count = 0; //接收到的数据长度 计数
   uint8_t Ret = 1;
-  
+
   /*返回网络数据*/
-  if(Recv_Flag == 1)
+  if (Recv_Flag == 1)
   {
-    if(Recv_Data_Len > 0)    //还没结束
+    if (Recv_Data_Len > 0) //还没结束
     {
       Recv_Data_Len--;
       *return_data = data;
       Ret = 0;
     }
-    else      //数据结束
+    else //数据结束
     {
       Recv_Flag = 0;
       Recv_Data_Len = 0;
@@ -146,14 +143,13 @@ uint8_t User_Networt_IPD_Process(uint8_t data , uint8_t *return_data , uint8_t *
     }
   }
 
-
   /*接收到的数据个数*/
-  if(Recv_Start == 1)
+  if (Recv_Start == 1)
   {
-    if(Recv_Count <=5)
+    if (Recv_Count <= 5)
     {
       Recv_Count++;
-      if(data == ':')     //接收到数据长度
+      if (data == ':') //接收到数据长度
       {
         Recv_Start = 0;
         Recv_Count = 0;
@@ -161,10 +157,10 @@ uint8_t User_Networt_IPD_Process(uint8_t data , uint8_t *return_data , uint8_t *
       }
       else
       {
-        if(data >= '0' && data <= '9')      //取出数据长度
+        if (data >= '0' && data <= '9') //取出数据长度
         {
           Recv_Data_Len = Recv_Data_Len * 10;
-          Recv_Data_Len = Recv_Data_Len + (data -0x30);
+          Recv_Data_Len = Recv_Data_Len + (data - 0x30);
         }
       }
     }
@@ -172,19 +168,63 @@ uint8_t User_Networt_IPD_Process(uint8_t data , uint8_t *return_data , uint8_t *
     {
       Recv_Count = 0;
     }
-
   }
 
-  if(data == '+' && IPD_Count == 0)IPD_Count++;
-  else if(data == 'I' && IPD_Count == 1)IPD_Count++;
-  else if(data == 'P' && IPD_Count == 2)IPD_Count++;
-  else if(data == 'D' && IPD_Count == 3)IPD_Count++;
-  else if(data == ',' && IPD_Count == 4)IPD_Count++;
-  else if(data >= '0'	&& data <='9' && IPD_Count == 5){IPD_Count++; if(ID!=NULL){*ID = data;}}        
-  else if(data == ',' && IPD_Count == 6){IPD_Count = 0 , Recv_Start = 1;  Recv_Count = 0; Recv_Data_Len = 0;}
+  /*检测数据开头*/
+  if (data == '+' && IPD_Count0 == 0)
+    IPD_Count0++;
+  else if (data == 'I' && IPD_Count0 == 1)
+    IPD_Count0++;
+  else if (data == 'P' && IPD_Count0 == 2)
+    IPD_Count0++;
+  else if (data == 'D' && IPD_Count0 == 3)
+    IPD_Count0++;
+  else if (data == ',' && IPD_Count0 == 4)
+  {
+    IPD_Count0 = 0;
+    Recv_Start = 1;
+    Recv_Count = 0;
+    Recv_Data_Len = 0;
+  }
   else
   {
-    if(data == '+' && IPD_Count == 1)
+    if (data == '+' && IPD_Count0 == 1)
+    {
+      IPD_Count0 = 1;
+    }
+    else
+    {
+      IPD_Count0 = 0;
+    }
+  }
+
+  if (data == '+' && IPD_Count == 0)
+    IPD_Count++;
+  else if (data == 'I' && IPD_Count == 1)
+    IPD_Count++;
+  else if (data == 'P' && IPD_Count == 2)
+    IPD_Count++;
+  else if (data == 'D' && IPD_Count == 3)
+    IPD_Count++;
+  else if (data == ',' && IPD_Count == 4)
+    IPD_Count++;
+  else if (data >= '0' && data <= '9' && IPD_Count == 5)
+  {
+    IPD_Count++;
+    if (ID != NULL)
+    {
+      *ID = data;
+    }
+  }
+  else if (data == ',' && IPD_Count == 6)
+  {
+    IPD_Count = 0, Recv_Start = 1;
+    Recv_Count = 0;
+    Recv_Data_Len = 0;
+  }
+  else
+  {
+    if (data == '+' && IPD_Count == 1)
     {
       IPD_Count = 1;
     }
@@ -196,9 +236,6 @@ uint8_t User_Networt_IPD_Process(uint8_t data , uint8_t *return_data , uint8_t *
 
   return Ret;
 }
-
-
-
 
 /**
  * @brief 判断是否收到HTTP消息头 需要放在最前面进行解析
@@ -221,6 +258,63 @@ uint8_t User_Networt_HTTP_Process(uint8_t data)
       return 0;
     }
   }
-  
+
   return 1;
+}
+
+/**
+ * @brief 获取模组MAC地址
+ * @param {uint8_t} *data  接收到的数据
+ * @param {uint16_t} length
+ * @return {uint8_t} 0: 成功    1:失败
+ */
+void User_Networt_Get_Mac(uint8_t *data, uint16_t length)
+{
+
+  char *str;
+
+  str = StrBetwString((char *)data, "MAC_CUR:\"", "\""); //得到MAC
+
+  if (str != NULL)
+  {
+    if (strlen(str) == 17)
+    {
+      memset((char *)Network_Info.MAC, 0, sizeof(Network_Info.MAC));
+      memcpy((char *)Network_Info.MAC, str, 17);
+    }
+
+  }
+
+  cStringRestore();
+
+  
+}
+
+/**
+ * @brief 解析UDP数据
+ * @param {uint8_t} *data
+ * @param {uint16_t} length
+ * @return {uint8_t} 0: 成功    1:失败
+ */
+void User_Networt_Udp_Data(uint8_t *data, uint16_t length)
+{
+ 
+  char *str;
+
+  str = StrBetwString((char *)data, "\"ssid\":\"", "\""); //获取ssid
+  if (str != NULL)
+  {
+    memset((char *)Network_Info.SSID, 0, sizeof(Network_Info.SSID));
+    sprintf((char *)Network_Info.SSID, "%s", str);
+    cStringRestore();
+
+    str = StrBetwString((char *)data, "\"pwd\":\"", "\""); //获取pwd
+    if (str != NULL)
+    {
+      memset((char *)Network_Info.PAW, 0, sizeof(Network_Info.PAW));
+      sprintf((char *)Network_Info.PAW, "%s", str);
+     
+    }
+  }
+  cStringRestore();
 }
